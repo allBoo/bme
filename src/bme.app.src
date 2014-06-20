@@ -1,11 +1,13 @@
 {application, bme,
  [
-  {description, ""},
+  {description, "Combats-like battle manager"},
   {vsn, "1"},
   {registered, []},
   {applications, [
                   kernel,
-                  stdlib
+                  stdlib,
+                  sasl,
+                  gproc
                  ]},
   {mod, { bme_app, []}},
   {env, []}
