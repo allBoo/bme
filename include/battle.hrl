@@ -4,7 +4,7 @@
 
 %% уровень персонажей поединка
 -record(b_level, {min = 0  :: integer(),
-				  max = 21 :: integer()
+                  max = 21 :: integer()
         }).
 
 %% информация о бое

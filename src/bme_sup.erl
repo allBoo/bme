@@ -35,16 +35,29 @@ start_link() ->
 
 start_battle(Battle) when (is_record(Battle, battle) and (Battle#battle.id == 0)) ->
 	?DBG("Start new battle ~p~n", [Battle#battle.id]),
-	ok;
+	%% @todo create battle record
+	start_battle(Battle#battle{id = 1});
 
 start_battle(Battle) when is_record(Battle, battle) ->
 	?DBG("Restore exists battle ~p~n", [Battle#battle.id]),
-	?ERROR_UNCOMPLETED.
+	supervisor:start_child(?MODULE, [Battle]).
 
 %% ===================================================================
 %% Supervisor callbacks
 %% ===================================================================
 
 init([]) ->
-    {ok, { {simple_one_for_one, 5, 10}, []} }.
+	Restart  = transient,
+	Shutdown = infinity,
+	Type     = supervisor,
+
+	Children =
+		[
+			{battle, {battle_sup, start_link, []},
+			Restart, Shutdown, Type, [battle_sup]}
+		],
+
+	Strategy = simple_one_for_one,
+	MaxR = 10, MaxT = 10,
+	{ok, {{Strategy, MaxR, MaxT}, Children}}.
 

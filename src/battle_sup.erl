@@ -13,13 +13,17 @@
 
 -module(battle_sup).
 -behaviour(supervisor).
+-include_lib("bme.hrl").
+
 -export([init/1]).
 
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([]).
+-export([start_link/1]).
 
+start_link(Battle) ->
+    supervisor:start_link({local, ?MODULE}, ?MODULE, [Battle]).
 
 
 %% ====================================================================
@@ -43,10 +47,9 @@
 				   | temporary,
 	Modules :: [module()] | dynamic.
 %% ====================================================================
-init([]) ->
-    AChild = {'AName',{'AModule',start_link,[]},
-	      permanent,2000,worker,['AModule']},
-    {ok,{{one_for_all,0,1}, [AChild]}}.
+init([Battle]) ->
+	?DBG("Start battle supervisor for ID ~p~n", [Battle#battle.id]),
+	{ok,{{one_for_all,0,1}, []}}.
 
 %% ====================================================================
 %% Internal functions
