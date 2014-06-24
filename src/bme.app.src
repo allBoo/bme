@@ -1,13 +1,15 @@
+%% -*- coding: utf-8 -*-
 {application, bme,
  [
-  {description, "Combats-like battle manager"},
+  {description, "Combats-like (combats.com) battle manager"},
   {vsn, "1"},
   {registered, []},
   {applications, [
                   kernel,
                   stdlib,
                   sasl,
-                  gproc
+                  gproc,
+                  erlsom
                  ]},
   {mod, { bme_app, []}},
   {env, []}

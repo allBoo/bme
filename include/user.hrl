@@ -15,6 +15,15 @@
                  sex   = 0
        }).
 
+%% описание шмоток
+-record(u_clother_item, {name = <<"">>
+       }).
+
+%% одетые шмотки
+-record(u_clother, {cost = 0,
+				   head = #'u_clother_item'{}
+       }).
+
 %% уровни ХМ и маны
 -record(u_vitality, {hp      = 0,    %% уровень жизни
                      maxhp   = 0,    %% максимальный уровень жизни
@@ -129,6 +138,7 @@
                city,
                room,
                info  = #'u_info'{},		%% информация о персонаже
+               clother = #'u_clother'{},	%% шмот
                vitality = #'u_vitality'{},	%% уровни ХМ и маны
                stats = #'u_stats'{},	%% статы
                mfs = #'u_mf'{},			%% модификаторы
