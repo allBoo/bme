@@ -132,11 +132,24 @@
                         gray    = 0.0    %% защита от серой магии
        }).
 
+
+%% боевые тактики
+-record(b_tactics, {attack  = 0,
+                    crit    = 0,
+                    counter = 0,
+                    block   = 0,
+                    parry   = 0,
+                    hearts  = 0,
+                    spirit  = 0
+       }).
+
+
 %% информация о персонаже
 -record(user, {id,
                login,
                city,
                room,
+               alive = 1,
                info  = #'u_info'{},		%% информация о персонаже
                clother = #'u_clother'{},	%% шмот
                vitality = #'u_vitality'{},	%% уровни ХМ и маны
@@ -147,7 +160,8 @@
                wpower = #'u_wpower'{},	%% мощь магии
                armor  = #'u_armor'{},	%% броня
                dprotection = #'u_dprotection'{}, 	%% защита от урона
-               wprotection = #'u_wprotection'{} 	%% защита от магии
+               wprotection = #'u_wprotection'{},	%% защита от магии
+               tactics = #'b_tactics'{}				%% боевые тактики
 %% умелки
 %% одетые приемы
 %% одетые заклинания

@@ -71,7 +71,7 @@ start_haot(UsersIds, City, Options) ->
 										 city = City,
 										 room = FirstUser#user.city,
 										 timeout = proplists:get_value(timeout, Properties, 5),
-										 sides = Teams
+										 teams = Teams
 										});
 		false ->
 			?ERROR_LOW_TEAM

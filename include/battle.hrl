@@ -15,31 +15,11 @@
                  room,
                  timeout,
                  started_at,
-                 sides = []
+                 teams = []
        }).
 
 %% команда
 -record(b_team, {id,
-                 color,
+                 max_cost = 0,
                  members = []
        }).
-
-
-%% боевые тактики
--record(b_tactics, {attack  = 0,
-					crit    = 0,
-					counter = 0,
-					block   = 0,
-					parry   = 0,
-					hearts  = 0
-       }).
-
-
-%% участник боя
--record(b_member, {id,
-				   user   = #user{},
-				   alive  = 1,
-				   spirit = 0,
-				   tactics = #'b_tactics'{}
-       }).
-
