@@ -13,14 +13,17 @@
 
 -module(team_sup).
 -behaviour(supervisor).
+-include_lib("bme.hrl").
 -export([init/1]).
 
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([]).
+-export([start_link/1]).
 
-
+start_link(Team) when is_record(Team, b_team) ->
+	?DBG("Try Start team supervisor ~p~n", [Team#b_team.id]),
+    supervisor:start_link(?MODULE, [Team]).
 
 %% ====================================================================
 %% Behavioural functions
@@ -43,10 +46,9 @@
 				   | temporary,
 	Modules :: [module()] | dynamic.
 %% ====================================================================
-init([]) ->
-    AChild = {'AName',{'AModule',start_link,[]},
-	      permanent,2000,worker,['AModule']},
-    {ok,{{one_for_all,0,1}, [AChild]}}.
+init([Team]) ->
+	?DBG("Start team supervisor ~p~n", [Team#b_team.id]),
+    {ok,{{one_for_all,0,1}, []}}.
 
 %% ====================================================================
 %% Internal functions

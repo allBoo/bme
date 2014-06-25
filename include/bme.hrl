@@ -14,6 +14,13 @@
 -include_lib("battle.hrl").
 
 %%% ====================================================================
+%%% Helper macro for declaring children of supervisor
+%%% ====================================================================
+-define(BATTLE(Battle), {Battle#battle.id, {battle, start_link, [Battle]}, transient, 5000, worker, [battle]}).
+-define(TEAM_SUP(Team), {Team#b_team.id, {team_sup, start_link, [Team]}, transient, infinity, supervisor, [team_sup]}).
+
+
+%%% ====================================================================
 %%% Списки комнат
 %%% ====================================================================
 

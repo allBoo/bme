@@ -23,9 +23,6 @@
 %% Supervisor callbacks
 -export([init/1]).
 
-%% Helper macro for declaring children of supervisor
--define(BATTLE(Battle), {Battle#battle.id, {battle_sup, start_link, [Battle]}, permanent, 5000, supervisor, [battle_sup]}).
-
 %% ===================================================================
 %% API functions
 %% ===================================================================
@@ -36,7 +33,7 @@ start_link() ->
 start_battle(Battle) when (is_record(Battle, battle) and (Battle#battle.id == 0)) ->
 	?DBG("Start new battle ~p~n", [Battle#battle.id]),
 	%% @todo create battle record
-	start_battle(Battle#battle{id = 1});
+	start_battle(Battle#battle{id = random:uniform(100)});
 
 start_battle(Battle) when is_record(Battle, battle) ->
 	?DBG("Restore exists battle ~p~n", [Battle#battle.id]),
