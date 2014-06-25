@@ -6,23 +6,39 @@
 %%% Author contact: alboo@list.ru
 
 %%% ====================================================================
-%%% Супервизор команды в бою
-%%% Управление списком участников боя с одной стороны
+%%% Супервизор всех боев
+%%% Запускает новые поединки, распределяет нагрузку по нодам
 %%% ====================================================================
 
 
--module(team_sup).
+-module(battles_sup).
 -behaviour(supervisor).
 -include_lib("bme.hrl").
+
+%% API
+-export([start_link/0, start_battle/1]).
+
+%% Supervisor callbacks
 -export([init/1]).
 
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_link/1]).
 
-start_link(Team) when is_record(Team, b_team) ->
-	supervisor:start_link(?MODULE, [Team]).
+start_link() ->
+    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
+
+start_battle(Battle) when (is_record(Battle, battle) and (Battle#battle.id == 0)) ->
+	?DBG("Start new battle ~p~n", [Battle#battle.id]),
+	%% @todo create battle record
+	start_battle(Battle#battle{id = random:uniform(100)});
+
+start_battle(Battle) when is_record(Battle, battle) ->
+	?DBG("Restore exists battle ~p~n", [Battle#battle.id]),
+	supervisor:start_child(?MODULE, [Battle]).
+
+
+
 
 %% ====================================================================
 %% Behavioural functions
@@ -45,10 +61,20 @@ start_link(Team) when is_record(Team, b_team) ->
 				   | temporary,
 	Modules :: [module()] | dynamic.
 %% ====================================================================
-init([Team]) ->
-	?DBG("Start team supervisor ~p~n", [{Team#b_team.battle_id, Team#b_team.id}]),
-	true = gproc:add_local_name({team_sup, Team#b_team.battle_id, Team#b_team.id}),
-    {ok,{{one_for_all,0,1}, []}}.
+init([]) ->
+Restart  = transient,
+	Shutdown = infinity,
+	Type     = supervisor,
+
+	Children =
+		[
+			{battle, {battle_sup, start_link, []},
+			Restart, Shutdown, Type, [battle_sup]}
+		],
+
+	Strategy = simple_one_for_one,
+	MaxR = 10, MaxT = 10,
+	{ok, {{Strategy, MaxR, MaxT}, Children}}.
 
 %% ====================================================================
 %% Internal functions

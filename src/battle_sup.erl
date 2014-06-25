@@ -23,7 +23,7 @@
 -export([start_link/1]).
 
 start_link(Battle) when is_record(Battle, battle) ->
-    supervisor:start_link(?MODULE, [Battle]).
+	supervisor:start_link(?MODULE, [Battle]).
 
 
 %% ====================================================================
@@ -52,8 +52,8 @@ init([Battle]) ->
 	%% регистрируем имя супервайзера
 	true = gproc:add_local_name({battle_sup, Battle#battle.id}),
 
-	%% запускаем ген-сервер боя
-	Children = [?BATTLE(Battle)] ++ lists:map(fun(Team) -> ?TEAM_SUP(Team) end, Battle#battle.teams),
+	%% запускаем ген-сервер боя и супервайзеры команд
+	Children = [?BATTLE(Battle)] ++ lists:map(fun(Team) -> ?TEAM_SUP(Battle, Team) end, Battle#battle.teams),
 	Strategy = one_for_one,
 	MaxR = 0, MaxT = 1,
 	{ok, {{Strategy, MaxR, MaxT}, Children}}.

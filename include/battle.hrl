@@ -20,6 +20,7 @@
 
 %% команда
 -record(b_team, {id,
+                 battle_id = 0,
                  max_cost = 0,
                  members = []
        }).

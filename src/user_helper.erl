@@ -26,12 +26,12 @@ get(_) ->
 split_teams(Users, TeamsCount, default) ->
 	%% маппим список юзеров на стоимость обмундирования, сортируем и в цикле раскидываем по командам
 	Sorted = [X||{_,X} <- lists:sort([ {(N#user.clother)#u_clother.cost, N} || N <- Users])],
-	battle_helper:create_teams(create_pick_teams(Sorted, TeamsCount));
+	create_pick_teams(Sorted, TeamsCount);
 
 split_teams(Users, TeamsCount, random) ->
 	%% перемешиваем список юзеров и раскидываем по командам
 	Shuffled = [X||{_,X} <- lists:sort([ {random:uniform(), N} || N <- Users])],
-	battle_helper:create_teams(create_list_teams(Shuffled, TeamsCount)).
+	create_list_teams(Shuffled, TeamsCount).
 
 %% ====================================================================
 %% Internal functions
