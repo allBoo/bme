@@ -27,12 +27,20 @@ create_teams(Teams) ->
 %% ====================================================================
 
 create_team(Team, Index) ->
+	%% считаем самого жирного по обвесу
 	MaxCost = lists:foldl(fun(User, Max) ->
-								case (User#user.clother)#u_clother.cost > Max of
+								case (User#user.dress)#u_dress.cost > Max of
 									true ->
-										(User#user.clother)#u_clother.cost;
+										(User#user.dress)#u_dress.cost;
 									false ->
 										Max
 								end
 						   end, 0, Team),
-	{#b_team{id = Index, max_cost = MaxCost, members = Team}, Index + 1}.
+	%% создаем записи участников поединка
+	Members = lists:map(fun(User) ->
+								#b_unit{id = User#user.id,
+										name = User#user.name,
+										team_id = Index,
+										user = User}
+						end, Team),
+	{#b_team{id = Index, max_cost = MaxCost, units = Members, units_count = length(Members)}, Index + 1}.

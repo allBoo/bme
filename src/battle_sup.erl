@@ -52,8 +52,10 @@ init([Battle]) ->
 	%% регистрируем имя супервайзера
 	true = gproc:add_local_name({battle_sup, Battle#battle.id}),
 
-	%% запускаем ген-сервер боя и супервайзеры команд
-	Children = [?BATTLE(Battle)] ++ lists:map(fun(Team) -> ?TEAM_SUP(Battle, Team) end, Battle#battle.teams),
+	%% запускаем супервайзеры команд, супервайзер очереди ударов и в конце ген-сервер боя
+	%% запуск сервера боя означает полную готовность
+	Children = lists:map(fun(Team) -> ?TEAM_SUP(Battle, Team) end, Battle#battle.teams) ++
+				   [?HITS_SUP(Battle), ?BATTLE(Battle)],
 	Strategy = one_for_one,
 	MaxR = 0, MaxT = 1,
 	{ok, {{Strategy, MaxR, MaxT}, Children}}.

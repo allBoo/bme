@@ -43,6 +43,10 @@ init(Battle) when is_record(Battle, battle) ->
 	?DBG("Start battle server ~p~n", [Battle#battle.id]),
 	%% регистрируем имя сервера
 	true = gproc:add_local_name({battle, Battle#battle.id}),
+
+	%% отправляем всем тимам в бое сообщения о необходимости выбора противников
+	elect = gproc:send({p, l, {team, Battle#battle.id}}, elect),
+
 	{ok, Battle}.
 
 

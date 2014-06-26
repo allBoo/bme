@@ -14,7 +14,7 @@
 -define(CATCH_BME_ERROR(Expr, Args),
 	try Expr
 	catch
-		throw:{gproc_error, BmeError} ->
+		throw:{error, BmeError} ->
 			erlang:error(BmeError, Args)
 	end).
 
@@ -26,3 +26,7 @@
 -define(ERROR_UNCOMPLETED, #error{code = -1, message = <<"Не реализовано">>}).
 -define(ERROR_WRONG_CALL, #error{code = -1, message = <<"Wrong call">>}).
 -define(ERROR_LOW_TEAM, #error{code = 1001, message = <<"Бой не может начаться по причине - группа не набрана">>}).
+
+-define(ERROR_NOT_APPLICABLE, #error{code = 101, message = <<"Не применимо в данный момент">>}).
+-define(ERROR_NOT_IN_BATTLE, #error{code = 102, message = <<"Персонаж не в бою">>}).
+-define(ERROR_TOO_FAST, #error{code = 103, message = <<"Не так быстро">>}).

@@ -6,23 +6,37 @@
 %%% Author contact: alboo@list.ru
 
 %%% ====================================================================
-%%% Супервизор команды в бою
-%%% Управление списком участников боя с одной стороны
+%%% Супервизор ударов
+%%% каждый выставленный удар создает новый процесс FSM в этом супервайзере
 %%% ====================================================================
 
 
--module(team_sup).
+-module(hits_sup).
 -behaviour(supervisor).
 -include_lib("bme.hrl").
+
+%% API
+-export([start_link/1, hit/2]).
+
+%% Supervisor callbacks
 -export([init/1]).
 
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_link/1]).
 
-start_link(Team) when is_record(Team, b_team) ->
-	supervisor:start_link(?MODULE, [Team]).
+start_link(Battle) ->
+    supervisor:start_link(?MODULE, [Battle]).
+
+%% выставление удара
+hit(BattleId, Hit) when is_record(Hit, b_hit) ->
+	?DBG("Start new hit ~p~n", [Hit]),
+	%% если очередь ударов существует (бой запущен), выставляем новый удар
+	case gproc:lookup_local_name({hits_queue, BattleId}) of
+		undefined -> ?ERROR_NOT_APPLICABLE;
+		QueuePid  -> supervisor:start_child(QueuePid, [Hit])
+	end.
+
 
 %% ====================================================================
 %% Behavioural functions
@@ -45,15 +59,22 @@ start_link(Team) when is_record(Team, b_team) ->
 				   | temporary,
 	Modules :: [module()] | dynamic.
 %% ====================================================================
-init([Team]) ->
-	?DBG("Start team supervisor ~p~n", [{Team#b_team.battle_id, Team#b_team.id}]),
-	true = gproc:add_local_name({team_sup, Team#b_team.battle_id, Team#b_team.id}),
+init([Battle]) ->
+	?DBG("Start hits queue ~p~n", [Battle#battle.id]),
+	true = gproc:add_local_name({hits_queue, Battle#battle.id}),
 
-	%% запускаем супервайзеры участников команд и ген-сервер тимы
-	Children = lists:map(fun(Unit) -> ?UNIT_SUP(Team, Unit) end, Team#b_team.units) ++
-				   [?TEAM(Team)],
-	Strategy = one_for_one,
-	MaxR = 0, MaxT = 1,
+	Restart  = transient,
+	Shutdown = 1000,
+	Type     = worker,
+
+	Children =
+		[
+			{hit, {hit, start_link, []},
+			Restart, Shutdown, Type, [hit]}
+		],
+
+	Strategy = simple_one_for_one,
+	MaxR = 10, MaxT = 10,
 	{ok, {{Strategy, MaxR, MaxT}, Children}}.
 
 %% ====================================================================

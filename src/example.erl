@@ -9,7 +9,7 @@
 get1() ->
 	#user{
 		id    = 104962,
-		login = <<"Кошмарский">>,
+		name = <<"Кошмарский">>,
 		city  = 1,
 		room  = 1,
 		info  = #'u_info'{
@@ -19,7 +19,7 @@ get1() ->
 			pic   = <<"indiv_104962">>,
 			sex   = 1
 		},
-		clother  = #'u_clother'{
+		dress  = #'u_dress'{
 			cost = 4500
 		},
 		vitality = #'u_vitality'{
@@ -121,15 +121,14 @@ get1() ->
 			light   = 1171.5,   %% защита от магии света
 			dark    = 1171.5,   %% защита от магии тьмы
 			gray    = 1171.5    %% защита от серой магии
-		},
-		tactics = #'b_tactics'{}
+		}
 	}.
 
 
 get2() ->
 	#user{
 		id    = 10000104962,
-		login = <<"Кошмарский клон1">>,
+		name = <<"Кошмарский клон1">>,
 		city  = 1,
 		room  = 1,
 		info  = #'u_info'{
@@ -139,7 +138,7 @@ get2() ->
 			pic   = <<"indiv_104962">>,
 			sex   = 1
 		},
-		clother  = #'u_clother'{
+		dress  = #'u_dress'{
 			cost = 4499
 		},
 		vitality = #'u_vitality'{
@@ -241,6 +240,5 @@ get2() ->
 			light   = 1171.5,   %% защита от магии света
 			dark    = 1171.5,   %% защита от магии тьмы
 			gray    = 1171.5    %% защита от серой магии
-		},
-		tactics = #'b_tactics'{}
+		}
 	}.

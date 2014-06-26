@@ -6,12 +6,11 @@
 %%% Author contact: alboo@list.ru
 
 %%% ====================================================================
-%%% Супервизор команды в бою
-%%% Управление списком участников боя с одной стороны
+%%% Супервизор участника боя
 %%% ====================================================================
 
 
--module(team_sup).
+-module(unit_sup).
 -behaviour(supervisor).
 -include_lib("bme.hrl").
 -export([init/1]).
@@ -21,8 +20,8 @@
 %% ====================================================================
 -export([start_link/1]).
 
-start_link(Team) when is_record(Team, b_team) ->
-	supervisor:start_link(?MODULE, [Team]).
+start_link(Unit) when is_record(Unit, b_unit) ->
+	supervisor:start_link(?MODULE, [Unit]).
 
 %% ====================================================================
 %% Behavioural functions
@@ -45,13 +44,15 @@ start_link(Team) when is_record(Team, b_team) ->
 				   | temporary,
 	Modules :: [module()] | dynamic.
 %% ====================================================================
-init([Team]) ->
-	?DBG("Start team supervisor ~p~n", [{Team#b_team.battle_id, Team#b_team.id}]),
-	true = gproc:add_local_name({team_sup, Team#b_team.battle_id, Team#b_team.id}),
+init([Unit]) ->
+	?DBG("Start unit supervisor ~p~n", [{Unit#b_unit.battle_id, Unit#b_unit.team_id, Unit#b_unit.id}]),
+	true = gproc:add_local_name({unit_sup, Unit#b_unit.battle_id, Unit#b_unit.team_id, Unit#b_unit.id}),
+	true = gproc:add_local_name({unit_sup, Unit#b_unit.id}),
+	true = gproc:add_local_name({unit_sup, Unit#b_unit.name}),
 
-	%% запускаем супервайзеры участников команд и ген-сервер тимы
-	Children = lists:map(fun(Unit) -> ?UNIT_SUP(Team, Unit) end, Team#b_team.units) ++
-				   [?TEAM(Team)],
+	%% запускаем ген-сервер бойца команды
+	Children = [?UNIT(Unit)],%% ++ lists:map(fun(Unit) -> ?MEMBER_SUP(Team, Unit) end, Team#b_team.members),
+	%% @todo добавить супервайзер юзерских баффов и супервайзер приемов
 	Strategy = one_for_one,
 	MaxR = 0, MaxT = 1,
 	{ok, {{Strategy, MaxR, MaxT}, Children}}.

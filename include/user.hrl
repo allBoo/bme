@@ -16,12 +16,27 @@
        }).
 
 %% описание шмоток
--record(u_clother_item, {name = <<"">>
+-record(u_dress_item, {name = <<"">>
        }).
 
 %% одетые шмотки
--record(u_clother, {cost = 0,
-				   head = #'u_clother_item'{}
+-record(u_dress, {cost = 0,
+                  wreath = #'u_dress_item'{},
+                  head = #'u_dress_item'{},
+                  braslet = #'u_dress_item'{},
+                  weapon_left = #'u_dress_item'{},
+                  shirt = #'u_dress_item'{},
+                  armor = #'u_dress_item'{},
+                  cloak = #'u_dress_item'{},
+                  belt = #'u_dress_item'{},
+                  earrings = #'u_dress_item'{},
+                  amulet = #'u_dress_item'{},
+                  ring0 = #'u_dress_item'{},
+                  ring1 = #'u_dress_item'{},
+                  ring2 = #'u_dress_item'{},
+                  weapon_right = #'u_dress_item'{},
+                  leggins = #'u_dress_item'{},
+                  shoes = #'u_dress_item'{}
        }).
 
 %% уровни ХМ и маны
@@ -133,25 +148,13 @@
        }).
 
 
-%% боевые тактики
--record(b_tactics, {attack  = 0,
-                    crit    = 0,
-                    counter = 0,
-                    block   = 0,
-                    parry   = 0,
-                    hearts  = 0,
-                    spirit  = 0
-       }).
-
-
 %% информация о персонаже
 -record(user, {id,
-               login,
+               name,
                city,
                room,
-               alive = 1,
                info  = #'u_info'{},		%% информация о персонаже
-               clother = #'u_clother'{},	%% шмот
+               dress = #'u_dress'{},	%% шмот
                vitality = #'u_vitality'{},	%% уровни ХМ и маны
                stats = #'u_stats'{},	%% статы
                mfs = #'u_mf'{},			%% модификаторы
@@ -160,8 +163,7 @@
                wpower = #'u_wpower'{},	%% мощь магии
                armor  = #'u_armor'{},	%% броня
                dprotection = #'u_dprotection'{}, 	%% защита от урона
-               wprotection = #'u_wprotection'{},	%% защита от магии
-               tactics = #'b_tactics'{}				%% боевые тактики
+               wprotection = #'u_wprotection'{}		%% защита от магии
 %% умелки
 %% одетые приемы
 %% одетые заклинания

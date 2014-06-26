@@ -6,46 +6,38 @@
 %%% Author contact: alboo@list.ru
 
 %%% ====================================================================
-%%% Battle Manager API
+%%% АПИ для участника поединка
 %%% ====================================================================
 
 
--module(bme).
+-module(unit).
 -behaviour(gen_server).
 -include_lib("bme.hrl").
-
-%% server callbacks
--export([start_link/0, init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_haot/3, character_attack/2]).
+-export([start_link/1, hit/3]).
 
-%% start_link/0
+%% start_link/1
 %% ====================================================================
-start_link() ->
-	gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+%% регистрирует процесс нового участника боя
+start_link(Unit) when is_record(Unit, b_unit) ->
+	gen_server:start_link(?MODULE, Unit, []).
 
-%% start_haot/3
+%% hit/3
 %% ====================================================================
-%% Запуск хаотического поединка
--spec start_haot(UsersIds ::[integer()], City ::integer(), Options ::[term()]) -> Result when
-		  Result :: {ok, Id :: integer(), UsersIds :: [integer()]} | {error, Reason :: string()}.
-start_haot(UsersIds, City, Options) ->
-	call({haot, UsersIds, City, Options}).
-
-%% character_attack/2
-%% ====================================================================
-%% Нападение на персонажа
-character_attack(_Attacker, _Victim) ->
-	ok.
-
+%% выставление удара противнику
+hit(UserId, Hits, Block) ->
+	case gproc:lookup_local_name({unit, UserId}) of
+		undefined -> ?ERROR_NOT_IN_BATTLE;
+		UserPid   -> gen_server:call(UserPid, {hit, Hits, Block})
+	end.
 
 %% ====================================================================
 %% Behavioural functions
 %% ====================================================================
--record(state, {}).
 
 %% init/1
 %% ====================================================================
@@ -59,8 +51,18 @@ character_attack(_Attacker, _Victim) ->
 	State :: term(),
 	Timeout :: non_neg_integer() | infinity.
 %% ====================================================================
-init([]) ->
-    {ok, #state{}}.
+init(Unit) when is_record(Unit, b_unit) ->
+	?DBG("Start unit API server ~p~n", [Unit#b_unit.id]),
+	%% регистрируем имя сервера
+	true = gproc:add_local_name({unit, Unit#b_unit.battle_id, Unit#b_unit.team_id, Unit#b_unit.id}),
+	true = gproc:add_local_name({unit, Unit#b_unit.id}),
+	true = gproc:add_local_name({unit, Unit#b_unit.name}),
+
+	%% регистрируем тег с номером боя для получения broadcast сообщений
+	%%true = gproc:add_local_property({unit, Unit#b_unit.battle_id}),
+	%%true = gproc:add_local_property({unit, Team#b_team.battle_id}),
+
+	{ok, Unit}.
 
 
 %% handle_call/3
@@ -81,45 +83,12 @@ init([]) ->
 	Reason :: term().
 %% ====================================================================
 
-handle_call({haot, UsersIds, City, Options}, _From, State) ->
-	Properties = proplists:unfold(Options),
-	%% получаем инфу по всем пользователям и проверяем возможность их участия в поединке
-	Users = lists:filter(fun(User) ->
-					UserInfo = User#user.info,
-					Vitality = User#user.vitality,
-					Dress    = User#user.dress,
-					BattleLevel = proplists:get_value(level, Properties, #b_level{min=0, max=21}),
-					%% проверяем что пользователи находятся в походящих локациях (город, зал)
-					(User#user.city == City) and lists:member(User#user.room, ?BATTLE_PLACES) and
-					%% проверяем что пользователи подходят под условия поединка
-						%% уровень персонажа
-					((UserInfo#u_info.level >= BattleLevel#b_level.min) and (UserInfo#u_info.level =< BattleLevel#b_level.max)) and
-						%% уровень ХП
-					((Vitality#u_vitality.hp / Vitality#u_vitality.maxhp) > 0.3) and
-						%% стоимость обвеса
-					((Dress#u_dress.cost =< proplists:get_value(max_cost, Properties, 0)) or (proplists:get_value(max_cost, Properties, 0) == 0))
-			end, user_helper:get(UsersIds)),
-	%?DBG("Users ~p~n", [Users]),
-
-	Res = case length(Users) >= 2 of
-		true ->
-			%% делим пользователей на команды в соотв. с выбранной стратегией (рандом / обвес)
-			Teams = battle_helper:create_teams(user_helper:split_teams(Users, 2, proplists:get_value(distribution, Properties, default))),
-			%?DBG("Teams ~p~n", [Teams]),
-			FirstUser = lists:nth(1, Users),
-			%% говорим супервайзеру запустить новый бой
-			battles_sup:start_battle(#battle{id = 0,
-											 type = haot,
-											 blood = proplists:get_bool(blood, Properties),
-											 city = City,
-											 room = FirstUser#user.city,
-											 timeout = proplists:get_value(timeout, Properties, 5),
-											 teams = Teams
-											});
-		false ->
-			?ERROR_LOW_TEAM
-	end,
-	{reply, Res, State};
+%% выставление удара
+handle_call({hit, Hits, Block}, _, State) ->
+	case State#b_unit.opponent of
+		undefined -> {reply, ?ERROR_TOO_FAST, State};
+		OpponentPid -> {reply, ?ERROR_UNCOMPLETED, State}
+	end;
 
 handle_call(_, _, State) ->
 	{reply, ?ERROR_WRONG_CALL, State}.
@@ -183,12 +152,3 @@ code_change(_OldVsn, State, _Extra) ->
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
-
-call(Req) ->
-	chk_reply(gen_server:call(?MODULE, Req)).
-
-chk_reply(Reply) ->
-	case is_record(Reply, error) of
-		true -> ?THROW_BME_ERROR(Reply);
-		_  -> Reply
-	end.

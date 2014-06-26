@@ -25,7 +25,7 @@ get(_) ->
 
 split_teams(Users, TeamsCount, default) ->
 	%% маппим список юзеров на стоимость обмундирования, сортируем и в цикле раскидываем по командам
-	Sorted = [X||{_,X} <- lists:sort([ {(N#user.clother)#u_clother.cost, N} || N <- Users])],
+	Sorted = [X||{_,X} <- lists:sort([ {(N#user.dress)#u_dress.cost, N} || N <- Users])],
 	create_pick_teams(Sorted, TeamsCount);
 
 split_teams(Users, TeamsCount, random) ->
