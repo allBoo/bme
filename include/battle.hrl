@@ -45,6 +45,8 @@
                  max_cost = 0,
                  units = []	:: [#b_unit{}],
                  units_count = 0,
+                 alive_units = [],
+                 alive_count = 0,
                  leader
        }).
 

@@ -18,10 +18,26 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_link/1]).
+-export([start_link/1, get_alive_units/2, get_alive_units/1]).
 
+%% start_link/1
+%% ====================================================================
+%% запуск сервера
 start_link(Team) when is_record(Team, b_team) ->
 	gen_server:start_link(?MODULE, Team, []).
+
+
+%% get_alive_units/2
+%% ====================================================================
+%% Возвращает список pid() живых юнитов
+get_alive_units(BattleId, TeamId) ->
+	case gproc:lookup_local_name({team, BattleId, TeamId}) of
+		undefined -> ?ERROR_NOT_IN_BATTLE;
+		TeamPid   -> get_alive_units(TeamPid)
+	end.
+
+get_alive_units(TeamPid) ->
+	gen_server:call(TeamPid, {get_alive_units}).
 
 %% ====================================================================
 %% Behavioural functions
@@ -44,8 +60,11 @@ init(Team) when is_record(Team, b_team) ->
 	%% регистрируем имя сервера
 	true = gproc:add_local_name({team, Team#b_team.battle_id, Team#b_team.id}),
 	%% регистрируем тег с номером боя для получения broadcast сообщений
-	true = gproc:add_local_property({team, Team#b_team.battle_id}, 1),
-	{ok, Team}.
+	true = gproc:add_local_property({team, Team#b_team.battle_id}, Team#b_team.id),
+	%% список пидов запущенных юнитов
+	StartedUnits = gproc:lookup_pids({p, l, {team_unit, Team#b_team.battle_id, Team#b_team.id}}),
+
+	{ok, Team#b_team{alive_units = StartedUnits, alive_count = length(StartedUnits)}}.
 
 
 %% handle_call/3
@@ -65,6 +84,12 @@ init(Team) when is_record(Team, b_team) ->
 	Timeout :: non_neg_integer() | infinity,
 	Reason :: term().
 %% ====================================================================
+
+%% возвращает список пидов живых юнитов
+handle_call({get_alive_units}, _, Team) ->
+	{reply, Team#b_team.alive_units, Team};
+
+%% error call
 handle_call(_, _, State) ->
 	{reply, ?ERROR_WRONG_CALL, State}.
 
@@ -96,10 +121,29 @@ handle_cast(_Msg, State) ->
 	Timeout :: non_neg_integer() | infinity.
 %% ====================================================================
 
-%% авто-выбор противников
-handle_info(elect, State) ->
-	?DBG("Start autoelection process on team ~p~n", [State#b_team.id]),
-	{noreply, State};
+%% авто-выбор противников в начале боя
+handle_info(elect, Team) ->
+	?DBG("Start autoelection process on team ~p~n", [Team#b_team.id]),
+	%% получаем список команд-противников
+	EnemyTeamsIds = battle:get_enemy_teams(Team#b_team.battle_id, Team#b_team.id),
+	?DBG("Enemy teams ids ~p~n", [EnemyTeamsIds]),
+	%% получаем список противников по всем тимам [[pid()] ... [pid()]]
+	EnemyTeams = lists:map(fun(TeamId) -> team:get_alive_units(Team#b_team.battle_id, TeamId) end, EnemyTeamsIds),
+	EnemyTeamsCount = length(EnemyTeams),
+	?DBG("Enemy teams ~p~n", [EnemyTeams]),
+	%% пройдем по всем юнитам в тиме и рандомно расставим им противников
+%% 	lists:foreach(fun(UnitPid) ->
+%% 							%% выбираем рандомную тиму
+%% 							EnemyTeam = if
+%% 											EnemyTeamsCount == 1 ->
+%% 												lists:nth(EnemyTeams, 1);
+%% 											true ->
+%% 												lists:nth(EnemyTeams, random:uniform(EnemyTeamsCount))
+%% 										end,
+%% 							%% выбираем рандомного юнита из выбранной тимы
+%% 							lists:nth(EnemyTeam, random:uniform(length(EnemyTeam)))
+%% 						end, Team#b_team.alive_units),
+	{noreply, Team};
 
 handle_info(_Info, State) ->
 	{noreply, State}.

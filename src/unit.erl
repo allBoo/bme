@@ -57,6 +57,7 @@ init(Unit) when is_record(Unit, b_unit) ->
 	true = gproc:add_local_name({unit, Unit#b_unit.battle_id, Unit#b_unit.team_id, Unit#b_unit.id}),
 	true = gproc:add_local_name({unit, Unit#b_unit.id}),
 	true = gproc:add_local_name({unit, Unit#b_unit.name}),
+	true = gproc:add_local_property({team_unit, Unit#b_unit.battle_id, Unit#b_unit.team_id}, Unit#b_unit.id),
 
 	%% регистрируем тег с номером боя для получения broadcast сообщений
 	%%true = gproc:add_local_property({unit, Unit#b_unit.battle_id}),

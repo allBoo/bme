@@ -18,10 +18,24 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_link/1]).
+-export([start_link/1, get_enemy_teams/2]).
 
+%% start_link/1
+%% ====================================================================
+%% запуск сервера
 start_link(Battle) when is_record(Battle, battle) ->
 	gen_server:start_link(?MODULE, Battle, []).
+
+
+%% get_enemy_teams/2
+%% ====================================================================
+%% возвращает список вражеских команд
+-spec get_enemy_teams(BattleId :: non_neg_integer(), MyTeamId :: non_neg_integer()) -> [non_neg_integer()].
+get_enemy_teams(BattleId, MyTeamId) ->
+	case gproc:lookup_local_name({battle, BattleId}) of
+		undefined -> ?ERROR_NOT_IN_BATTLE;
+		BattlePid -> gen_server:call(BattlePid, {get_enemy_teams, MyTeamId})
+	end.
 
 %% ====================================================================
 %% Behavioural functions
@@ -67,6 +81,18 @@ init(Battle) when is_record(Battle, battle) ->
 	Timeout :: non_neg_integer() | infinity,
 	Reason :: term().
 %% ====================================================================
+
+%% возвращает список вражеских команд в бою
+handle_call({get_enemy_teams, MyTeamId}, _, Battle) ->
+	EnemyTeamsIds = lists:filtermap(fun(Team) ->
+											case Team#b_team.id /= MyTeamId of
+												true -> {true, Team#b_team.id};
+												false -> false
+											end
+										end, Battle#battle.teams),
+	{reply, EnemyTeamsIds, Battle};
+
+%% error call
 handle_call(_, _, State) ->
 	{reply, ?ERROR_WRONG_CALL, State}.
 
