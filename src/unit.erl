@@ -184,7 +184,8 @@ handle_info({team_start, TeamPid}, Unit) ->
 
 %% уведомление о запуске боя
 handle_info({battle_start, BattlePid}, Unit) ->
-	{noreply, Unit#b_unit{battle_pid = BattlePid}};
+	Opponent = select_random_opponent(Unit#b_unit.opponents),
+	{noreply, Unit#b_unit{battle_pid = BattlePid, opponent = Opponent}};
 
 %% unknown
 handle_info(_Info, State) ->
@@ -219,3 +220,7 @@ code_change(_OldVsn, State, _Extra) ->
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
+
+%% автовыбор противника
+select_random_opponent(OpponentsList) ->
+	lists:nth(random:uniform(length(OpponentsList)), OpponentsList).
