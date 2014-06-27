@@ -55,15 +55,18 @@ set_opponents(UserId, OpponentsList) when (is_list(UserId) or is_integer(UserId)
 set_opponents(UserPid, OpponentsList) when is_pid(UserPid) ->
 	gen_server:cast(UserPid, {set_opponents, OpponentsList}).
 
+
 %% hit/3
 %% ====================================================================
 %% выставление удара противнику
-hit(UserId, Hits, Block) ->
+hit(UserId, Hits, Block) when (is_list(UserId) or is_integer(UserId)) ->
 	case gproc:lookup_local_name({unit, UserId}) of
 		undefined -> ?ERROR_NOT_IN_BATTLE;
-		UserPid   -> gen_server:call(UserPid, {hit, Hits, Block})
-	end.
+		UserPid   -> hit(UserPid, Hits, Block)
+	end;
 
+hit(UserPid, Hits, Block) when is_pid(UserPid) ->
+	gen_server:call(UserPid, {hit, Hits, Block}).
 
 
 %% ====================================================================
@@ -125,14 +128,16 @@ handle_call(create_opponent_info, _, Unit) ->
                         align = ((Unit#b_unit.user)#user.info)#u_info.align,
                         klan  = ((Unit#b_unit.user)#user.info)#u_info.klan,
                         cost  = ((Unit#b_unit.user)#user.dress)#u_dress.cost
-						}, Unit};
+                        }, Unit};
+
 
 %% выставление удара
-handle_call({hit, Hits, Block}, _, State) ->
-	case State#b_unit.opponent of
-		undefined -> {reply, ?ERROR_TOO_FAST, State};
-		OpponentPid -> {reply, ?ERROR_UNCOMPLETED, State}
+handle_call({hit, Hits, Block}, _, Unit) ->
+	case is_pid(Unit#b_unit.opponent) of
+		false -> {reply, ?ERROR_TOO_FAST, Unit};
+		true  -> {reply, ?ERROR_UNCOMPLETED, Unit}
 	end;
+
 
 %% unknown
 handle_call(_, _, State) ->
