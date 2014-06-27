@@ -25,14 +25,29 @@
                 block :: [head | torso | paunch | belt | legs]
        }).
 
+%% краткое представление оппонента в бою
+-record(b_opponent, {pid :: pid(),
+                     team :: pid(),
+                     id  :: integer(),
+                     name :: binary(),
+                     level :: non_neg_integer(),
+                     align,
+                     klan :: binary(),
+                     cost = 0,
+                     gray = false ::boolean()
+       }).
+
 %% участник боя
 -record(b_unit, {id,
                  name,
                  battle_id = 0,
+                 battle_pid :: pid(),
                  team_id = 0,
+                 team_pid :: pid(),
                  user = #user{},
                  alive = true,
                  leader = false,
+                 opponents = [] :: [#b_opponent{}],	%% список с краткой информацией о всех оппонентах
                  opponent = undefined :: pid() | undefined,			%% выбранный в текущий момент оппонент
                  obtained :: [{Opponent :: pid(), Hit :: pid()}],	%% список оппонентов, выставивших удары
                  hits     :: [{Opponent :: pid(), Hit :: pid()}],	%% список оппонентов, которым выставил удар
@@ -42,6 +57,7 @@
 %% команда
 -record(b_team, {id,
                  battle_id = 0,
+                 battle_pid :: pid(),
                  max_cost = 0,
                  units = []	:: [#b_unit{}],
                  units_count = 0,
@@ -49,6 +65,7 @@
                  alive_count = 0,
                  leader
        }).
+
 
 %% информация о бое
 -record(battle, {id,
@@ -60,6 +77,7 @@
                  level = #b_level{},
                  timeout,
                  status,
-                 teams = []	:: [#b_team{}]
+                 teams = []	:: [#b_team{}],
+                 alive_teams = []
        }).
 

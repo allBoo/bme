@@ -60,7 +60,8 @@ character_attack(_Attacker, _Victim) ->
 	Timeout :: non_neg_integer() | infinity.
 %% ====================================================================
 init([]) ->
-    {ok, #state{}}.
+	random:seed(now()),
+	{ok, #state{}}.
 
 
 %% handle_call/3
@@ -105,7 +106,7 @@ handle_call({haot, UsersIds, City, Options}, _From, State) ->
 		true ->
 			%% делим пользователей на команды в соотв. с выбранной стратегией (рандом / обвес)
 			Teams = battle_helper:create_teams(user_helper:split_teams(Users, 2, proplists:get_value(distribution, Properties, default))),
-			%?DBG("Teams ~p~n", [Teams]),
+			%%?DBG("Teams ~p~n", [Teams]),
 			FirstUser = lists:nth(1, Users),
 			%% говорим супервайзеру запустить новый бой
 			battles_sup:start_battle(#battle{id = 0,

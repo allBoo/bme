@@ -59,12 +59,18 @@ init(Team) when is_record(Team, b_team) ->
 	?DBG("Start team server ~p~n", [Team#b_team.id]),
 	%% регистрируем имя сервера
 	true = gproc:add_local_name({team, Team#b_team.battle_id, Team#b_team.id}),
-	%% регистрируем тег с номером боя для получения broadcast сообщений
+
+	%% регистрируем теги с номером боя для получения broadcast сообщений
+	true = gproc:add_local_property({battle, Team#b_team.battle_id}, Team#b_team.id),
 	true = gproc:add_local_property({team, Team#b_team.battle_id}, Team#b_team.id),
+
 	%% список пидов запущенных юнитов
 	StartedUnits = gproc:lookup_pids({p, l, {team_unit, Team#b_team.battle_id, Team#b_team.id}}),
 
-	{ok, Team#b_team{alive_units = StartedUnits, alive_count = length(StartedUnits)}}.
+	%% уведомляем их о пиде тимы
+	gproc:send({p, l, {team_unit, Team#b_team.battle_id, Team#b_team.id}}, {team_start, self()}),
+
+	{ok, Team#b_team{alive_units = StartedUnits, alive_count = length(StartedUnits), units = []}}.
 
 
 %% handle_call/3
@@ -121,30 +127,11 @@ handle_cast(_Msg, State) ->
 	Timeout :: non_neg_integer() | infinity.
 %% ====================================================================
 
-%% авто-выбор противников в начале боя
-handle_info(elect, Team) ->
-	?DBG("Start autoelection process on team ~p~n", [Team#b_team.id]),
-	%% получаем список команд-противников
-	EnemyTeamsIds = battle:get_enemy_teams(Team#b_team.battle_id, Team#b_team.id),
-	?DBG("Enemy teams ids ~p~n", [EnemyTeamsIds]),
-	%% получаем список противников по всем тимам [[pid()] ... [pid()]]
-	EnemyTeams = lists:map(fun(TeamId) -> team:get_alive_units(Team#b_team.battle_id, TeamId) end, EnemyTeamsIds),
-	EnemyTeamsCount = length(EnemyTeams),
-	?DBG("Enemy teams ~p~n", [EnemyTeams]),
-	%% пройдем по всем юнитам в тиме и рандомно расставим им противников
-%% 	lists:foreach(fun(UnitPid) ->
-%% 							%% выбираем рандомную тиму
-%% 							EnemyTeam = if
-%% 											EnemyTeamsCount == 1 ->
-%% 												lists:nth(EnemyTeams, 1);
-%% 											true ->
-%% 												lists:nth(EnemyTeams, random:uniform(EnemyTeamsCount))
-%% 										end,
-%% 							%% выбираем рандомного юнита из выбранной тимы
-%% 							lists:nth(EnemyTeam, random:uniform(length(EnemyTeam)))
-%% 						end, Team#b_team.alive_units),
-	{noreply, Team};
+%% уведомление о запуске боя
+handle_info({battle_start, BattlePid}, Team) ->
+	{noreply, Team#b_team{battle_pid = BattlePid}};
 
+%% unknown request
 handle_info(_Info, State) ->
 	{noreply, State}.
 

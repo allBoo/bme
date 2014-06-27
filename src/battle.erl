@@ -58,10 +58,16 @@ init(Battle) when is_record(Battle, battle) ->
 	%% регистрируем имя сервера
 	true = gproc:add_local_name({battle, Battle#battle.id}),
 
-	%% отправляем всем тимам в бое сообщения о необходимости выбора противников
-	elect = gproc:send({p, l, {team, Battle#battle.id}}, elect),
+	%% список пидов запущенных тим
+	StartedTeams = gproc:lookup_pids({p, l, {team, Battle#battle.id}}),
 
-	{ok, Battle}.
+	%% формируем списки противников и раздаем их юнитам
+	create_opponents_list(StartedTeams),
+
+	%% отправляем всем сообщение о начале боя
+	gproc:send({p, l, {battle, Battle#battle.id}}, {battle_start, self()}),
+
+	{ok, Battle#battle{alive_teams = StartedTeams}}.
 
 
 %% handle_call/3
@@ -155,3 +161,21 @@ code_change(_OldVsn, State, _Extra) ->
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
+
+create_opponents_list(StartedTeams) ->
+	%% для каждой тимы противниками будут все остальные тимы
+	lists:foreach(fun(TeamPid) ->
+						OpponentTeams = lists:delete(TeamPid, StartedTeams),
+						OpponentUnits = lists:foldl(fun(EnemyTeamPid, Acc) ->
+															Acc ++ team:get_alive_units(EnemyTeamPid)
+													end, [], OpponentTeams),
+						%% получаем краткую инфу о юнитах
+						%% крайне не оптимально при кол-ве команд > 2
+						Opponents = lists:map(fun unit:create_opponent_info/1, OpponentUnits),
+						%?DBG("For team ~p found opposition units ~p from teams ~p", [TeamPid, Opponents, OpponentTeams]),
+						%% отправляем всем юнитам в тиме сообщение со списком оппонентов
+						lists:foreach(fun(UnitPid) ->
+											  unit:set_opponents(UnitPid, Opponents)
+									  end, team:get_alive_units(TeamPid))
+				  end, StartedTeams),
+	ok.

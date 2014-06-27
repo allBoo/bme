@@ -18,13 +18,42 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_link/1, hit/3]).
+-export([start_link/1,
+		 create_opponent_info/1,
+		 set_opponents/2,
+		 hit/3]).
 
 %% start_link/1
 %% ====================================================================
 %% регистрирует процесс нового участника боя
 start_link(Unit) when is_record(Unit, b_unit) ->
 	gen_server:start_link(?MODULE, Unit, []).
+
+
+%% create_opponent_info/1
+%% ====================================================================
+%% возвращает краткую информацию о юните
+create_opponent_info(UserId) when (is_list(UserId) or is_integer(UserId)) ->
+	case gproc:lookup_local_name({unit, UserId}) of
+		undefined -> ?ERROR_NOT_IN_BATTLE;
+		UserPid   -> create_opponent_info(UserPid)
+	end;
+
+create_opponent_info(UserPid) when is_pid(UserPid) ->
+	gen_server:call(UserPid, create_opponent_info).
+
+
+%% set_opponents/2
+%% ====================================================================
+%% устанавливает юниту список оппонентов
+set_opponents(UserId, OpponentsList) when (is_list(UserId) or is_integer(UserId)) ->
+	case gproc:lookup_local_name({unit, UserId}) of
+		undefined -> ?ERROR_NOT_IN_BATTLE;
+		UserPid   -> set_opponents(UserPid, OpponentsList)
+	end;
+
+set_opponents(UserPid, OpponentsList) when is_pid(UserPid) ->
+	gen_server:cast(UserPid, {set_opponents, OpponentsList}).
 
 %% hit/3
 %% ====================================================================
@@ -34,6 +63,8 @@ hit(UserId, Hits, Block) ->
 		undefined -> ?ERROR_NOT_IN_BATTLE;
 		UserPid   -> gen_server:call(UserPid, {hit, Hits, Block})
 	end.
+
+
 
 %% ====================================================================
 %% Behavioural functions
@@ -57,11 +88,11 @@ init(Unit) when is_record(Unit, b_unit) ->
 	true = gproc:add_local_name({unit, Unit#b_unit.battle_id, Unit#b_unit.team_id, Unit#b_unit.id}),
 	true = gproc:add_local_name({unit, Unit#b_unit.id}),
 	true = gproc:add_local_name({unit, Unit#b_unit.name}),
-	true = gproc:add_local_property({team_unit, Unit#b_unit.battle_id, Unit#b_unit.team_id}, Unit#b_unit.id),
 
-	%% регистрируем тег с номером боя для получения broadcast сообщений
-	%%true = gproc:add_local_property({unit, Unit#b_unit.battle_id}),
-	%%true = gproc:add_local_property({unit, Team#b_team.battle_id}),
+	%% регистрируем теги для получения broadcast сообщений
+	true = gproc:add_local_property({team_unit, Unit#b_unit.battle_id, Unit#b_unit.team_id}, Unit#b_unit.id),
+	true = gproc:add_local_property({battle_unit, Unit#b_unit.battle_id}, Unit#b_unit.id),
+	true = gproc:add_local_property({battle, Unit#b_unit.battle_id}, Unit#b_unit.id),
 
 	{ok, Unit}.
 
@@ -84,6 +115,18 @@ init(Unit) when is_record(Unit, b_unit) ->
 	Reason :: term().
 %% ====================================================================
 
+%% возвращает краткую информацию об юните
+handle_call(create_opponent_info, _, Unit) ->
+	{reply, #b_opponent{pid = self(),
+                        team = Unit#b_unit.team_pid,
+                        id   = Unit#b_unit.id,
+                        name = Unit#b_unit.name,
+                        level = ((Unit#b_unit.user)#user.info)#u_info.level,
+                        align = ((Unit#b_unit.user)#user.info)#u_info.align,
+                        klan  = ((Unit#b_unit.user)#user.info)#u_info.klan,
+                        cost  = ((Unit#b_unit.user)#user.dress)#u_dress.cost
+						}, Unit};
+
 %% выставление удара
 handle_call({hit, Hits, Block}, _, State) ->
 	case State#b_unit.opponent of
@@ -91,6 +134,7 @@ handle_call({hit, Hits, Block}, _, State) ->
 		OpponentPid -> {reply, ?ERROR_UNCOMPLETED, State}
 	end;
 
+%% unknown
 handle_call(_, _, State) ->
 	{reply, ?ERROR_WRONG_CALL, State}.
 
@@ -106,6 +150,18 @@ handle_call(_, _, State) ->
 	NewState :: term(),
 	Timeout :: non_neg_integer() | infinity.
 %% ====================================================================
+
+%% устанавливает юниту список оппонентов
+handle_cast({set_opponents, OpponentsList}, Unit) ->
+	%% сравниваем стоимось комлектов и определяем серых в бою
+	CalculatedOpponentsList = lists:map(fun(Opponent) ->
+												Delta = Opponent#b_opponent.cost / ((Unit#b_unit.user)#user.dress)#u_dress.cost,
+												Opponent#b_opponent{gray = Delta < 0.6}
+										end, OpponentsList),
+	?DBG("Unit ~p set opponents ~p~n", [self(), CalculatedOpponentsList]),
+	{noreply, Unit#b_unit{opponents = CalculatedOpponentsList}};
+
+%% unknown request
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
@@ -121,8 +177,18 @@ handle_cast(_Msg, State) ->
 	NewState :: term(),
 	Timeout :: non_neg_integer() | infinity.
 %% ====================================================================
+
+%% уведомление о запуске тимы
+handle_info({team_start, TeamPid}, Unit) ->
+	{noreply, Unit#b_unit{team_pid = TeamPid}};
+
+%% уведомление о запуске боя
+handle_info({battle_start, BattlePid}, Unit) ->
+	{noreply, Unit#b_unit{battle_pid = BattlePid}};
+
+%% unknown
 handle_info(_Info, State) ->
-    {noreply, State}.
+	{noreply, State}.
 
 
 %% terminate/2
