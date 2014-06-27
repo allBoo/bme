@@ -22,7 +22,8 @@
 -record(b_hit, {sender :: pid(),
                 recipient :: pid(),
                 hits = [] :: [head | torso | paunch | belt | legs],
-                block :: [head | torso | paunch | belt | legs]
+                block :: head | torso | paunch | belt | legs,
+                timeout = 5
        }).
 
 %% краткое представление оппонента в бою
@@ -48,9 +49,9 @@
                  alive = true,
                  leader = false,
                  opponents = [] :: [#b_opponent{}],	%% список с краткой информацией о всех оппонентах
-                 opponent = undefined :: pid() | undefined,			%% выбранный в текущий момент оппонент
-                 obtained :: [{Opponent :: pid(), Hit :: pid()}],	%% список оппонентов, выставивших удары
-                 hits     :: [{Opponent :: pid(), Hit :: pid()}],	%% список оппонентов, которым выставил удар
+                 opponent = undefined :: #b_opponent{} | undefined,			%% выбранный в текущий момент оппонент
+                 obtained = [] :: [{Opponent :: pid(), Hit :: pid()}],	%% список оппонентов, выставивших удары
+                 hits     = [] :: [{Opponent :: pid(), Hit :: pid()}],	%% список оппонентов, которым выставил удар
                  tactics = #'b_tactics'{}		%% боевые тактики
        }).
 

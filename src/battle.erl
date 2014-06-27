@@ -18,7 +18,9 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_link/1, get_enemy_teams/2]).
+-export([start_link/1,
+		 get_enemy_teams/2,
+		 get_timeout/1]).
 
 %% start_link/1
 %% ====================================================================
@@ -36,6 +38,20 @@ get_enemy_teams(BattleId, MyTeamId) ->
 		undefined -> ?ERROR_NOT_IN_BATTLE;
 		BattlePid -> gen_server:call(BattlePid, {get_enemy_teams, MyTeamId})
 	end.
+
+
+%% get_timeout/1
+%% ====================================================================
+%% возвращает текущий таймаут боя
+get_timeout(BattleId) when is_integer(BattleId) ->
+	case gproc:lookup_local_name({battle, BattleId}) of
+		undefined -> ?ERROR_NOT_IN_BATTLE;
+		BattlePid -> get_timeout(BattlePid)
+	end;
+
+get_timeout(BattlePid) when is_pid(BattlePid) ->
+	gen_server:call(BattlePid, get_timeout).
+
 
 %% ====================================================================
 %% Behavioural functions
@@ -97,6 +113,12 @@ handle_call({get_enemy_teams, MyTeamId}, _, Battle) ->
 											end
 										end, Battle#battle.teams),
 	{reply, EnemyTeamsIds, Battle};
+
+
+%% возвращает текущий таймаут поединка
+handle_call(get_timeout, _, Battle) ->
+	{reply, Battle#battle.timeout, Battle};
+
 
 %% error call
 handle_call(_, _, State) ->

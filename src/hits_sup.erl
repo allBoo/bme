@@ -16,7 +16,7 @@
 -include_lib("bme.hrl").
 
 %% API
--export([start_link/1, hit/2]).
+-export([start_link/1]).
 
 %% Supervisor callbacks
 -export([init/1]).
@@ -25,17 +25,12 @@
 %% API functions
 %% ====================================================================
 
-start_link(Battle) ->
-    supervisor:start_link(?MODULE, [Battle]).
 
-%% выставление удара
-hit(BattleId, Hit) when is_record(Hit, b_hit) ->
-	?DBG("Start new hit ~p~n", [Hit]),
-	%% если очередь ударов существует (бой запущен), выставляем новый удар
-	case gproc:lookup_local_name({hits_queue, BattleId}) of
-		undefined -> ?ERROR_NOT_APPLICABLE;
-		QueuePid  -> supervisor:start_child(QueuePid, [Hit])
-	end.
+%% start_link/1
+%% ====================================================================
+%% запуск супервайзера
+start_link(Battle) ->
+	supervisor:start_link(?MODULE, [Battle]).
 
 
 %% ====================================================================
@@ -59,7 +54,7 @@ hit(BattleId, Hit) when is_record(Hit, b_hit) ->
 				   | temporary,
 	Modules :: [module()] | dynamic.
 %% ====================================================================
-init([Battle]) ->
+init([Battle]) when is_record(Battle, battle) ->
 	?DBG("Start hits queue ~p~n", [Battle#battle.id]),
 	true = gproc:add_local_name({hits_queue, Battle#battle.id}),
 

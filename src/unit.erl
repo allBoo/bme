@@ -132,10 +132,44 @@ handle_call(create_opponent_info, _, Unit) ->
 
 
 %% выставление удара
-handle_call({hit, Hits, Block}, _, Unit) ->
-	case is_pid(Unit#b_unit.opponent) of
-		false -> {reply, ?ERROR_TOO_FAST, Unit};
-		true  -> {reply, ?ERROR_UNCOMPLETED, Unit}
+handle_call({hit, HitsList, Block}, _, Unit) ->
+	Opponent = Unit#b_unit.opponent,
+	R = case is_record(Unit#b_unit.opponent, b_opponent) of
+		false -> ?ERROR_WAIT_OPPONENT;
+		true  ->
+			%% проверяем что удар еще не выставлен данному противнику
+			%% вообще такого быть не должно
+			case lists:keyfind(Opponent#b_opponent.pid, 1, Unit#b_unit.hits) of
+				true ->
+					?LOG("Try hit already hited ~p~n", [Unit]),
+					?ERROR_TOO_FAST;
+				false ->
+					%% если удар был выставлен противником
+					case lists:keyfind(Opponent#b_opponent.pid, 1, Unit#b_unit.obtained) of
+						true ->
+							%% ответ на удар
+							?ERROR_UNCOMPLETED;
+						false ->
+							%% выставляем новый размен
+							hit:hit(Unit#b_unit.battle_id, #b_hit{sender    = self(),
+																  recipient = Opponent#b_opponent.pid,
+																  hits      = HitsList,
+																  block     = Block,
+																  timeout   = battle:get_timeout(Unit#b_unit.battle_pid)})
+					end
+			end
+	end,
+
+	case R of
+		%% если выставлен размен
+		{ok, HitPid} when is_pid(HitPid) ->
+			%% добавляем его в список разменов
+			Hits = Unit#b_unit.hits ++ [{Opponent#b_opponent.pid, HitPid}],
+			%% меняем противника
+			{reply, {hit, HitPid}, select_next_opponent(Unit#b_unit{hits = Hits})};
+		%%
+		Erorr when is_record(Erorr, error) ->
+			{reply, Erorr, Unit}
 	end;
 
 
@@ -189,8 +223,11 @@ handle_info({team_start, TeamPid}, Unit) ->
 
 %% уведомление о запуске боя
 handle_info({battle_start, BattlePid}, Unit) ->
+	%% формируем начальное состояние юнита
+	BattleUnit = set_initial_unit_data(Unit),
+	%% поиск подходящего оппонента
 	Opponent = select_random_opponent(Unit#b_unit.opponents),
-	{noreply, Unit#b_unit{battle_pid = BattlePid, opponent = Opponent}};
+	{noreply, BattleUnit#b_unit{battle_pid = BattlePid, opponent = Opponent}};
 
 %% unknown
 handle_info(_Info, State) ->
@@ -226,6 +263,59 @@ code_change(_OldVsn, State, _Extra) ->
 %% Internal functions
 %% ====================================================================
 
+%% select_random_opponent/1
+%% ====================================================================
 %% автовыбор противника
 select_random_opponent(OpponentsList) ->
 	lists:nth(random:uniform(length(OpponentsList)), OpponentsList).
+
+
+%% select_next_opponent/1
+%% ====================================================================
+%% выбор следующего оппонента
+select_next_opponent(Unit) ->
+	%% разворачиваем список оппонентов так, что начало списка будет указывать
+	%% на хвост начиная с текущего оппонента, потом добавляем список из начала
+	%% [1, 2, (3), 4, 5] -> [3, 4, 5, 1, 2]
+	{Head, Tail} = lists:splitwith(fun(Opponent) ->
+										   Opponent#b_opponent.pid /= Unit#b_unit.opponent
+								   end, Unit#b_unit.opponents),
+	%% выбираем из списка оппонентов тех, кому не поставлен размен
+	BusyOpponents = lists:map(fun({OpponentPid, _HitPid}) -> OpponentPid end, Unit#b_unit.hits) ++
+						[(Unit#b_unit.opponent)#b_opponent.pid],
+	?DBG("All opps ~p, Busy ~p~n", [Tail ++ Head, BusyOpponents]),
+	Opponents = lists:filter(fun(Opponent) ->
+									 lists:member(Opponent#b_opponent.pid, BusyOpponents) == false
+							 end, Tail ++ Head),
+	%% если есть свободные оппоненты, выбираем первого из списка, если нет - то уходим в ожидание
+	Opponent = case length(Opponents) > 0 of
+				   true -> lists:nth(1, Opponents);
+				   false -> undefined
+			   end,
+	?DBG("Select new opponent ~p~n", [Opponent]),
+	Unit#b_unit{opponent = Opponent}.
+
+
+%% set_initial_unit_data/1
+%% ====================================================================
+%% расчет начальных параметров
+set_initial_unit_data(Unit) ->
+	User = Unit#b_unit.user,
+	Level = (User#user.info)#u_info.level,
+	Vitality = User#user.vitality,
+
+	%% расчет силы духа
+	MaxSpirit = case Level of
+					_Small when Level < 7 -> 0;
+					7 -> 10;
+					8 -> 20;
+					9 -> 30;
+					_Hight when Level > 9 -> 40
+				end + (User#user.stats)#u_stats.spir,
+	Spirit = math:precision((Vitality#u_vitality.hp / Vitality#u_vitality.maxhp) * MaxSpirit, 2),
+
+	Unit#b_unit{tactics  = #b_tactics{spirit = Spirit},
+				alive    = true,
+				opponent = undefined,
+				obtained = [],
+				hits     = []}.
