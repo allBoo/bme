@@ -21,7 +21,8 @@
 -export([start_link/1,
 		 create_opponent_info/1,
 		 set_opponents/2,
-		 hit/3]).
+		 hit/3,
+		 hited/2]).
 
 %% start_link/1
 %% ====================================================================
@@ -67,6 +68,13 @@ hit(UserId, Hits, Block) when (is_list(UserId) or is_integer(UserId)) ->
 
 hit(UserPid, Hits, Block) when is_pid(UserPid) ->
 	gen_server:call(UserPid, {hit, Hits, Block}).
+
+
+%% hited/2
+%% ====================================================================
+%% противник выставил размен
+hited(UnitPid, {From, Hit}) when is_pid(UnitPid), is_pid(From), is_pid(Hit) ->
+	gen_server:cast(UnitPid, {hited, {From, Hit}}).
 
 
 %% ====================================================================
@@ -200,6 +208,15 @@ handle_cast({set_opponents, OpponentsList}, Unit) ->
 	?DBG("Unit ~p set opponents ~p~n", [self(), CalculatedOpponentsList]),
 	{noreply, Unit#b_unit{opponents = CalculatedOpponentsList}};
 
+
+%% противник выставил размен
+%% сохраняем его в списке
+handle_cast({hited, {From, Hit}}, Unit) ->
+	?DBG("User ~p hited", [{From, Hit}]),
+	Obtained = Unit#b_unit.obtained ++ [{From, Hit}],
+	{noreply, Unit#b_unit{obtained = Obtained}};
+
+
 %% unknown request
 handle_cast(_Msg, State) ->
     {noreply, State}.
@@ -283,7 +300,6 @@ select_next_opponent(Unit) ->
 	%% выбираем из списка оппонентов тех, кому не поставлен размен
 	BusyOpponents = lists:map(fun({OpponentPid, _HitPid}) -> OpponentPid end, Unit#b_unit.hits) ++
 						[(Unit#b_unit.opponent)#b_opponent.pid],
-	?DBG("All opps ~p, Busy ~p~n", [Tail ++ Head, BusyOpponents]),
 	Opponents = lists:filter(fun(Opponent) ->
 									 lists:member(Opponent#b_opponent.pid, BusyOpponents) == false
 							 end, Tail ++ Head),

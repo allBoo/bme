@@ -67,6 +67,9 @@ hit(BattleId, Hit) when is_record(Hit, b_hit), is_integer(BattleId) ->
 %% ====================================================================
 init(Hit) when is_record(Hit, b_hit) ->
 	?DBG("Start new hit ~p~n", [Hit]),
+	%% уведомляем юнита, которому выставили размен
+	unit:hited(Hit#b_hit.recipient, {Hit#b_hit.sender, self()}),
+
 	%% если за отведенное время не будет ответа на размен, то удар по тайму
 	{ok, timeout, Hit, get_timeout(Hit)}.
 
