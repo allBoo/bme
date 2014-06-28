@@ -16,7 +16,8 @@
 
 -export([init/1,
 		 hit/2,
-		 timeout/2,
+		 reply/3,
+		 do_hit/2,
 		 handle_event/3,
 		 handle_sync_event/4,
 		 handle_info/3,
@@ -43,8 +44,32 @@ hit(BattleId, Hit) when is_record(Hit, b_hit), is_integer(BattleId) ->
 	%% если очередь ударов существует (бой запущен), выставляем новый удар
 	case gproc:lookup_local_name({hits_queue, BattleId}) of
 		undefined -> ?ERROR_NOT_APPLICABLE;
-		QueuePid  -> supervisor:start_child(QueuePid, [Hit])
+		QueuePid  ->
+			%% пробуем стартануть размен
+			case supervisor:start_child(QueuePid, [Hit]) of
+				{ok, HitPid} ->
+					{ok, HitPid};
+				%% что-то пошло не так
+				_ ->
+					%% пробуем найти существующий размен
+					%% выставленный оппонентом
+					case gproc:lookup_local_name({hit, Hit#b_hit.recipient, Hit#b_hit.sender}) of
+						ExistsHit when is_pid(ExistsHit) ->
+							%% делаем ответ на размен
+							reply(BattleId, ExistsHit, Hit);
+						%% если такого нет, то вообще все плохо и непонятно
+						_ ->
+							?ERROR_UNDEFINED
+					end
+			end
 	end.
+
+
+%% reply/2
+%% ====================================================================
+%% ответ на размен
+reply(BattleId, HitPid, Hit) when is_record(Hit, b_hit), is_pid(HitPid) ->
+	gen_fsm:send_event(HitPid, {reply, BattleId, Hit}).
 
 
 %% ====================================================================
@@ -67,21 +92,29 @@ hit(BattleId, Hit) when is_record(Hit, b_hit), is_integer(BattleId) ->
 %% ====================================================================
 init(Hit) when is_record(Hit, b_hit) ->
 	?DBG("Start new hit ~p~n", [Hit]),
+	%% регистрируем процесс чтобы избежать гонок
+	gproc:add_local_name({hit, Hit#b_hit.sender, Hit#b_hit.recipient}),
+	gproc:add_local_name({hit, Hit#b_hit.recipient, Hit#b_hit.sender}),
+
 	%% уведомляем юнита, которому выставили размен
 	unit:hited(Hit#b_hit.recipient, {Hit#b_hit.sender, self()}),
 
 	%% если за отведенное время не будет ответа на размен, то удар по тайму
-	{ok, timeout, Hit, get_timeout(Hit)}.
+	{ok, do_hit, Hit, get_timeout(Hit)}.
 
 
-%% timeout/2
+%% do_hit/2
 %% ====================================================================
 %% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:StateName-2">gen_fsm:StateName/2</a>
 %% пропуск хода по таймауту
-timeout(_Event, Hit) ->
+do_hit(timeout, Hit) ->
 	?DBG("Hit timeout omitted ~p~n", [Hit]),
-	{stop, normal, Hit}.
+	{stop, normal, Hit};
 
+%% ответ на размен
+do_hit({reply, BattleId, ReplyHit}, Hit) ->
+	?DBG("Hit reply omitted ~p~n", [{Hit, BattleId, ReplyHit}]),
+	{stop, normal, Hit}.
 
 %% handle_event/3
 %% ====================================================================

@@ -142,6 +142,11 @@ handle_call(create_opponent_info, _, Unit) ->
 %% выставление удара
 handle_call({hit, HitsList, Block}, _, Unit) ->
 	Opponent = Unit#b_unit.opponent,
+	Hit = #b_hit{sender    = self(),
+				 recipient = Opponent#b_opponent.pid,
+				 hits      = HitsList,
+				 block     = Block,
+				 timeout   = battle:get_timeout(Unit#b_unit.battle_pid)},
 	R = case is_record(Unit#b_unit.opponent, b_opponent) of
 		false -> ?ERROR_WAIT_OPPONENT;
 		true  ->
@@ -154,16 +159,12 @@ handle_call({hit, HitsList, Block}, _, Unit) ->
 				false ->
 					%% если удар был выставлен противником
 					case lists:keyfind(Opponent#b_opponent.pid, 1, Unit#b_unit.obtained) of
-						true ->
+						{_OpponentPid, ObtainedHitPid} ->
 							%% ответ на удар
-							?ERROR_UNCOMPLETED;
+							hit:reply(Unit#b_unit.battle_id, ObtainedHitPid, Hit);
 						false ->
 							%% выставляем новый размен
-							hit:hit(Unit#b_unit.battle_id, #b_hit{sender    = self(),
-																  recipient = Opponent#b_opponent.pid,
-																  hits      = HitsList,
-																  block     = Block,
-																  timeout   = battle:get_timeout(Unit#b_unit.battle_pid)})
+							hit:hit(Unit#b_unit.battle_id, Hit)
 					end
 			end
 	end,
@@ -175,7 +176,12 @@ handle_call({hit, HitsList, Block}, _, Unit) ->
 			Hits = Unit#b_unit.hits ++ [{Opponent#b_opponent.pid, HitPid}],
 			%% меняем противника
 			{reply, {hit, HitPid}, select_next_opponent(Unit#b_unit{hits = Hits})};
-		%%
+		
+		%% совершен размен ударами
+		ok ->
+			{reply, {hit_replied}, Unit};
+		
+		%% что-то пошло не так
 		Erorr when is_record(Erorr, error) ->
 			{reply, Erorr, Unit}
 	end;
