@@ -147,6 +147,12 @@
                         gray    = 0.0    %% защита от серой магии
        }).
 
+%% боевая спецификация юзера
+-record(u_battle_spec, {hit_points = 1,    %% кол-во точек удара
+                        magic_points = 1,  %% кол-во магических кастов
+                        block_points = 2   %% кол-во зон блока
+        }).
+
 
 %% информация о персонаже
 -record(user, {id,
@@ -163,7 +169,8 @@
                wpower = #'u_wpower'{},	%% мощь магии
                armor  = #'u_armor'{},	%% броня
                dprotection = #'u_dprotection'{}, 	%% защита от урона
-               wprotection = #'u_wprotection'{}		%% защита от магии
+               wprotection = #'u_wprotection'{},	%% защита от магии
+               battle_spec = #'u_battle_spec'{}		%% боевые спецификации
 %% умелки
 %% одетые приемы
 %% одетые заклинания

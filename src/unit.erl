@@ -150,21 +150,14 @@ handle_call(create_opponent_info, _, Unit) ->
 %% выставление удара
 handle_call({hit, HitsList, Block}, _, Unit) ->
 	Opponent = Unit#b_unit.opponent,
-	Hit = #b_hit{sender    = self(),
-				 recipient = Opponent#b_opponent.pid,
-				 hits      = HitsList,
-				 block     = Block,
-				 timeout   = battle:get_timeout(Unit#b_unit.battle_pid)},
-	R = case is_record(Unit#b_unit.opponent, b_opponent) of
+	R = case is_record(Opponent, b_opponent) of
 		false -> ?ERROR_WAIT_OPPONENT;
 		true  ->
-			%% проверяем что удар еще не выставлен данному противнику
-			%% вообще такого быть не должно
-			case lists:keyfind(Opponent#b_opponent.pid, 1, Unit#b_unit.hits) of
-				true ->
-					?LOG("Try hit already hited ~p~n", [Unit]),
-					?ERROR_TOO_FAST;
-				false ->
+			Hit = create_hit(HitsList, Block, Unit),
+
+			%% валидация
+			case validate_hit(Hit, Unit) of
+				ok ->
 					%% если удар был выставлен противником
 					case lists:keyfind(Opponent#b_opponent.pid, 1, Unit#b_unit.obtained) of
 						{_OpponentPid, ObtainedHitPid} ->
@@ -173,7 +166,9 @@ handle_call({hit, HitsList, Block}, _, Unit) ->
 						false ->
 							%% выставляем новый размен
 							hit:hit(Unit#b_unit.battle_id, Hit)
-					end
+					end;
+				Error when is_record(Error, error) ->
+					Error
 			end
 	end,
 
@@ -362,3 +357,74 @@ set_initial_unit_data(Unit) ->
 				opponent = undefined,
 				obtained = [],
 				hits     = []}.
+
+
+%% create_hit/3
+%% ====================================================================
+%% возвращает запись нового удара
+create_hit(HitsList, Block, Unit) ->
+	Opponent = Unit#b_unit.opponent,
+	Blocks   = create_blocks_list(Block, Unit),
+	#b_hit{sender    = self(),
+		   recipient = Opponent#b_opponent.pid,
+		   hits      = HitsList,
+		   block     = Blocks,
+		   timeout   = battle:get_timeout(Unit#b_unit.battle_pid)}.
+
+create_blocks_list(Block, Unit) ->
+	%% кол-во зон блока
+	BlockPoints = ((Unit#b_unit.user)#user.battle_spec)#u_battle_spec.block_points,
+	list_helper:rsublist([head, torso, paunch, belt, legs], Block, BlockPoints).
+
+
+%% validate_hit/2
+%% ====================================================================
+%% вылидация выставленного удара
+validate_hit(Hit, Unit) when is_record(Hit, b_hit) ->
+	ValidateResults = [
+		%% проверяем правильность передачи параметров удара и блока
+		%% и соответствие кол-ва ударов указанному в параметрах юнита
+		validate_hits_count(Hit, Unit),
+		validate_block_count(Hit, Unit),
+		%% проверяем что удар еще не выставлен данному противнику
+		validate_unique_hit(Hit, Unit)
+	],
+	case ValidateResults of
+		[ok, ok, ok] ->
+			ok;
+		_ ->
+			list_helper:first_nequal(ValidateResults, ok)
+	end.
+
+validate_hits_count(Hit, Unit) ->
+	ExpectedHitsResult = lists:duplicate(((Unit#b_unit.user)#user.battle_spec)#u_battle_spec.hit_points, true),
+	case [is_hit_valid(H) || H <- Hit#b_hit.hits] of
+		ExpectedHitsResult ->
+			ok;
+		_ ->
+			?ERROR_NOT_APPLICABLE
+	end.
+
+validate_block_count(Hit, Unit) ->
+	ExpectedHitsResult = lists:duplicate(((Unit#b_unit.user)#user.battle_spec)#u_battle_spec.block_points, true),
+	case [is_hit_valid(H) || H <- Hit#b_hit.block] of
+		ExpectedHitsResult ->
+			ok;
+		_ ->
+			?ERROR_NOT_APPLICABLE
+	end.
+
+is_hit_valid(Hit) ->
+	lists:member(Hit, [head, torso, paunch, belt, legs]).
+
+validate_unique_hit(_Hit, Unit) ->
+	Opponent = Unit#b_unit.opponent,
+	%% проверяем что удар еще не выставлен данному противнику
+	%% вообще такого быть не должно
+	case lists:keyfind(Opponent#b_opponent.pid, 1, Unit#b_unit.hits) of
+		true ->
+			?LOG("Try hit already hited ~p~n", [Unit]),
+			?ERROR_TOO_FAST;
+		false ->
+			ok
+	end.

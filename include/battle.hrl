@@ -19,12 +19,14 @@
        }).
 
 %% удар
--record(b_hit, {sender :: pid(),
-                recipient :: pid(),
-                hits = [] :: [head | torso | paunch | belt | legs],
-                block :: head | torso | paunch | belt | legs,
+-record(b_hit, {sender     :: pid(),
+                recipient  :: pid(),
+                hits = []  :: [head | torso | paunch | belt | legs],
+                block = [] :: [head | torso | paunch | belt | legs],
                 timeout = 5,
-                timeout_alert = false :: boolean()
+                timeout_alert = false :: boolean(),
+                timeout_pass = false,
+                magic_pass = false
        }).
 
 %% краткое представление оппонента в бою
