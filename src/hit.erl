@@ -145,17 +145,19 @@ handle_cast({reply, BattleId, ReplyHit}, Hit) when ReplyHit#b_hit.sender == Hit#
 	DefendantHpDamage = random:uniform(((Attacker#b_unit.user)#user.vitality)#u_vitality.hp),
 
 	AttackerDamage = #b_damage{
-		damage      = AttackerHpDamage,
-		loss        = DefendantHpDamage,
-		loss_mana   = 0,
+		damaged     = AttackerHpDamage,
+		lost        = DefendantHpDamage,
+		lost_mana   = 0,
+		healed      = 0,
 		tactics     = #b_tactics{attack = 1, crit = 1},
 		opponent_id = Defendant#b_unit.id,
 		exp         = 100
 	},
 	DefendantDamage = #b_damage{
-		damage      = DefendantHpDamage,
-		loss        = AttackerHpDamage,
-		loss_mana   = 0,
+		damaged      = DefendantHpDamage,
+		lost        = AttackerHpDamage,
+		lost_mana   = 0,
+		healed      = 0,
 		tactics     = #b_tactics{attack = 2, crit = 1},
 		opponent_id = Defendant#b_unit.id,
 		exp         = 100

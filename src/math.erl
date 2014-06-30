@@ -14,7 +14,9 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([precision/2]).
+-export([precision/2,
+		 limit/2,
+		 limit/3]).
 
 %% precision/2
 %% ====================================================================
@@ -27,6 +29,20 @@ precision(Float, 1) ->
 
 precision(Float, 2) ->
 	(trunc(Float * 100)) / 100.
+
+
+%% limit/2
+%% ====================================================================
+%% ограничение максимального и минимального значения
+limit(Value, Max) ->
+	limit(Value, 0, Max).
+
+limit(Value, Min, Max) ->
+	case Value of
+		Smaller when Smaller < Min -> Min;
+		Bigger  when Bigger > Max  -> Max;
+		Normal -> Normal
+	end.
 
 %% ====================================================================
 %% Internal functions

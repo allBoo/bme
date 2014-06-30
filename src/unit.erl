@@ -105,7 +105,7 @@ damage(UserId, Damage) when (is_list(UserId) or is_integer(UserId)),
 	end;
 
 damage(UserPid, Damage) when is_pid(UserPid), is_record(Damage, b_damage) ->
-	gen_server:call(UserPid, {damage, Damage}).
+	gen_server:cast(UserPid, {damage, Damage}).
 
 
 %% timeout_alarm/2
@@ -293,6 +293,26 @@ handle_cast({timeout_alarm, OpponentPid}, Unit) ->
 								   end),
 	?DBG("Timeout alert from ~p. New opponents ~p~n", [OpponentPid, Opponents]),
 	{noreply, Unit#b_unit{opponents = Opponents}};
+
+
+%% получение урона
+handle_cast({damage, Damage}, Unit) when is_record(Damage, b_damage) ->
+	?DBG("Damage omitted ~p~n", [Damage]),
+	%% считаем что получилось
+	User = Unit#b_unit.user,
+	Vitality = User#user.vitality,
+	Hp = math:limit(Vitality#u_vitality.hp - Damage#b_damage.lost, Vitality#u_vitality.maxhp),
+	Mana = math:limit(Vitality#u_vitality.mana - Damage#b_damage.lost_mana, Vitality#u_vitality.maxmana),
+	Tactics = add_tactics(Unit, Damage#b_damage.tactics),
+	DamagedUnit = Unit#b_unit{user = User#user{vitality = Vitality#u_vitality{hp = Hp, mana = Mana}},
+							  tactics = Tactics,
+							  total_damaged = Unit#b_unit.total_damaged + Damage#b_damage.damaged,
+							  total_healed  = Unit#b_unit.total_healed  + Damage#b_damage.healed,
+							  total_lost    = Unit#b_unit.total_lost    + Damage#b_damage.lost,
+							  exp = Unit#b_unit.exp + Damage#b_damage.exp},
+	%% @todo если уровень ХП = 0, значит юнит помер
+	?DBG("Damage result ~p~n", [{Hp, Mana, Tactics}]),
+	{noreply, DamagedUnit};
 
 
 %% unknown request
@@ -534,3 +554,18 @@ validate_unique_hit(_Hit, Unit) ->
 		false ->
 			ok
 	end.
+
+
+%% add_tactics/2
+%% ====================================================================
+%% пересчет тактик
+add_tactics(Unit, Delta) when is_record(Unit, b_unit),
+							  is_record(Delta, b_tactics) ->
+	Current = Unit#b_unit.tactics,
+	Current#b_tactics{attack  = math:limit(Current#b_tactics.attack + Delta#b_tactics.attack, 25),
+                      crit    = math:limit(Current#b_tactics.crit + Delta#b_tactics.crit, 25),
+                      counter = math:limit(Current#b_tactics.counter + Delta#b_tactics.counter, 25),
+                      block   = math:limit(Current#b_tactics.block + Delta#b_tactics.block, 25),
+                      parry   = math:limit(Current#b_tactics.parry + Delta#b_tactics.parry, 25),
+                      hearts  = math:limit(Current#b_tactics.hearts + Delta#b_tactics.hearts, 25),
+                      spirit  = math:limit(Current#b_tactics.spirit + Delta#b_tactics.spirit, Current#b_tactics.spirit)}.
