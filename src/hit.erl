@@ -165,6 +165,8 @@ handle_cast({reply, BattleId, ReplyHit}, Hit) when ReplyHit#b_hit.sender == Hit#
 	unit:damage(Hit#b_hit.recipient, AttackerDamage),
 	unit:damage(Hit#b_hit.sender, DefendantDamage),
 
+	%% завершаем процесс
+	%% юниты должны поймать сообщение о завершении
 	{stop, normal, Hit};
 
 

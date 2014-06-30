@@ -276,7 +276,7 @@ handle_cast({set_opponents, OpponentsList}, Unit) ->
 handle_cast({hited, {From, Hit}}, Unit) ->
 	?DBG("User ~p hited", [{From, Hit}]),
 	%% мониторим процесс размена
-	gproc:monitor({n, l, {hit, self(), From}}),
+	gproc:monitor({n, l, {hit, From, self()}}),
 	%% добавляем в список выставленных нам разменов
 	Obtained = Unit#b_unit.obtained ++ [{From, Hit}],
 	{noreply, Unit#b_unit{obtained = Obtained}};
@@ -323,13 +323,18 @@ handle_info({battle_start, BattlePid}, Unit) ->
 	BattleUnit = set_initial_unit_data(Unit),
 	%% поиск подходящего оппонента
 	Opponent = select_random_opponent(Unit#b_unit.opponents),
+	?DBG("Select opponent ~p~n", [Opponent]),
 	{noreply, BattleUnit#b_unit{battle_pid = BattlePid, opponent = Opponent}};
 
 
-%% уведомление о прошедшем размене
+%% уведомление о прошедшем размене, который выставили мы
 handle_info({gproc, unreg, _, {n, l, {hit, SenderPid, RecipientPid}}}, Unit) when SenderPid == self() ->
-	?DBG("Hit is done ~p", [{hit, SenderPid, RecipientPid}]),
-	{noreply, Unit};
+	{noreply, hit_done(sended, RecipientPid, Unit)};
+
+%% уведомление о прошедшем размене, который выставили нам
+handle_info({gproc, unreg, _, {n, l, {hit, SenderPid, RecipientPid}}}, Unit) when RecipientPid == self() ->
+	{noreply, hit_done(obtained, SenderPid, Unit)};
+
 
 %% unknown
 handle_info(_Info, State) ->
@@ -438,6 +443,44 @@ create_blocks_list(Block, Unit) ->
 	%% кол-во зон блока
 	BlockPoints = ((Unit#b_unit.user)#user.battle_spec)#u_battle_spec.block_points,
 	list_helper:rsublist([head, torso, paunch, belt, legs], Block, BlockPoints).
+
+
+%% hit_done/3
+%% ====================================================================
+%% обработка конца хода
+hit_done(sended, OpponentPid, Unit) ->
+	?DBG("Sended hit is done ~p", [{hit, OpponentPid}]),
+	%% удаляем размен из списка выставленных разменов
+	Hits = lists:keydelete(OpponentPid, 1, Unit#b_unit.hits),
+	hit_done(OpponentPid, Unit#b_unit{hits = Hits});
+
+hit_done(obtained, OpponentPid, Unit) ->
+	?DBG("Obtained hit is done ~p", [{hit, OpponentPid}]),
+	%% удаляем размен из списка полученных разменов
+	Obtained = lists:keydelete(OpponentPid, 1, Unit#b_unit.obtained),
+	hit_done(OpponentPid, Unit#b_unit{obtained = Obtained}).
+
+hit_done(OpponentPid, Unit) ->
+	%% если у противника стоит флаг таймаута - сбросим его
+	Opponents = list_helper:keymap(OpponentPid,
+								   2,
+								   Unit#b_unit.opponents,
+								   fun(Opponent) ->
+										   Opponent#b_opponent{timeout = false}
+								   end),
+
+	%% если текущий противник не выбран - выбираем этого, с кем произведен размен
+	NewOpponent = case Unit#b_unit.opponent of
+					  undefined ->
+						  ?DBG("Select opponent ~p~n", [OpponentPid]),
+						  case lists:keyfind(OpponentPid, 2, Opponents) of
+							  false    -> undefined;
+							  Opponent -> Opponent
+						  end;
+					  _ -> Unit#b_unit.opponent
+				  end,
+	%% @todo сбросить лок с приемов, увеличить счетчик ходов, etc
+	Unit#b_unit{opponent = NewOpponent, opponents = Opponents}.
 
 
 %% validate_hit/2
