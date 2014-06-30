@@ -54,7 +54,7 @@ init([Unit]) ->
 	Children = [?UNIT(Unit)],%% ++ lists:map(fun(Unit) -> ?MEMBER_SUP(Team, Unit) end, Team#b_team.members),
 	%% @todo добавить супервайзер юзерских баффов и супервайзер приемов
 	Strategy = one_for_one,
-	MaxR = 0, MaxT = 1,
+	MaxR = 10, MaxT = 10,
 	{ok, {{Strategy, MaxR, MaxT}, Children}}.
 
 %% ====================================================================

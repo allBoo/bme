@@ -23,7 +23,8 @@
 		 set_opponents/2,
 		 hit/3,
 		 hited/2,
-		 timeout_alarm/2]).
+		 timeout_alarm/2,
+		 crash/1]).
 
 %% start_link/1
 %% ====================================================================
@@ -84,6 +85,18 @@ hited(UnitPid, {From, Hit}) when is_pid(UnitPid), is_pid(From), is_pid(Hit) ->
 timeout_alarm(UnitPid, OpponentPid) ->
 	gen_server:cast(UnitPid, {timeout_alarm, OpponentPid}).
 
+
+%% crash/1
+%% ====================================================================
+%% тестирование падения юнита
+crash(UserId) when is_integer(UserId) ->
+	case gproc:lookup_local_name({unit, UserId}) of
+		undefined -> ?ERROR_NOT_IN_BATTLE;
+		UserPid   -> crash(UserPid)
+	end;
+
+crash(UserPid) when is_pid(UserPid) ->
+	gen_server:call(UserPid, crash).
 
 %% ====================================================================
 %% Behavioural functions
@@ -189,6 +202,10 @@ handle_call({hit, HitsList, Block}, _, Unit) ->
 			{reply, Erorr, Unit}
 	end;
 
+%% test crash
+handle_call(crash, _, Unit) ->
+	a = b,
+	{reply, ?ERROR_WRONG_CALL, Unit};
 
 %% unknown
 handle_call(_, _, State) ->
