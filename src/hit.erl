@@ -134,8 +134,37 @@ handle_call(_, _, State) ->
 %% ====================================================================
 
 %% ответ на размен
-handle_cast({reply, BattleId, ReplyHit}, Hit) ->
+handle_cast({reply, BattleId, ReplyHit}, Hit) when ReplyHit#b_hit.sender == Hit#b_hit.recipient,
+												   ReplyHit#b_hit.recipient == Hit#b_hit.sender ->
 	?DBG("Hit reply omitted ~p~n", [{Hit, BattleId, ReplyHit}]),
+	Attacker  = unit:get_state(Hit#b_hit.sender),
+	Defendant = unit:get_state(Hit#b_hit.recipient),
+
+	%% пока не заморачиваемся, просто возьмем рандомное значение урона
+	AttackerHpDamage  = random:uniform(((Defendant#b_unit.user)#user.vitality)#u_vitality.hp),
+	DefendantHpDamage = random:uniform(((Attacker#b_unit.user)#user.vitality)#u_vitality.hp),
+
+	AttackerDamage = #b_damage{
+		damage      = AttackerHpDamage,
+		loss        = DefendantHpDamage,
+		loss_mana   = 0,
+		tactics     = #b_tactics{attack = 1, crit = 1},
+		opponent_id = Defendant#b_unit.id,
+		exp         = 100
+	},
+	DefendantDamage = #b_damage{
+		damage      = DefendantHpDamage,
+		loss        = AttackerHpDamage,
+		loss_mana   = 0,
+		tactics     = #b_tactics{attack = 2, crit = 1},
+		opponent_id = Defendant#b_unit.id,
+		exp         = 100
+	},
+
+	%% сообщаем юнитам о нанесенном им уроне
+	unit:damage(Hit#b_hit.recipient, AttackerDamage),
+	unit:damage(Hit#b_hit.sender, DefendantDamage),
+
 	{stop, normal, Hit};
 
 

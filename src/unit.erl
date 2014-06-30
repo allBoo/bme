@@ -19,10 +19,12 @@
 %% API functions
 %% ====================================================================
 -export([start_link/1,
+		 get_state/1,
 		 create_opponent_info/1,
 		 set_opponents/2,
 		 hit/3,
 		 hited/2,
+		 damage/2,
 		 timeout_alarm/2,
 		 crash/1]).
 
@@ -31,6 +33,19 @@
 %% регистрирует процесс нового участника боя
 start_link(Unit) when is_record(Unit, b_unit) ->
 	gen_server:start_link(?MODULE, Unit, []).
+
+
+%% get/1
+%% ====================================================================
+%% возвращает текущий State (информацию о юните)
+get_state(UserId) when (is_list(UserId) or is_integer(UserId)) ->
+	case gproc:lookup_local_name({unit, UserId}) of
+		undefined -> ?ERROR_NOT_IN_BATTLE;
+		UserPid   -> get_state(UserPid)
+	end;
+
+get_state(UserPid) when is_pid(UserPid) ->
+	gen_server:call(UserPid, get_state).
 
 
 %% create_opponent_info/1
@@ -77,6 +92,20 @@ hit(UserPid, Hits, Block) when is_pid(UserPid) ->
 %% противник выставил размен
 hited(UnitPid, {From, Hit}) when is_pid(UnitPid), is_pid(From), is_pid(Hit) ->
 	gen_server:cast(UnitPid, {hited, {From, Hit}}).
+
+
+%% damage/2
+%% ====================================================================
+%% нанесение урона юниту
+damage(UserId, Damage) when (is_list(UserId) or is_integer(UserId)),
+							is_record(Damage, b_damage) ->
+	case gproc:lookup_local_name({unit, UserId}) of
+		undefined -> ?ERROR_NOT_IN_BATTLE;
+		UserPid   -> damage(UserPid, Damage)
+	end;
+
+damage(UserPid, Damage) when is_pid(UserPid), is_record(Damage, b_damage) ->
+	gen_server:call(UserPid, {damage, Damage}).
 
 
 %% timeout_alarm/2
@@ -160,6 +189,11 @@ handle_call(create_opponent_info, _, Unit) ->
                         }, Unit};
 
 
+%% возвращает текущее состояние юнита
+handle_call(get_state, _, Unit) ->
+	{reply, Unit, Unit};
+
+
 %% выставление удара
 handle_call({hit, HitsList, Block}, _, Unit) ->
 	Opponent = Unit#b_unit.opponent,
@@ -190,6 +224,8 @@ handle_call({hit, HitsList, Block}, _, Unit) ->
 		{ok, HitPid} when is_pid(HitPid) ->
 			%% добавляем его в список разменов
 			Hits = Unit#b_unit.hits ++ [{Opponent#b_opponent.pid, HitPid}],
+			%% мониторим процесс размена
+			gproc:monitor({n, l, {hit, self(), Opponent#b_opponent.pid}}),
 			%% меняем противника
 			{reply, {hit, HitPid}, select_next_opponent(Unit#b_unit{hits = Hits})};
 
@@ -236,9 +272,12 @@ handle_cast({set_opponents, OpponentsList}, Unit) ->
 
 
 %% противник выставил размен
-%% сохраняем его в списке
+%% сохраняем его в списке и мониторим
 handle_cast({hited, {From, Hit}}, Unit) ->
 	?DBG("User ~p hited", [{From, Hit}]),
+	%% мониторим процесс размена
+	gproc:monitor({n, l, {hit, self(), From}}),
+	%% добавляем в список выставленных нам разменов
 	Obtained = Unit#b_unit.obtained ++ [{From, Hit}],
 	{noreply, Unit#b_unit{obtained = Obtained}};
 
@@ -277,6 +316,7 @@ handle_cast(_Msg, State) ->
 handle_info({team_start, TeamPid}, Unit) ->
 	{noreply, Unit#b_unit{team_pid = TeamPid}};
 
+
 %% уведомление о запуске боя
 handle_info({battle_start, BattlePid}, Unit) ->
 	%% формируем начальное состояние юнита
@@ -284,6 +324,12 @@ handle_info({battle_start, BattlePid}, Unit) ->
 	%% поиск подходящего оппонента
 	Opponent = select_random_opponent(Unit#b_unit.opponents),
 	{noreply, BattleUnit#b_unit{battle_pid = BattlePid, opponent = Opponent}};
+
+
+%% уведомление о прошедшем размене
+handle_info({gproc, unreg, _, {n, l, {hit, SenderPid, RecipientPid}}}, Unit) when SenderPid == self() ->
+	?DBG("Hit is done ~p", [{hit, SenderPid, RecipientPid}]),
+	{noreply, Unit};
 
 %% unknown
 handle_info(_Info, State) ->

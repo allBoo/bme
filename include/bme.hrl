@@ -23,7 +23,6 @@
 -define(UNIT_SUP(Team, Unit), {Unit#b_unit.id, {unit_sup, start_link, [Unit#b_unit{battle_id=Team#b_team.battle_id}]}, transient, infinity, supervisor, [unit_sup]}).
 -define(UNIT(Unit), {Unit#b_unit.id, {unit, start_link, [Unit]}, transient, 1000, worker, [unit]}).
 
-
 %%% ====================================================================
 %%% Списки комнат
 %%% ====================================================================
