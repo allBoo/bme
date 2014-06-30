@@ -11,18 +11,15 @@
 
 
 -module(hit).
--behaviour(gen_fsm).
+-behaviour(gen_server).
 -include_lib("bme.hrl").
 
--export([init/1,
-		 hit/2,
-		 reply/3,
-		 do_hit/2,
-		 handle_event/3,
-		 handle_sync_event/4,
-		 handle_info/3,
-		 terminate/3,
-		 code_change/4]).
+%% standart behaviourals
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+
+%% api
+-export([hit/2,
+		 reply/3]).
 
 %% ====================================================================
 %% API functions
@@ -34,7 +31,7 @@
 %% ====================================================================
 %% регистрирует процесс нового размена
 start_link(Hit) when is_record(Hit, b_hit) ->
-	gen_fsm:start_link(?MODULE, Hit, []).
+	gen_server:start_link(?MODULE, Hit, []).
 
 
 %% hit/2
@@ -69,7 +66,7 @@ hit(BattleId, Hit) when is_record(Hit, b_hit), is_integer(BattleId) ->
 %% ====================================================================
 %% ответ на размен
 reply(BattleId, HitPid, Hit) when is_record(Hit, b_hit), is_pid(HitPid) ->
-	gen_fsm:send_event(HitPid, {reply, BattleId, Hit}).
+	gen_server:cast(HitPid, {reply, BattleId, Hit}).
 
 
 %% ====================================================================
@@ -78,17 +75,15 @@ reply(BattleId, HitPid, Hit) when is_record(Hit, b_hit), is_pid(HitPid) ->
 
 %% init/1
 %% ====================================================================
-%% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:init-1">gen_fsm:init/1</a>
+%% @doc <a href="http://www.erlang.org/doc/man/gen_server.html#Module:init-1">gen_server:init/1</a>
 -spec init(Args :: term()) -> Result when
-	Result :: {ok, StateName, StateData}
-			| {ok, StateName, StateData, Timeout}
-			| {ok, StateName, StateData, hibernate}
-			| {stop, Reason}
+	Result :: {ok, State}
+			| {ok, State, Timeout}
+			| {ok, State, hibernate}
+			| {stop, Reason :: term()}
 			| ignore,
-	StateName :: atom(),
-	StateData :: term(),
-	Timeout :: non_neg_integer() | infinity,
-	Reason :: term().
+	State :: term(),
+	Timeout :: non_neg_integer() | infinity.
 %% ====================================================================
 init(Hit) when is_record(Hit, b_hit) ->
 	?DBG("Start new hit ~p~n", [Hit]),
@@ -100,106 +95,121 @@ init(Hit) when is_record(Hit, b_hit) ->
 	unit:hited(Hit#b_hit.recipient, {Hit#b_hit.sender, self()}),
 
 	%% если за отведенное время не будет ответа на размен, то удар по тайму
-	{ok, do_hit, Hit, get_timeout(Hit)}.
+	{ok, Hit, get_timeout(Hit)}.
 
 
-%% do_hit/2
+%% handle_call/3
 %% ====================================================================
-%% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:StateName-2">gen_fsm:StateName/2</a>
+%% @doc <a href="http://www.erlang.org/doc/man/gen_server.html#Module:handle_call-3">gen_server:handle_call/3</a>
+-spec handle_call(Request :: term(), From :: {pid(), Tag :: term()}, State :: term()) -> Result when
+	Result :: {reply, Reply, NewState}
+			| {reply, Reply, NewState, Timeout}
+			| {reply, Reply, NewState, hibernate}
+			| {noreply, NewState}
+			| {noreply, NewState, Timeout}
+			| {noreply, NewState, hibernate}
+			| {stop, Reason, Reply, NewState}
+			| {stop, Reason, NewState},
+	Reply :: term(),
+	NewState :: term(),
+	Timeout :: non_neg_integer() | infinity,
+	Reason :: term().
+%% ====================================================================
+
+%% unknown
+handle_call(_, _, State) ->
+	{reply, ?ERROR_WRONG_CALL, State}.
+
+
+%% handle_cast/2
+%% ====================================================================
+%% @doc <a href="http://www.erlang.org/doc/man/gen_server.html#Module:handle_cast-2">gen_server:handle_cast/2</a>
+-spec handle_cast(Request :: term(), State :: term()) -> Result when
+	Result :: {noreply, NewState}
+			| {noreply, NewState, Timeout}
+			| {noreply, NewState, hibernate}
+			| {stop, Reason :: term(), NewState},
+	NewState :: term(),
+	Timeout :: non_neg_integer() | infinity.
+%% ====================================================================
+
+%% ответ на размен
+handle_cast({reply, BattleId, ReplyHit}, Hit) ->
+	?DBG("Hit reply omitted ~p~n", [{Hit, BattleId, ReplyHit}]),
+	{stop, normal, Hit};
+
+
+%% unknown request
+handle_cast(_Msg, State) ->
+	{noreply, State}.
+
+
+%% handle_info/2
+%% ====================================================================
+%% @doc <a href="http://www.erlang.org/doc/man/gen_server.html#Module:handle_info-2">gen_server:handle_info/2</a>
+-spec handle_info(Info :: timeout | term(), State :: term()) -> Result when
+	Result :: {noreply, NewState}
+			| {noreply, NewState, Timeout}
+			| {noreply, NewState, hibernate}
+			| {stop, Reason :: term(), NewState},
+	NewState :: term(),
+	Timeout :: non_neg_integer() | infinity.
+%% ====================================================================
+
+%% алерт о приближении таймаута
+handle_info(timeout, #b_hit{timeout_alert = false} = Hit) ->
+	?DBG("Hit timeout alert omitted ~p~n", [Hit]),
+	%% уведомляем юнита, которому выставили размен,
+	%% что через 10 сек будет пропуск хода
+	unit:timeout_alarm(Hit#b_hit.recipient, Hit#b_hit.sender),
+	{noreply, Hit#b_hit{timeout_alert = true}, get_alert_timeout()};
+
+
 %% пропуск хода по таймауту
-do_hit(timeout, Hit) ->
+handle_info(timeout, #b_hit{timeout_alert = true} = Hit) ->
 	?DBG("Hit timeout omitted ~p~n", [Hit]),
 	{stop, normal, Hit};
 
-%% ответ на размен
-do_hit({reply, BattleId, ReplyHit}, Hit) ->
-	?DBG("Hit reply omitted ~p~n", [{Hit, BattleId, ReplyHit}]),
-	{stop, normal, Hit}.
 
-%% handle_event/3
-%% ====================================================================
-%% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:handle_event-3">gen_fsm:handle_event/3</a>
--spec handle_event(Event :: term(), StateName :: atom(), StateData :: term()) -> Result when
-	Result :: {next_state, NextStateName, NewStateData}
-			| {next_state, NextStateName, NewStateData, Timeout}
-			| {next_state, NextStateName, NewStateData, hibernate}
-			| {stop, Reason, NewStateData},
-	NextStateName :: atom(),
-	NewStateData :: term(),
-	Timeout :: non_neg_integer() | infinity,
-	Reason :: term().
-%% ====================================================================
-handle_event(_Event, StateName, StateData) ->
-    {next_state, StateName, StateData}.
+%% unknown
+handle_info(_Info, State) ->
+	{noreply, State}.
 
 
-%% handle_sync_event/4
+%% terminate/2
 %% ====================================================================
-%% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:handle_sync_event-4">gen_fsm:handle_sync_event/4</a>
--spec handle_sync_event(Event :: term(), From :: {pid(), Tag :: term()}, StateName :: atom(), StateData :: term()) -> Result when
-	Result :: {reply, Reply, NextStateName, NewStateData}
-			| {reply, Reply, NextStateName, NewStateData, Timeout}
-			| {reply, Reply, NextStateName, NewStateData, hibernate}
-			| {next_state, NextStateName, NewStateData}
-			| {next_state, NextStateName, NewStateData, Timeout}
-			| {next_state, NextStateName, NewStateData, hibernate}
-			| {stop, Reason, Reply, NewStateData}
-			| {stop, Reason, NewStateData},
-	Reply :: term(),
-	NextStateName :: atom(),
-	NewStateData :: term(),
-	Timeout :: non_neg_integer() | infinity,
-	Reason :: term().
-%% ====================================================================
-handle_sync_event(_Event, _From, StateName, StateData) ->
-    Reply = ok,
-    {reply, Reply, StateName, StateData}.
-
-
-%% handle_info/3
-%% ====================================================================
-%% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:handle_info-3">gen_fsm:handle_info/3</a>
--spec handle_info(Info :: term(), StateName :: atom(), StateData :: term()) -> Result when
-	Result :: {next_state, NextStateName, NewStateData}
-			| {next_state, NextStateName, NewStateData, Timeout}
-			| {next_state, NextStateName, NewStateData, hibernate}
-			| {stop, Reason, NewStateData},
-	NextStateName :: atom(),
-	NewStateData :: term(),
-	Timeout :: non_neg_integer() | infinity,
-	Reason :: normal | term().
-%% ====================================================================
-handle_info(_Info, StateName, StateData) ->
-    {next_state, StateName, StateData}.
-
-
-%% terminate/3
-%% ====================================================================
-%% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:terminate-3">gen_fsm:terminate/3</a>
--spec terminate(Reason, StateName :: atom(), StateData :: term()) -> Result :: term() when
+%% @doc <a href="http://www.erlang.org/doc/man/gen_server.html#Module:terminate-2">gen_server:terminate/2</a>
+-spec terminate(Reason, State :: term()) -> Any :: term() when
 	Reason :: normal
 			| shutdown
 			| {shutdown, term()}
 			| term().
 %% ====================================================================
-terminate(_Reason, _StateName, _StatData) ->
-    ok.
+terminate(_Reason, _State) ->
+	ok.
 
 
-%% code_change/4
+%% code_change/3
 %% ====================================================================
-%% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:code_change-4">gen_fsm:code_change/4</a>
--spec code_change(OldVsn, StateName :: atom(), StateData :: term(), Extra :: term()) -> {ok, NextStateName :: atom(), NewStateData :: term()} when
+%% @doc <a href="http://www.erlang.org/doc/man/gen_server.html#Module:code_change-3">gen_server:code_change/3</a>
+-spec code_change(OldVsn, State :: term(), Extra :: term()) -> Result when
+	Result :: {ok, NewState :: term()} | {error, Reason :: term()},
 	OldVsn :: Vsn | {down, Vsn},
 	Vsn :: term().
 %% ====================================================================
-code_change(_OldVsn, StateName, StateData, _Extra) ->
-    {ok, StateName, StateData}.
+code_change(_OldVsn, State, _Extra) ->
+	{ok, State}.
 
 
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
 
+%% расчитывает начальный таймаут хода до предупреждения о пропуске хода
+%%
 get_timeout(Hit) ->
-	(Hit#b_hit.timeout * 60) * 1000.
+	((Hit#b_hit.timeout * 60) * 1000) - get_alert_timeout().
+
+get_alert_timeout() ->
+	10000.
+

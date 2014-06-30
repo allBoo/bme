@@ -22,7 +22,8 @@
 		 create_opponent_info/1,
 		 set_opponents/2,
 		 hit/3,
-		 hited/2]).
+		 hited/2,
+		 timeout_alarm/2]).
 
 %% start_link/1
 %% ====================================================================
@@ -75,6 +76,13 @@ hit(UserPid, Hits, Block) when is_pid(UserPid) ->
 %% противник выставил размен
 hited(UnitPid, {From, Hit}) when is_pid(UnitPid), is_pid(From), is_pid(Hit) ->
 	gen_server:cast(UnitPid, {hited, {From, Hit}}).
+
+
+%% timeout_alarm/2
+%% ====================================================================
+%% предупреждение о приближении таймаута от противника
+timeout_alarm(UnitPid, OpponentPid) ->
+	gen_server:cast(UnitPid, {timeout_alarm, OpponentPid}).
 
 
 %% ====================================================================
@@ -176,11 +184,11 @@ handle_call({hit, HitsList, Block}, _, Unit) ->
 			Hits = Unit#b_unit.hits ++ [{Opponent#b_opponent.pid, HitPid}],
 			%% меняем противника
 			{reply, {hit, HitPid}, select_next_opponent(Unit#b_unit{hits = Hits})};
-		
+
 		%% совершен размен ударами
 		ok ->
 			{reply, {hit_replied}, Unit};
-		
+
 		%% что-то пошло не так
 		Erorr when is_record(Erorr, error) ->
 			{reply, Erorr, Unit}
@@ -209,7 +217,7 @@ handle_cast({set_opponents, OpponentsList}, Unit) ->
 	%% сравниваем стоимось комлектов и определяем серых в бою
 	CalculatedOpponentsList = lists:map(fun(Opponent) ->
 												Delta = Opponent#b_opponent.cost / ((Unit#b_unit.user)#user.dress)#u_dress.cost,
-												Opponent#b_opponent{gray = Delta < 0.6}
+												Opponent#b_opponent{gray = Delta < 0.6, timeout = false}
 										end, OpponentsList),
 	?DBG("Unit ~p set opponents ~p~n", [self(), CalculatedOpponentsList]),
 	{noreply, Unit#b_unit{opponents = CalculatedOpponentsList}};
@@ -221,6 +229,19 @@ handle_cast({hited, {From, Hit}}, Unit) ->
 	?DBG("User ~p hited", [{From, Hit}]),
 	Obtained = Unit#b_unit.obtained ++ [{From, Hit}],
 	{noreply, Unit#b_unit{obtained = Obtained}};
+
+
+%% приближение пропуска хода по тайму
+handle_cast({timeout_alarm, OpponentPid}, Unit) ->
+	%% ищем противника в списке оппонентов
+	Opponents = list_helper:keymap(OpponentPid,
+								   2,
+								   Unit#b_unit.opponents,
+								   fun(Opponent) ->
+										   Opponent#b_opponent{timeout = true}
+								   end),
+	?DBG("Timeout alert from ~p. New opponents ~p~n", [OpponentPid, Opponents]),
+	{noreply, Unit#b_unit{opponents = Opponents}};
 
 
 %% unknown request

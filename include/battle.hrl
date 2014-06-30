@@ -23,7 +23,8 @@
                 recipient :: pid(),
                 hits = [] :: [head | torso | paunch | belt | legs],
                 block :: head | torso | paunch | belt | legs,
-                timeout = 5
+                timeout = 5,
+                timeout_alert = false :: boolean()
        }).
 
 %% краткое представление оппонента в бою
@@ -35,7 +36,8 @@
                      align,
                      klan :: binary(),
                      cost = 0,
-                     gray = false ::boolean()
+                     gray = false ::boolean(),
+                     timeout = false
        }).
 
 %% участник боя
