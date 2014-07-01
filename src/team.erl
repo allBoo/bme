@@ -131,6 +131,12 @@ handle_cast(_Msg, State) ->
 handle_info({battle_start, BattlePid}, Team) ->
 	{noreply, Team#b_team{battle_pid = BattlePid}};
 
+
+%% уведомление о убитом юните
+handle_info({unit_killed, UnitPid}, Team) when is_pid(UnitPid), UnitPid /= self() ->
+	{noreply, unit_killed(UnitPid, Team)};
+
+
 %% unknown request
 handle_info(_Info, State) ->
 	{noreply, State}.
@@ -164,3 +170,27 @@ code_change(_OldVsn, State, _Extra) ->
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
+
+%% unit_killed/2
+%% ====================================================================
+%% обработка уведомлений об убитых юнитах
+unit_killed(UnitPid, Team) ->
+	%% ?DBG("Team ~p check killed unit~n", [Team#b_team.id]),
+	%% убираем его из списка живых юнитов
+	AliveUnits = lists:delete(UnitPid, Team#b_team.alive_units),
+	Team0 = Team#b_team{alive_units = AliveUnits,
+						alive_count = length(AliveUnits)},
+
+	%% если не осталось живых юнитов - останавливаем тиму
+	case Team0#b_team.alive_count > 0 of
+		true  -> Team0;
+		false -> team_lost(Team0)
+	end.
+
+
+%% team_lost/1
+%% ====================================================================
+%% обработка проигрыша команды (все юниты убиты)
+team_lost(Team) ->
+	?DBG("Team ~p lost!~n", [Team#b_team.id]),
+	Team.

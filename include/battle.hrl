@@ -54,8 +54,8 @@
                  leader = false,
                  opponents = [] :: [#b_opponent{}],	%% список с краткой информацией о всех оппонентах
                  opponent = undefined :: #b_opponent{} | undefined,			%% выбранный в текущий момент оппонент
-                 obtained = [] :: [{Opponent :: pid(), Hit :: pid(), MonitorRef}],	%% список оппонентов, выставивших удары
-                 hits     = [] :: [{Opponent :: pid(), Hit :: pid(), MonitorRef}],	%% список оппонентов, которым выставил удар
+                 obtained = [] :: [{Opponent :: pid(), Hit :: pid()}],	%% список оппонентов, выставивших удары
+                 hits     = [] :: [{Opponent :: pid(), Hit :: pid()}],	%% список оппонентов, которым выставил удар
                  tactics = #'b_tactics'{},		%% боевые тактики
                  total_damaged = 0,		%% кол-во нанесенного урона
                  total_healed = 0,		%% кол-во отхиленных ХП
@@ -70,7 +70,7 @@
                  max_cost = 0,
                  units = []	:: [#b_unit{}],
                  units_count = 0,
-                 alive_units = [],
+                 alive_units = [] :: [pid()],
                  alive_count = 0,
                  leader
        }).

@@ -154,7 +154,7 @@ handle_cast({reply, BattleId, ReplyHit}, Hit) when ReplyHit#b_hit.sender == Hit#
 		exp         = 100
 	},
 	DefendantDamage = #b_damage{
-		damaged      = DefendantHpDamage,
+		damaged     = DefendantHpDamage,
 		lost        = AttackerHpDamage,
 		lost_mana   = 0,
 		healed      = 0,
@@ -164,11 +164,15 @@ handle_cast({reply, BattleId, ReplyHit}, Hit) when ReplyHit#b_hit.sender == Hit#
 	},
 
 	%% сообщаем юнитам о нанесенном им уроне
-	unit:damage(Hit#b_hit.recipient, AttackerDamage),
-	unit:damage(Hit#b_hit.sender, DefendantDamage),
+	DefendantRes = unit:damage(Hit#b_hit.recipient, AttackerDamage),
+	AttackerRes  = unit:damage(Hit#b_hit.sender, DefendantDamage),
+
+	%% отправляем выжившим юнитам сообщение о завершении хода
+	%% тип размена и с кем
+	send_hit_done(DefendantRes, Hit#b_hit.recipient, {obtained, Hit#b_hit.sender}),
+	send_hit_done(AttackerRes,  Hit#b_hit.sender,    {sended,   Hit#b_hit.recipient}),
 
 	%% завершаем процесс
-	%% юниты должны поймать сообщение о завершении
 	{stop, normal, Hit};
 
 
@@ -246,3 +250,14 @@ get_timeout(Hit) ->
 get_alert_timeout() ->
 	10000.
 
+
+%% send_hit_done/1
+%% ====================================================================
+%% отпраляем юнитам сообщение о завершении размена
+%% сообщение отправляется только живому юниту
+send_hit_done({ok, alive}, UnitPid, Message) ->
+	unit:hit_done(UnitPid, Message),
+	ok;
+
+send_hit_done(_, _UnitPid, _Message) ->
+	ok.

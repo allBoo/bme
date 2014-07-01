@@ -32,3 +32,4 @@
 -define(ERROR_NOT_IN_BATTLE, #error{code = 102, message = <<"Персонаж не в бою">>}).
 -define(ERROR_TOO_FAST, #error{code = 103, message = <<"Не так быстро">>}).
 -define(ERROR_WAIT_OPPONENT, #error{code = 104, message = <<"Ожидаем хода противника">>}).
+-define(ERROR_UNIT_DEAD, #error{code = 105, message = <<"Вы погибли, ожидаем окончания поединка.">>}).

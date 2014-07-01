@@ -25,6 +25,8 @@
 		 hit/3,
 		 hited/2,
 		 damage/2,
+		 hit_done/2,
+		 kill/1,
 		 timeout_alarm/2,
 		 crash/1]).
 
@@ -105,7 +107,33 @@ damage(UserId, Damage) when (is_list(UserId) or is_integer(UserId)),
 	end;
 
 damage(UserPid, Damage) when is_pid(UserPid), is_record(Damage, b_damage) ->
-	gen_server:cast(UserPid, {damage, Damage}).
+	gen_server:call(UserPid, {damage, Damage}).
+
+
+%% hit_done/2
+%% ====================================================================
+%% уведомление о завершении размена
+hit_done(UserId, HitFrom) when (is_list(UserId) or is_integer(UserId)) ->
+	case gproc:lookup_local_name({unit, UserId}) of
+		undefined -> ?ERROR_NOT_IN_BATTLE;
+		UserPid   -> hit_done(UserPid, HitFrom)
+	end;
+
+hit_done(UserPid, HitFrom) when is_pid(UserPid) ->
+	gen_server:cast(UserPid, {hit_done, HitFrom}).
+
+
+%% kill/1
+%% ====================================================================
+%% мгновенное убийство юнита
+kill(UserId) when (is_list(UserId) or is_integer(UserId)) ->
+	case gproc:lookup_local_name({unit, UserId}) of
+		undefined -> ?ERROR_NOT_IN_BATTLE;
+		UserPid   -> kill(UserPid)
+	end;
+
+kill(UserPid) when is_pid(UserPid) ->
+	gen_server:call(UserPid, kill).
 
 
 %% timeout_alarm/2
@@ -194,6 +222,12 @@ handle_call(get_state, _, Unit) ->
 	{reply, Unit, Unit};
 
 
+%% блокируем все остальные вызовы к убитому юниту
+handle_call(_, _, Unit) when is_record(Unit, b_unit),
+							 Unit#b_unit.alive == false ->
+	{reply, ?ERROR_UNIT_DEAD, Unit};
+
+
 %% выставление удара
 handle_call({hit, HitsList, Block}, _, Unit) ->
 	Opponent = Unit#b_unit.opponent,
@@ -207,7 +241,7 @@ handle_call({hit, HitsList, Block}, _, Unit) ->
 				ok ->
 					%% если удар был выставлен противником
 					case lists:keyfind(Opponent#b_opponent.pid, 1, Unit#b_unit.obtained) of
-						{_OpponentPid, ObtainedHitPid, _MonRef} ->
+						{_OpponentPid, ObtainedHitPid} ->
 							%% ответ на удар
 							hit:reply(Unit#b_unit.battle_id, ObtainedHitPid, Hit);
 						false ->
@@ -222,21 +256,54 @@ handle_call({hit, HitsList, Block}, _, Unit) ->
 	case R of
 		%% если выставлен размен
 		{ok, HitPid} when is_pid(HitPid) ->
-			%% мониторим процесс размена
-			MonitorRef = gproc:monitor({n, l, {hit, self(), Opponent#b_opponent.pid}}),
 			%% добавляем его в список разменов
-			Hits = Unit#b_unit.hits ++ [{Opponent#b_opponent.pid, HitPid, MonitorRef}],
+			Hits = Unit#b_unit.hits ++ [{Opponent#b_opponent.pid, HitPid}],
 			%% меняем противника
 			{reply, {hit, HitPid}, select_next_opponent(Unit#b_unit{hits = Hits})};
 
 		%% совершен размен ударами
 		ok ->
-			{reply, {hit_replied}, Unit};
+			{reply, {ok, hit_replied}, select_next_opponent(Unit)};
 
 		%% что-то пошло не так
 		Erorr when is_record(Erorr, error) ->
 			{reply, Erorr, Unit}
 	end;
+
+
+%% получение урона
+handle_call({damage, Damage}, _, Unit) when is_record(Damage, b_damage) ->
+	?DBG("Damage omitted ~p~n", [Damage]),
+	%% считаем что получилось
+	User = Unit#b_unit.user,
+	Vitality = User#user.vitality,
+	Hp = math:limit(Vitality#u_vitality.hp - Damage#b_damage.lost, Vitality#u_vitality.maxhp),
+	Mana = math:limit(Vitality#u_vitality.mana - Damage#b_damage.lost_mana, Vitality#u_vitality.maxmana),
+	Tactics = add_tactics(Unit, Damage#b_damage.tactics),
+	DamagedUnit = Unit#b_unit{user = User#user{vitality = Vitality#u_vitality{hp = Hp, mana = Mana}},
+							  tactics = Tactics,
+							  total_damaged = Unit#b_unit.total_damaged + Damage#b_damage.damaged,
+							  total_healed  = Unit#b_unit.total_healed  + Damage#b_damage.healed,
+							  total_lost    = Unit#b_unit.total_lost    + Damage#b_damage.lost,
+							  exp = Unit#b_unit.exp + Damage#b_damage.exp},
+	?DBG("Damage result ~p~n", [{Hp, Mana, Tactics}]),
+	%% если уровень ХП = 0, значит юнит помер
+	case Hp > 0 of
+		true  -> {reply, {ok, alive},  DamagedUnit};
+		false -> {reply, {ok, killed}, killed(DamagedUnit), hibernate}
+	end;
+
+
+%% мгновенное убийство юнита
+handle_call(kill, _, Unit) ->
+	?DBG("Kill unit ~p", [self()]),
+	User = Unit#b_unit.user,
+	Vitality = User#user.vitality,
+	KilledUnit = Unit#b_unit{user = User#user{vitality = Vitality#u_vitality{hp = 0}},
+							 total_lost = Unit#b_unit.total_lost + Vitality#u_vitality.hp},
+
+	{reply, {ok, killed}, killed(KilledUnit), hibernate};
+
 
 %% test crash
 handle_call(crash, _, Unit) ->
@@ -275,11 +342,25 @@ handle_cast({set_opponents, OpponentsList}, Unit) ->
 %% сохраняем его в списке и мониторим
 handle_cast({hited, {From, Hit}}, Unit) ->
 	?DBG("User ~p hited", [{From, Hit}]),
-	%% мониторим процесс размена
-	MonitorRef = gproc:monitor({n, l, {hit, From, self()}}),
 	%% добавляем в список выставленных нам разменов
-	Obtained = Unit#b_unit.obtained ++ [{From, Hit, MonitorRef}],
+	Obtained = Unit#b_unit.obtained ++ [{From, Hit}],
 	{noreply, Unit#b_unit{obtained = Obtained}};
+
+
+%% обработка конца хода
+%% уведомление о прошедшем размене, который выставили мы
+handle_cast({hit_done, {sended, OpponentPid}}, Unit) ->
+	?DBG("Sended hit is done ~p", [{hit, OpponentPid}]),
+	%% удаляем размен из списка выставленных разменов
+	Hits = lists:keydelete(OpponentPid, 1, Unit#b_unit.hits),
+	{noreply, do_hit_done(OpponentPid, Unit#b_unit{hits = Hits})};
+
+%% уведомление о прошедшем размене, который выставили нам
+handle_cast({hit_done, {obtained, OpponentPid}}, Unit) ->
+	?DBG("Obtained hit is done ~p", [{hit, OpponentPid}]),
+	%% удаляем размен из списка полученных разменов
+	Obtained = lists:keydelete(OpponentPid, 1, Unit#b_unit.obtained),
+	{noreply, do_hit_done(OpponentPid, Unit#b_unit{obtained = Obtained})};
 
 
 %% приближение пропуска хода по тайму
@@ -291,31 +372,8 @@ handle_cast({timeout_alarm, OpponentPid}, Unit) ->
 								   fun(Opponent) ->
 										   Opponent#b_opponent{timeout = true}
 								   end),
-	?DBG("Timeout alert from ~p. New opponents ~p~n", [OpponentPid, Opponents]),
+	?DBG("Timeout alert from ~p~n", [OpponentPid]),
 	{noreply, Unit#b_unit{opponents = Opponents}};
-
-
-%% получение урона
-handle_cast({damage, Damage}, Unit) when is_record(Damage, b_damage) ->
-	?DBG("Damage omitted ~p~n", [Damage]),
-	%% считаем что получилось
-	User = Unit#b_unit.user,
-	Vitality = User#user.vitality,
-	Hp = math:limit(Vitality#u_vitality.hp - Damage#b_damage.lost, Vitality#u_vitality.maxhp),
-	Mana = math:limit(Vitality#u_vitality.mana - Damage#b_damage.lost_mana, Vitality#u_vitality.maxmana),
-	Tactics = add_tactics(Unit, Damage#b_damage.tactics),
-	DamagedUnit = Unit#b_unit{user = User#user{vitality = Vitality#u_vitality{hp = Hp, mana = Mana}},
-							  tactics = Tactics,
-							  total_damaged = Unit#b_unit.total_damaged + Damage#b_damage.damaged,
-							  total_healed  = Unit#b_unit.total_healed  + Damage#b_damage.healed,
-							  total_lost    = Unit#b_unit.total_lost    + Damage#b_damage.lost,
-							  exp = Unit#b_unit.exp + Damage#b_damage.exp},
-	?DBG("Damage result ~p~n", [{Hp, Mana, Tactics}]),
-	%% если уровень ХП = 0, значит юнит помер
-	case Hp > 0 of
-		true  -> {noreply, DamagedUnit};
-		false -> killed(DamagedUnit)
-	end;
 
 
 %% unknown request
@@ -348,15 +406,6 @@ handle_info({battle_start, BattlePid}, Unit) ->
 	Opponent = select_random_opponent(Unit#b_unit.opponents),
 	?DBG("Select opponent ~p~n", [Opponent]),
 	{noreply, BattleUnit#b_unit{battle_pid = BattlePid, opponent = Opponent}};
-
-
-%% уведомление о прошедшем размене, который выставили мы
-handle_info({gproc, unreg, _, {n, l, {hit, SenderPid, RecipientPid}}}, Unit) when SenderPid == self() ->
-	{noreply, hit_done(sended, RecipientPid, Unit)};
-
-%% уведомление о прошедшем размене, который выставили нам
-handle_info({gproc, unreg, _, {n, l, {hit, SenderPid, RecipientPid}}}, Unit) when RecipientPid == self() ->
-	{noreply, hit_done(obtained, SenderPid, Unit)};
 
 
 %% уведомление о убитом юните
@@ -416,7 +465,7 @@ select_next_opponent(Unit) ->
 										   Opponent#b_opponent.pid /= Unit#b_unit.opponent
 								   end, Unit#b_unit.opponents),
 	%% выбираем из списка оппонентов тех, кому не поставлен размен
-	BusyOpponents = lists:map(fun({OpponentPid, _HitPid, _MonRef}) -> OpponentPid end, Unit#b_unit.hits) ++
+	BusyOpponents = lists:map(fun({OpponentPid, _HitPid}) -> OpponentPid end, Unit#b_unit.hits) ++
 						[(Unit#b_unit.opponent)#b_opponent.pid],
 	Opponents = lists:filter(fun(Opponent) ->
 									 lists:member(Opponent#b_opponent.pid, BusyOpponents) == false
@@ -426,7 +475,7 @@ select_next_opponent(Unit) ->
 				   true -> lists:nth(1, Opponents);
 				   false -> undefined
 			   end,
-	?DBG("Select new opponent ~p~n", [Opponent]),
+	?DBG("Select new opponent ~p from ~p~n", [Opponent, Opponents]),
 	Unit#b_unit{opponent = Opponent}.
 
 
@@ -471,44 +520,6 @@ create_blocks_list(Block, Unit) ->
 	%% кол-во зон блока
 	BlockPoints = ((Unit#b_unit.user)#user.battle_spec)#u_battle_spec.block_points,
 	list_helper:rsublist([head, torso, paunch, belt, legs], Block, BlockPoints).
-
-
-%% hit_done/3
-%% ====================================================================
-%% обработка конца хода
-hit_done(sended, OpponentPid, Unit) ->
-	?DBG("Sended hit is done ~p", [{hit, OpponentPid}]),
-	%% удаляем размен из списка выставленных разменов
-	Hits = lists:keydelete(OpponentPid, 1, Unit#b_unit.hits),
-	hit_done(OpponentPid, Unit#b_unit{hits = Hits});
-
-hit_done(obtained, OpponentPid, Unit) ->
-	?DBG("Obtained hit is done ~p", [{hit, OpponentPid}]),
-	%% удаляем размен из списка полученных разменов
-	Obtained = lists:keydelete(OpponentPid, 1, Unit#b_unit.obtained),
-	hit_done(OpponentPid, Unit#b_unit{obtained = Obtained}).
-
-hit_done(OpponentPid, Unit) ->
-	%% если у противника стоит флаг таймаута - сбросим его
-	Opponents = list_helper:keymap(OpponentPid,
-								   2,
-								   Unit#b_unit.opponents,
-								   fun(Opponent) ->
-										   Opponent#b_opponent{timeout = false}
-								   end),
-
-	%% если текущий противник не выбран - выбираем этого, с кем произведен размен
-	NewOpponent = case Unit#b_unit.opponent of
-					  undefined ->
-						  ?DBG("Select opponent ~p~n", [OpponentPid]),
-						  case lists:keyfind(OpponentPid, 2, Opponents) of
-							  false    -> undefined;
-							  Opponent -> Opponent
-						  end;
-					  _ -> Unit#b_unit.opponent
-				  end,
-	%% @todo сбросить лок с приемов, увеличить счетчик ходов, etc
-	Unit#b_unit{opponent = NewOpponent, opponents = Opponents}.
 
 
 %% validate_hit/2
@@ -579,18 +590,37 @@ add_tactics(Unit, Delta) when is_record(Unit, b_unit),
                       spirit  = math:limit(Current#b_tactics.spirit + Delta#b_tactics.spirit, Current#b_tactics.spirit)}.
 
 
+%% do_hit_done/2
+%% ====================================================================
+%% обработка конца хода
+do_hit_done(OpponentPid, Unit) ->
+	%% если у противника стоит флаг таймаута - сбросим его
+	Opponents = list_helper:keymap(OpponentPid,
+								   2,
+								   Unit#b_unit.opponents,
+								   fun(Opponent) ->
+										   Opponent#b_opponent{timeout = false}
+								   end),
+
+	%% если текущий противник не выбран - выбираем этого, с кем произведен размен
+	NewOpponent = case Unit#b_unit.opponent of
+					  undefined ->
+						  ?DBG("Select opponent ~p~n", [OpponentPid]),
+						  case lists:keyfind(OpponentPid, 2, Opponents) of
+							  false    -> undefined;
+							  Opponent -> Opponent
+						  end;
+					  _ -> Unit#b_unit.opponent
+				  end,
+	%% @todo сбросить лок с приемов, увеличить счетчик ходов, etc
+	Unit#b_unit{opponent = NewOpponent, opponents = Opponents}.
+
+
 %% killed/1
 %% ====================================================================
 %% данный юнит убит
 killed(Unit) ->
 	%% @todo обработка магии спасения
-	%% убираем все мониторы
-	lists:foreach(fun({OpponentPid, _HitPid, MonitorRef}) ->
-						  gproc:demonitor({n, l, {hit, self(), OpponentPid}}, MonitorRef)
-				  end, Unit#b_unit.hits),
-	lists:foreach(fun({OpponentPid, _HitPid, MonitorRef}) ->
-						  gproc:demonitor({n, l, {hit, OpponentPid, self()}}, MonitorRef)
-				  end, Unit#b_unit.obtained),
 	%% отключаем получение broadcast сообщений
 	gproc:munreg(p, l, [{team_unit, Unit#b_unit.battle_id, Unit#b_unit.team_id},
 						{battle_unit, Unit#b_unit.battle_id},
@@ -604,22 +634,22 @@ killed(Unit) ->
 							 obtained  = [],
 							 hits      = []},
 	%% @todo записываем убийство на счет оппонента
-	%% переходим в hibernate
 	?DBG("Unit ~p killed", [self()]),
-	{noreply, KilledUnit, hibernate}.
+	KilledUnit.
 
 
 %% unit_killed/1
 %% ====================================================================
 %% обработка уведомлений об убитых юнитах
 unit_killed(UnitPid, Unit) ->
+	?DBG("Unit ~p check killed unit ~p~n", [self(), UnitPid]),
 	%% убираем его из списка оппонентов, союзников и разменов
 	Unit0 = Unit#b_unit{opponents = lists:keydelete(UnitPid, 2, Unit#b_unit.opponents),
 						hits      = lists:keydelete(UnitPid, 1, Unit#b_unit.hits),
 						obtained  = lists:keydelete(UnitPid, 1, Unit#b_unit.obtained)},
 
 	%% если выбран оппонентом - меняем противника
-	case Unit0#b_unit.opponent == UnitPid of
+	case (Unit0#b_unit.opponent)#b_opponent.pid == UnitPid of
 		true  -> select_next_opponent(Unit0);
 		false -> Unit0
 	end.
