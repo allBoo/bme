@@ -19,7 +19,8 @@
 
 %% api
 -export([hit/2,
-		 reply/3]).
+		 reply/3,
+		 cancel/1]).
 
 %% ====================================================================
 %% API functions
@@ -68,6 +69,12 @@ hit(BattleId, Hit) when is_record(Hit, b_hit), is_integer(BattleId) ->
 reply(BattleId, HitPid, Hit) when is_record(Hit, b_hit), is_pid(HitPid) ->
 	gen_server:cast(HitPid, {reply, BattleId, Hit}).
 
+
+%% cancel/1
+%% ====================================================================
+%% отмена размена
+cancel(HitPid) when is_pid(HitPid) ->
+	gen_server:cast(HitPid, cancel).
 
 %% ====================================================================
 %% Behavioural functions
@@ -173,6 +180,11 @@ handle_cast({reply, BattleId, ReplyHit}, Hit) when ReplyHit#b_hit.sender == Hit#
 	send_hit_done(AttackerRes,  Hit#b_hit.sender,    {sended,   Hit#b_hit.recipient}),
 
 	%% завершаем процесс
+	{stop, normal, Hit};
+
+
+%% отмена размена
+handle_cast(cancel, Hit) ->
 	{stop, normal, Hit};
 
 

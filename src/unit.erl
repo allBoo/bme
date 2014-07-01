@@ -625,8 +625,10 @@ killed(Unit) ->
 	gproc:munreg(p, l, [{team_unit, Unit#b_unit.battle_id, Unit#b_unit.team_id},
 						{battle_unit, Unit#b_unit.battle_id},
 						{battle, Unit#b_unit.battle_id}]),
-	%% уведомляем всех, что юнит убит
+	%% уведомляем всех юнитов, что юнит убит
 	gproc:send({p, l, {battle, Unit#b_unit.battle_id}}, {unit_killed, self()}),
+	%% удаляем все выставленные и назначенные размены
+	[hit:cancel(HitPid) || {_, HitPid} <- Unit#b_unit.hits ++ Unit#b_unit.obtained],
 	%% очищаем списки разменов, противников
 	KilledUnit = Unit#b_unit{alive = false,
 							 opponents = [],
