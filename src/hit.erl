@@ -205,7 +205,15 @@ handle_info(timeout, #b_hit{timeout_alert = false} = Hit) ->
 %% пропуск хода по таймауту
 handle_info(timeout, #b_hit{timeout_alert = true} = Hit) ->
 	?DBG("Hit timeout omitted ~p~n", [Hit]),
-	{stop, normal, Hit};
+	%% формируем пустой ответный ход
+	ReplyHit = #b_hit{sender    = Hit#b_hit.recipient,
+					  recipient = Hit#b_hit.sender,
+					  hits      = [],
+					  block     = [],
+					  timeout   = Hit#b_hit.timeout,
+					  timeout_pass = true},
+	reply(0, self(), ReplyHit),
+	{noreply, Hit};
 
 
 %% unknown
