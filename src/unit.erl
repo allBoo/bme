@@ -173,6 +173,7 @@ crash(UserPid) when is_pid(UserPid) ->
 %% ====================================================================
 init(Unit) when is_record(Unit, b_unit) ->
 	?DBG("Start unit API server ~p~n", [Unit#b_unit.id]),
+	process_flag(trap_exit, true),
 	%% регистрируем имя сервера
 	true = gproc:add_local_name({unit, Unit#b_unit.battle_id, Unit#b_unit.team_id, Unit#b_unit.id}),
 	true = gproc:add_local_name({unit, Unit#b_unit.id}),
@@ -427,8 +428,9 @@ handle_info(_Info, State) ->
 			| {shutdown, term()}
 			| term().
 %% ====================================================================
-terminate(_Reason, _State) ->
-    ok.
+terminate(Reason, _Unit) ->
+	?DBG("Unit ~p terminates with reason ~p~n", [self(), Reason]),
+	ok.
 
 
 %% code_change/3
@@ -651,7 +653,13 @@ unit_killed(UnitPid, Unit) ->
 						obtained  = lists:keydelete(UnitPid, 1, Unit#b_unit.obtained)},
 
 	%% если выбран оппонентом - меняем противника
-	case (Unit0#b_unit.opponent)#b_opponent.pid == UnitPid of
-		true  -> select_next_opponent(Unit0);
-		false -> Unit0
+	case Unit0#b_unit.opponent of
+		Opponent when is_record(Opponent, b_opponent),
+					  Opponent#b_opponent.pid == UnitPid ->
+			select_next_opponent(Unit0);
+		_ -> Unit0
 	end.
+%% 	case (Unit0#b_unit.opponent)#b_opponent.pid == UnitPid of
+%% 		true  -> select_next_opponent(Unit0);
+%% 		false -> Unit0
+%% 	end.

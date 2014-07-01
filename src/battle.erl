@@ -20,7 +20,8 @@
 %% ====================================================================
 -export([start_link/1,
 		 get_enemy_teams/2,
-		 get_timeout/1]).
+		 get_timeout/1,
+		 team_lost/2]).
 
 %% start_link/1
 %% ====================================================================
@@ -53,6 +54,20 @@ get_timeout(BattlePid) when is_pid(BattlePid) ->
 	gen_server:call(BattlePid, get_timeout).
 
 
+%% team_lost/2
+%% ====================================================================
+%% уведомление о проигравшей команде
+team_lost(BattleId, TeamPid) when is_integer(BattleId),
+								  is_pid(TeamPid) ->
+	case gproc:lookup_local_name({battle, BattleId}) of
+		undefined -> ?ERROR_NOT_IN_BATTLE;
+		BattlePid -> team_lost(BattlePid, TeamPid)
+	end;
+
+team_lost(BattlePid, TeamPid) when is_pid(BattlePid),
+								   is_pid(TeamPid) ->
+	gen_server:cast(BattlePid, {team_lost, TeamPid}).
+
 %% ====================================================================
 %% Behavioural functions
 %% ====================================================================
@@ -71,6 +86,7 @@ get_timeout(BattlePid) when is_pid(BattlePid) ->
 %% ====================================================================
 init(Battle) when is_record(Battle, battle) ->
 	?DBG("Start battle server ~p~n", [Battle#battle.id]),
+	process_flag(trap_exit, true),
 	%% регистрируем имя сервера
 	true = gproc:add_local_name({battle, Battle#battle.id}),
 
@@ -120,7 +136,7 @@ handle_call(get_timeout, _, Battle) ->
 	{reply, Battle#battle.timeout, Battle};
 
 
-%% error call
+%% unknown request
 handle_call(_, _, State) ->
 	{reply, ?ERROR_WRONG_CALL, State}.
 
@@ -136,8 +152,28 @@ handle_call(_, _, State) ->
 	NewState :: term(),
 	Timeout :: non_neg_integer() | infinity.
 %% ====================================================================
+
+%% обработка уведомления о проигравшей команде
+handle_cast({team_lost, TeamPid}, Battle) ->
+	%% удаляем тиму из списка запущенных
+	AliveTeams = lists:delete(TeamPid, Battle#battle.alive_teams),
+	Battle0    = Battle#battle{alive_teams = AliveTeams},
+
+	case length(AliveTeams) of
+		%% если осталась только одна тима, вешаем таймаут на финальную
+		%% проверку статуса и завершение поединка
+		%% таймаут нужен, чтобы отработать возможность ничьей
+		1 -> {noreply, Battle0, 500};
+		%% если не осталось ни кого - значит ничья
+		0 -> finish(Battle0, standoff);
+		%% иначе продолжаем
+		_ -> {noreply, Battle0}
+	end;
+
+
+%% unknown request
 handle_cast(_Msg, State) ->
-    {noreply, State}.
+	{noreply, State}.
 
 
 %% handle_info/2
@@ -151,8 +187,15 @@ handle_cast(_Msg, State) ->
 	NewState :: term(),
 	Timeout :: non_neg_integer() | infinity.
 %% ====================================================================
+
+%% вызывается при завершении поединка
+handle_info(timeout, Battle) when length(Battle#battle.alive_teams) == 1 ->
+	finish(Battle, lists:nth(1, Battle#battle.alive_teams));
+
+
+%% unknown request
 handle_info(_Info, State) ->
-    {noreply, State}.
+	{noreply, State}.
 
 
 %% terminate/2
@@ -164,8 +207,9 @@ handle_info(_Info, State) ->
 			| {shutdown, term()}
 			| term().
 %% ====================================================================
-terminate(_Reason, _State) ->
-    ok.
+terminate(Reason, Battle) ->
+	?DBG("Battle ~p terminates with reason ~p~n", [Battle#battle.id, Reason]),
+	ok.
 
 
 %% code_change/3
@@ -201,3 +245,24 @@ create_opponents_list(StartedTeams) ->
 									  end, team:get_alive_units(TeamPid))
 				  end, StartedTeams),
 	ok.
+
+
+%% finish/2
+%% ====================================================================
+%% завершение поединка
+%% ничья
+finish(Battle, standoff) ->
+	?DBG("Battle ~p finished with standoff result!!!", [Battle#battle.id]),
+	Result = #b_result{winner = standoff},
+	finish(Battle, Result);
+
+%% выигрыш
+finish(Battle, WinnerTeam) when is_pid(WinnerTeam) ->
+	?DBG("Battle ~p finished! Team ~p is winner!!!", [Battle#battle.id, WinnerTeam]),
+	Result = #b_result{winner = WinnerTeam},
+	finish(Battle, Result);
+
+%% завершение
+finish(Battle, Result) when is_record(Result, b_result) ->
+	exit(gproc:lookup_local_name({battle_sup, Battle#battle.id}), Result),
+	{noreply, Battle}.

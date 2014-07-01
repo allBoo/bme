@@ -57,6 +57,7 @@ get_alive_units(TeamPid) ->
 %% ====================================================================
 init(Team) when is_record(Team, b_team) ->
 	?DBG("Start team server ~p~n", [Team#b_team.id]),
+	process_flag(trap_exit, true),
 	%% регистрируем имя сервера
 	true = gproc:add_local_name({team, Team#b_team.battle_id, Team#b_team.id}),
 
@@ -133,8 +134,11 @@ handle_info({battle_start, BattlePid}, Team) ->
 
 
 %% уведомление о убитом юните
-handle_info({unit_killed, UnitPid}, Team) when is_pid(UnitPid), UnitPid /= self() ->
-	{noreply, unit_killed(UnitPid, Team)};
+handle_info({unit_killed, UnitPid}, Team) when Team#b_team.alive_count > 0 ->
+	case lists:member(UnitPid, Team#b_team.alive_units) of
+		true  -> {noreply, unit_killed(UnitPid, Team)};
+		false -> {noreply, Team}
+	end;
 
 
 %% unknown request
@@ -151,8 +155,9 @@ handle_info(_Info, State) ->
 			| {shutdown, term()}
 			| term().
 %% ====================================================================
-terminate(_Reason, _State) ->
-    ok.
+terminate(Reason, Team) ->
+	?DBG("Team ~p terminates with reason ~p~n", [Team#b_team.id, Reason]),
+	ok.
 
 
 %% code_change/3
@@ -193,4 +198,5 @@ unit_killed(UnitPid, Team) ->
 %% обработка проигрыша команды (все юниты убиты)
 team_lost(Team) ->
 	?DBG("Team ~p lost!~n", [Team#b_team.id]),
+	battle:team_lost(Team#b_team.battle_pid, self()),
 	Team.

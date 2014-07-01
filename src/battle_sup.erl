@@ -49,6 +49,7 @@ start_link(Battle) when is_record(Battle, battle) ->
 %% ====================================================================
 init([Battle]) ->
 	?DBG("Start battle supervisor for ID ~p~n", [Battle#battle.id]),
+	process_flag(trap_exit, true),
 	%% регистрируем имя супервайзера
 	true = gproc:add_local_name({battle_sup, Battle#battle.id}),
 
