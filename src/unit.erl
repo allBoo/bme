@@ -207,7 +207,7 @@ handle_call({hit, HitsList, Block}, _, Unit) ->
 				ok ->
 					%% если удар был выставлен противником
 					case lists:keyfind(Opponent#b_opponent.pid, 1, Unit#b_unit.obtained) of
-						{_OpponentPid, ObtainedHitPid} ->
+						{_OpponentPid, ObtainedHitPid, _MonRef} ->
 							%% ответ на удар
 							hit:reply(Unit#b_unit.battle_id, ObtainedHitPid, Hit);
 						false ->
@@ -222,10 +222,10 @@ handle_call({hit, HitsList, Block}, _, Unit) ->
 	case R of
 		%% если выставлен размен
 		{ok, HitPid} when is_pid(HitPid) ->
-			%% добавляем его в список разменов
-			Hits = Unit#b_unit.hits ++ [{Opponent#b_opponent.pid, HitPid}],
 			%% мониторим процесс размена
-			gproc:monitor({n, l, {hit, self(), Opponent#b_opponent.pid}}),
+			MonitorRef = gproc:monitor({n, l, {hit, self(), Opponent#b_opponent.pid}}),
+			%% добавляем его в список разменов
+			Hits = Unit#b_unit.hits ++ [{Opponent#b_opponent.pid, HitPid, MonitorRef}],
 			%% меняем противника
 			{reply, {hit, HitPid}, select_next_opponent(Unit#b_unit{hits = Hits})};
 
@@ -240,8 +240,8 @@ handle_call({hit, HitsList, Block}, _, Unit) ->
 
 %% test crash
 handle_call(crash, _, Unit) ->
-	a = b,
-	{reply, ?ERROR_WRONG_CALL, Unit};
+	%a = b,
+	{reply, ?ERROR_WRONG_CALL, Unit, hibernate};
 
 %% unknown
 handle_call(_, _, State) ->
@@ -276,9 +276,9 @@ handle_cast({set_opponents, OpponentsList}, Unit) ->
 handle_cast({hited, {From, Hit}}, Unit) ->
 	?DBG("User ~p hited", [{From, Hit}]),
 	%% мониторим процесс размена
-	gproc:monitor({n, l, {hit, From, self()}}),
+	MonitorRef = gproc:monitor({n, l, {hit, From, self()}}),
 	%% добавляем в список выставленных нам разменов
-	Obtained = Unit#b_unit.obtained ++ [{From, Hit}],
+	Obtained = Unit#b_unit.obtained ++ [{From, Hit, MonitorRef}],
 	{noreply, Unit#b_unit{obtained = Obtained}};
 
 
@@ -310,9 +310,12 @@ handle_cast({damage, Damage}, Unit) when is_record(Damage, b_damage) ->
 							  total_healed  = Unit#b_unit.total_healed  + Damage#b_damage.healed,
 							  total_lost    = Unit#b_unit.total_lost    + Damage#b_damage.lost,
 							  exp = Unit#b_unit.exp + Damage#b_damage.exp},
-	%% @todo если уровень ХП = 0, значит юнит помер
 	?DBG("Damage result ~p~n", [{Hp, Mana, Tactics}]),
-	{noreply, DamagedUnit};
+	%% если уровень ХП = 0, значит юнит помер
+	case Hp > 0 of
+		true  -> {noreply, DamagedUnit};
+		false -> killed(DamagedUnit)
+	end;
 
 
 %% unknown request
@@ -354,6 +357,11 @@ handle_info({gproc, unreg, _, {n, l, {hit, SenderPid, RecipientPid}}}, Unit) whe
 %% уведомление о прошедшем размене, который выставили нам
 handle_info({gproc, unreg, _, {n, l, {hit, SenderPid, RecipientPid}}}, Unit) when RecipientPid == self() ->
 	{noreply, hit_done(obtained, SenderPid, Unit)};
+
+
+%% уведомление о убитом юните
+handle_info({unit_killed, UnitPid}, Unit) when is_pid(UnitPid), UnitPid /= self() ->
+	{noreply, unit_killed(UnitPid, Unit)};
 
 
 %% unknown
@@ -408,7 +416,7 @@ select_next_opponent(Unit) ->
 										   Opponent#b_opponent.pid /= Unit#b_unit.opponent
 								   end, Unit#b_unit.opponents),
 	%% выбираем из списка оппонентов тех, кому не поставлен размен
-	BusyOpponents = lists:map(fun({OpponentPid, _HitPid}) -> OpponentPid end, Unit#b_unit.hits) ++
+	BusyOpponents = lists:map(fun({OpponentPid, _HitPid, _MonRef}) -> OpponentPid end, Unit#b_unit.hits) ++
 						[(Unit#b_unit.opponent)#b_opponent.pid],
 	Opponents = lists:filter(fun(Opponent) ->
 									 lists:member(Opponent#b_opponent.pid, BusyOpponents) == false
@@ -569,3 +577,49 @@ add_tactics(Unit, Delta) when is_record(Unit, b_unit),
                       parry   = math:limit(Current#b_tactics.parry + Delta#b_tactics.parry, 25),
                       hearts  = math:limit(Current#b_tactics.hearts + Delta#b_tactics.hearts, 25),
                       spirit  = math:limit(Current#b_tactics.spirit + Delta#b_tactics.spirit, Current#b_tactics.spirit)}.
+
+
+%% killed/1
+%% ====================================================================
+%% данный юнит убит
+killed(Unit) ->
+	%% @todo обработка магии спасения
+	%% убираем все мониторы
+	lists:foreach(fun({OpponentPid, _HitPid, MonitorRef}) ->
+						  gproc:demonitor({n, l, {hit, self(), OpponentPid}}, MonitorRef)
+				  end, Unit#b_unit.hits),
+	lists:foreach(fun({OpponentPid, _HitPid, MonitorRef}) ->
+						  gproc:demonitor({n, l, {hit, OpponentPid, self()}}, MonitorRef)
+				  end, Unit#b_unit.obtained),
+	%% отключаем получение broadcast сообщений
+	gproc:munreg(p, l, [{team_unit, Unit#b_unit.battle_id, Unit#b_unit.team_id},
+						{battle_unit, Unit#b_unit.battle_id},
+						{battle, Unit#b_unit.battle_id}]),
+	%% уведомляем всех, что юнит убит
+	gproc:send({p, l, {battle, Unit#b_unit.battle_id}}, {unit_killed, self()}),
+	%% очищаем списки разменов, противников
+	KilledUnit = Unit#b_unit{alive = false,
+							 opponents = [],
+							 opponent  = undefined,
+							 obtained  = [],
+							 hits      = []},
+	%% @todo записываем убийство на счет оппонента
+	%% переходим в hibernate
+	?DBG("Unit ~p killed", [self()]),
+	{noreply, KilledUnit, hibernate}.
+
+
+%% unit_killed/1
+%% ====================================================================
+%% обработка уведомлений об убитых юнитах
+unit_killed(UnitPid, Unit) ->
+	%% убираем его из списка оппонентов, союзников и разменов
+	Unit0 = Unit#b_unit{opponents = lists:keydelete(UnitPid, 2, Unit#b_unit.opponents),
+						hits      = lists:keydelete(UnitPid, 1, Unit#b_unit.hits),
+						obtained  = lists:keydelete(UnitPid, 1, Unit#b_unit.obtained)},
+
+	%% если выбран оппонентом - меняем противника
+	case Unit0#b_unit.opponent == UnitPid of
+		true  -> select_next_opponent(Unit0);
+		false -> Unit0
+	end.
