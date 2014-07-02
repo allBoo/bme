@@ -16,7 +16,9 @@
 -include_lib("bme.hrl").
 
 %% API
--export([start_link/0, start_battle/1]).
+-export([start_link/0,
+		 start_battle/1,
+		 finish_battle/1]).
 
 %% Supervisor callbacks
 -export([init/1]).
@@ -26,18 +28,27 @@
 %% ====================================================================
 
 start_link() ->
-    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
+	supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 start_battle(Battle) when (is_record(Battle, battle) and (Battle#battle.id == 0)) ->
 	?DBG("Start new battle ~p~n", [Battle#battle.id]),
 	%% @todo create battle record
-	start_battle(Battle#battle{id = random:uniform(100)});
+	start_battle(Battle#battle{id = 1});
 
 start_battle(Battle) when is_record(Battle, battle) ->
 	?DBG("Restore exists battle ~p~n", [Battle#battle.id]),
 	supervisor:start_child(?MODULE, [Battle]).
 
 
+finish_battle(Battle) when is_record(Battle, battle) ->
+	case gproc:lookup_local_name({battle_sup, Battle#battle.id}) of
+		undefined -> ?ERROR_NOT_APPLICABLE;
+		BattlePid -> finish_battle(BattlePid)
+	end;
+
+finish_battle(BattlePid) when is_pid(BattlePid) ->
+	?DBG("Terminate battle ~p~n", [BattlePid]),
+	supervisor:terminate_child(?MODULE, BattlePid).
 
 
 %% ====================================================================

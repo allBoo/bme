@@ -4,19 +4,19 @@
 
 -include_lib("bme.hrl").
 
--export([get1/0, get2/0, get3/0]).
+-export([get/1, get1/0, get2/0, get3/0]).
 
 get1() ->
 	#user{
 		id    = 104962,
-		name = <<"Кошмарский">>,
+		name = <<"Кошмарский/utf8">>,
 		city  = 1,
 		room  = 1,
 		info  = #'u_info'{
 			level = 10,
 			align = 0.98,
-			klan  = <<"DarkRunes">>,
-			pic   = <<"indiv_104962">>,
+			klan  = <<"DarkRunes/utf8">>,
+			pic   = <<"indiv_104962/utf8">>,
 			sex   = 1
 		},
 		dress  = #'u_dress'{
@@ -132,8 +132,16 @@ get1() ->
 
 get2() ->
 	User = get1(),
-	User#user{id = 10000104962, name = <<"Кошмарский клон1">>, dress = (User#user.dress)#u_dress{cost = 4499}}.
+	User#user{id = 10000104962, name = <<"Кошмарский клон1/utf8">>, dress = (User#user.dress)#u_dress{cost = 4499}}.
 
 get3() ->
 	User = get1(),
-	User#user{id = 10001104962, name = <<"Кошмарский клон2">>, dress = (User#user.dress)#u_dress{cost = 100}}.
+	User#user{id = 10001104962, name = <<"Кошмарский клон2/utf8">>, dress = (User#user.dress)#u_dress{cost = 100}}.
+
+get(Id) ->
+	User = get1(),
+	Cost = random:uniform((User#user.dress)#u_dress.cost),
+	CloneIndex = integer_to_binary(Id),
+	User#user{id = Id,
+			  name = <<(User#user.name)/binary, <<" клон/utf8">>/binary, CloneIndex/binary >>,
+			  dress = (User#user.dress)#u_dress{cost = Cost}}.

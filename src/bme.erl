@@ -20,7 +20,9 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_haot/3, character_attack/2]).
+-export([start_haot/3,
+		 character_attack/2,
+		 finish_battle/1]).
 
 %% start_link/0
 %% ====================================================================
@@ -40,6 +42,20 @@ start_haot(UsersIds, City, Options) ->
 %% Нападение на персонажа
 character_attack(_Attacker, _Victim) ->
 	ok.
+
+
+%% finish_battle/1
+%% ====================================================================
+%% завершение поединка
+finish_battle(Battle) when is_record(Battle, battle) ->
+	case gproc:lookup_local_name({battle_sup, Battle#battle.id}) of
+		undefined -> ?ERROR_NOT_APPLICABLE;
+		BattlePid -> finish_battle(BattlePid)
+	end;
+
+finish_battle(BattlePid) when is_pid(BattlePid) ->
+	?DBG("Terminate battle ~p~n", [BattlePid]),
+	cast({finish_battle, BattlePid}).
 
 
 %% ====================================================================
@@ -137,8 +153,16 @@ handle_call(_, _, State) ->
 	NewState :: term(),
 	Timeout :: non_neg_integer() | infinity.
 %% ====================================================================
+
+%% завершение поединка
+handle_cast({finish_battle, BattlePid}, State) ->
+	battles_sup:finish_battle(BattlePid),
+	{noreply, State};
+
+
+%% unknown request
 handle_cast(_Msg, State) ->
-    {noreply, State}.
+	{noreply, State}.
 
 
 %% handle_info/2
@@ -187,6 +211,9 @@ code_change(_OldVsn, State, _Extra) ->
 
 call(Req) ->
 	chk_reply(gen_server:call(?MODULE, Req)).
+
+cast(Req) ->
+	chk_reply(gen_server:cast(?MODULE, Req)).
 
 chk_reply(Reply) ->
 	case is_record(Reply, error) of

@@ -68,7 +68,7 @@
                  battle_id = 0,
                  battle_pid :: pid(),
                  max_cost = 0,
-                 units = []	:: [#b_unit{}],
+                 units = []	:: [#b_unit{} | pid()],
                  units_count = 0,
                  alive_units = [] :: [pid()],
                  alive_count = 0,
@@ -79,13 +79,13 @@
 %% информация о бое
 -record(battle, {id,
                  started_at,
-                 type,
-                 blood,
+                 type  = battle :: battle | haot | dungeon | tower | klan,
+                 blood = false  :: boolean(),
                  city,
                  room,
                  level = #b_level{},
-                 timeout,
-                 status,
+                 timeout = 5,
+                 status = 0,
                  teams = []	:: [#b_team{}],
                  alive_teams = []
        }).
@@ -102,5 +102,6 @@
         }).
 
 %% результат боя
--record(b_result, {winner}).
+-record(b_result, {winner,
+				   exp_coef = 1.0}).
 

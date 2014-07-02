@@ -71,7 +71,7 @@ init(Team) when is_record(Team, b_team) ->
 	%% уведомляем их о пиде тимы
 	gproc:send({p, l, {team_unit, Team#b_team.battle_id, Team#b_team.id}}, {team_start, self()}),
 
-	{ok, Team#b_team{alive_units = StartedUnits, alive_count = length(StartedUnits), units = []}}.
+	{ok, Team#b_team{alive_units = StartedUnits, alive_count = length(StartedUnits), units = StartedUnits}}.
 
 
 %% handle_call/3
@@ -139,6 +139,20 @@ handle_info({unit_killed, UnitPid}, Team) when Team#b_team.alive_count > 0 ->
 		true  -> {noreply, unit_killed(UnitPid, Team)};
 		false -> {noreply, Team}
 	end;
+
+
+%% уведомление о завершении поединка
+handle_info({battle_finish, Result}, Team) ->
+	?DBG("Team ~p got battle_finish message", [self()]),
+	%% перенаправляем всем своим юнитам это сообщение
+	[UnitPid ! {battle_finish, Result} || UnitPid <- Team#b_team.units],
+	{noreply, Team};
+
+
+%% в любой непонятной ситтуации сохраняемся
+handle_info({'EXIT', FromPid, Reason}, Team) ->
+	?DBG("Team recieve exit signal ~p~n", [{FromPid, Reason}]),
+	{noreply, Team};
 
 
 %% unknown request

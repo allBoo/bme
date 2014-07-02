@@ -335,7 +335,7 @@ handle_cast({set_opponents, OpponentsList}, Unit) ->
 												Delta = Opponent#b_opponent.cost / ((Unit#b_unit.user)#user.dress)#u_dress.cost,
 												Opponent#b_opponent{gray = Delta < 0.6, timeout = false}
 										end, OpponentsList),
-	?DBG("Unit ~p set opponents ~p~n", [self(), CalculatedOpponentsList]),
+	%%?DBG("Unit ~p set opponents ~p~n", [self(), CalculatedOpponentsList]),
 	{noreply, Unit#b_unit{opponents = CalculatedOpponentsList}};
 
 
@@ -412,6 +412,26 @@ handle_info({battle_start, BattlePid}, Unit) ->
 %% уведомление о убитом юните
 handle_info({unit_killed, UnitPid}, Unit) when is_pid(UnitPid), UnitPid /= self() ->
 	{noreply, unit_killed(UnitPid, Unit)};
+
+
+%% уведомление о завершении поединка
+handle_info({battle_finish, Result}, Unit) ->
+	?DBG("Unit ~p got battle_finish message", [self()]),
+	%% считаем кол-во полученной экспы
+	IsWinner = Result#b_result.winner == Unit#b_unit.team_pid,
+	Exp = case IsWinner of
+			  true -> Unit#b_unit.exp * Result#b_result.exp_coef;
+			  false -> 0
+		  end,
+	?DBG("Unit ~p got ~p exp", [self(), Exp]),
+	%% сохраняем
+	{noreply, Unit};
+
+
+%% в любой непонятной ситтуации сохраняемся
+handle_info({'EXIT', FromPid, Reason}, Unit) ->
+	?DBG("Unit recieve exit signal ~p~n", [{FromPid, Reason}]),
+	{noreply, Unit};
 
 
 %% unknown

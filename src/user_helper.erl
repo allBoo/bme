@@ -18,7 +18,7 @@
 -export([get/1, split_teams/3]).
 
 get(UsersIds) when is_list(UsersIds) ->
-	[example:get1(), example:get2(), example:get3()];
+	[example:get(Id) || Id <- UsersIds];
 
 get(_) ->
 	error.

@@ -193,6 +193,12 @@ handle_info(timeout, Battle) when length(Battle#battle.alive_teams) == 1 ->
 	finish(Battle, lists:nth(1, Battle#battle.alive_teams));
 
 
+%% в любой непонятной ситтуации сохраняемся
+handle_info({'EXIT', FromPid, Reason}, Battle) ->
+	?DBG("Battle recieve exit signal ~p~n", [{FromPid, Reason}]),
+	{noreply, Battle};
+
+
 %% unknown request
 handle_info(_Info, State) ->
 	{noreply, State}.
@@ -251,18 +257,44 @@ create_opponents_list(StartedTeams) ->
 %% ====================================================================
 %% завершение поединка
 %% ничья
-finish(Battle, standoff) ->
+finish(Battle, standoff) when is_record(Battle, battle) ->
 	?DBG("Battle ~p finished with standoff result!!!", [Battle#battle.id]),
 	Result = #b_result{winner = standoff},
 	finish(Battle, Result);
 
 %% выигрыш
-finish(Battle, WinnerTeam) when is_pid(WinnerTeam) ->
+finish(Battle, WinnerTeam) when is_record(Battle, battle),
+								is_pid(WinnerTeam) ->
 	?DBG("Battle ~p finished! Team ~p is winner!!!", [Battle#battle.id, WinnerTeam]),
 	Result = #b_result{winner = WinnerTeam},
 	finish(Battle, Result);
 
 %% завершение
-finish(Battle, Result) when is_record(Result, b_result) ->
-	exit(gproc:lookup_local_name({battle_sup, Battle#battle.id}), Result),
+finish(Battle, Result) when is_record(Battle, battle),
+							is_record(Result, b_result) ->
+	%% расчет коэффициента экспы
+	%% @todo переделать
+	ExpCoef = 1.0
+			  + (Battle#battle.status + 0.25)					%% +25% за каждый уровень поединка
+			  + (1 * math:bool_to_int(Battle#battle.blood))		%% +100 за кровавый
+			  + calc_battle_exp_coef(Battle),					%% + надбавка за тип боя
+	Result0 = Result#b_result{exp_coef = ExpCoef},
+
+	%% сохраняем статистику поединка
+	%% отправляем всем тимам сообщение о завершении поединка
+	gproc:send({p, l, {team, Battle#battle.id}}, {battle_finish, Result0}),
+
+	%% завершаем все процессы поединка
+	bme:finish_battle(Battle),
 	{noreply, Battle}.
+
+
+calc_battle_exp_coef(Battle) ->
+	case Battle#battle.type of
+		battle  -> 0.0;
+		haot    -> 1.0;
+		dungeon -> -0.8;
+		tower   -> -1.0;
+		klan    -> 1.0;
+		_ -> 0
+	end.
