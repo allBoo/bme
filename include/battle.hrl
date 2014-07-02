@@ -34,6 +34,7 @@
                      team :: pid(),
                      id  :: integer(),
                      name :: binary(),
+                     ai = false :: boolean(),
                      level :: non_neg_integer(),
                      align,
                      klan :: binary(),
@@ -45,6 +46,7 @@
 %% участник боя
 -record(b_unit, {id,
                  name,
+                 ai = false,
                  battle_id = 0,
                  battle_pid :: pid(),
                  team_id = 0,

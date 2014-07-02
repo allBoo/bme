@@ -97,6 +97,7 @@ init(UnitPid) when is_pid(UnitPid) ->
 waiting(_Event, StateData) ->
 	{next_state, waiting, StateData}.
 
+
 %% в активном режиме
 alive(_Event, StateData) ->
 	?DBG("AI ~p start new hit~n", [StateData#state.unit_pid]),
@@ -174,10 +175,13 @@ handle_info({new_opponent, Opponent}, StateName, StateData) ->
 	case Opponent of
 		undefined -> {next_state, StateName, StateData};
 		_ ->
-			_Opponent = unit:get_state(Opponent#b_opponent.pid),
+			%%_Opponent = unit:get_state(Opponent#b_opponent.pid),
 			%% определяем таймаут для выставления удара
-			%% @todo если оппонент - бот, то тайм 8-10 сек, иначе 1 сек
-			Timeout = random:uniform(1000),
+			%% @todo если оппонент - бот, то тайм 8-10 сек, иначе 1-2 сек
+			Timeout = case Opponent#b_opponent.ai of
+						  true  -> 8000 + random:uniform(2000);
+						  false -> 1000 + random:uniform(1000)
+					  end,
 			{next_state, alive, StateData, Timeout}
 	end;
 
@@ -201,8 +205,7 @@ handle_info(_Info, StateName, StateData) ->
 			| {shutdown, term()}
 			| term().
 %% ====================================================================
-terminate(Reason, StateName, _StatData) ->
-	?DBG("AI ~p terminated in state ~p with reason ~p~n", [self(), StateName, Reason]),
+terminate(_Reason, _StateName, _StatData) ->
 	ok.
 
 
@@ -231,12 +234,20 @@ subscribe(Unit) ->
 %% get_hits/1
 %% ====================================================================
 %% генерирует рандомный удар
-get_hits(_Unit) ->
-	[head, torso].
+get_hits(Unit) ->
+	random_hits(((Unit#b_unit.user)#user.battle_spec)#u_battle_spec.hit_points).
+
+random_hits(0) -> [];
+
+random_hits(L) ->
+	[random_hit() | random_hits(L-1)].
 
 
 %% get_block/1
 %% ====================================================================
 %% генерирует рандомный блок
 get_block(_Unit) ->
-	head.
+	random_hit().
+
+random_hit() ->
+	lists:nth(random:uniform(5), [head, torso, paunch, belt, legs]).

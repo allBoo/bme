@@ -40,6 +40,7 @@ create_team(Team, Index) ->
 	Members = lists:map(fun(User) ->
 								#b_unit{id = User#user.id,
 										name = User#user.name,
+										ai = User#user.ai,
 										team_id = Index,
 										user = User}
 						end, Team),

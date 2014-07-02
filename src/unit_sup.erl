@@ -51,7 +51,13 @@ init([Unit]) ->
 	true = gproc:add_local_name({unit_sup, Unit#b_unit.name}),
 
 	%% запускаем ген-сервер бойца команды
-	Children = [?UNIT(Unit), ?AI0(Unit)],%% ++ lists:map(fun(Unit) -> ?MEMBER_SUP(Team, Unit) end, Team#b_team.members),
+	Children = [?UNIT(Unit)] ++
+				   case Unit#b_unit.ai of
+					   true  -> [?AI0(Unit)];
+					   false -> []
+				   end,
+	%% ++ lists:map(fun(Unit) -> ?MEMBER_SUP(Team, Unit) end, Team#b_team.members),
+
 	%% @todo добавить супервайзер юзерских баффов и супервайзер приемов
 	Strategy = one_for_one,
 	MaxR = 10, MaxT = 10,

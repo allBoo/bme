@@ -174,6 +174,8 @@ crash(UserPid) when is_pid(UserPid) ->
 init(Unit) when is_record(Unit, b_unit) ->
 	?DBG("Start unit API server ~p~n", [Unit#b_unit.id]),
 	process_flag(trap_exit, true),
+	random:seed(now()),
+
 	%% регистрируем имя сервера
 	true = gproc:add_local_name({unit, Unit#b_unit.battle_id, Unit#b_unit.team_id, Unit#b_unit.id}),
 	true = gproc:add_local_name({unit, Unit#b_unit.id}),
@@ -211,6 +213,7 @@ handle_call(create_opponent_info, _, Unit) ->
                         team = Unit#b_unit.team_pid,
                         id   = Unit#b_unit.id,
                         name = Unit#b_unit.name,
+                        ai   = Unit#b_unit.ai,
                         level = ((Unit#b_unit.user)#user.info)#u_info.level,
                         align = ((Unit#b_unit.user)#user.info)#u_info.align,
                         klan  = ((Unit#b_unit.user)#user.info)#u_info.klan,

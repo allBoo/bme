@@ -157,6 +157,8 @@
 %% информация о персонаже
 -record(user, {id,
                name,
+               ai = false,
+               ai_level = 0,
                city,
                room,
                info  = #'u_info'{},		%% информация о персонаже
