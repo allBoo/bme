@@ -169,7 +169,7 @@ handle_sync_event(_Event, _From, StateName, StateData) ->
 %% ====================================================================
 
 %% юнит выбрал противника
-handle_info({new_opponent, Opponent}, waiting = StateName, StateData) ->
+handle_info({new_opponent, Opponent}, StateName, StateData) ->
 	%% получаем инфу по оппоненту
 	case Opponent of
 		undefined -> {next_state, StateName, StateData};
