@@ -406,6 +406,7 @@ handle_info({battle_start, BattlePid}, Unit) ->
 	%% поиск подходящего оппонента
 	Opponent = select_random_opponent(Unit#b_unit.opponents),
 	?DBG("Select opponent ~p~n", [Opponent]),
+	notify(Unit, {new_opponent, Opponent}),
 	{noreply, BattleUnit#b_unit{battle_pid = BattlePid, opponent = Opponent}};
 
 
@@ -497,7 +498,8 @@ select_next_opponent(Unit) ->
 				   true -> lists:nth(1, Opponents);
 				   false -> undefined
 			   end,
-	?DBG("Select new opponent ~p from ~p~n", [Opponent, Opponents]),
+	?DBG("Select new opponent ~p~n", [Opponent]),
+	notify(Unit, {new_opponent, Opponent}),
 	Unit#b_unit{opponent = Opponent}.
 
 
@@ -627,10 +629,12 @@ do_hit_done(OpponentPid, Unit) ->
 	%% если текущий противник не выбран - выбираем этого, с кем произведен размен
 	NewOpponent = case Unit#b_unit.opponent of
 					  undefined ->
-						  ?DBG("Select opponent ~p~n", [OpponentPid]),
 						  case lists:keyfind(OpponentPid, 2, Opponents) of
 							  false    -> undefined;
-							  Opponent -> Opponent
+							  Opponent ->
+								  ?DBG("Select opponent ~p~n", [Opponent]),
+								  notify(Unit, {new_opponent, Opponent}),
+								  Opponent
 						  end;
 					  _ -> Unit#b_unit.opponent
 				  end,
@@ -647,8 +651,10 @@ killed(Unit) ->
 	gproc:munreg(p, l, [{team_unit, Unit#b_unit.battle_id, Unit#b_unit.team_id},
 						{battle_unit, Unit#b_unit.battle_id},
 						{battle, Unit#b_unit.battle_id}]),
-	%% уведомляем всех юнитов, что юнит убит
-	gproc:send({p, l, {battle, Unit#b_unit.battle_id}}, {unit_killed, self()}),
+	%% уведомляем всех юнитов и подписчиков, что юнит убит
+	Message = {unit_killed, self()},
+	broadcast(Unit, Message),
+	notify(Unit, Message),
 	%% удаляем все выставленные и назначенные размены
 	[hit:cancel(HitPid) || {_, HitPid} <- Unit#b_unit.hits ++ Unit#b_unit.obtained],
 	%% очищаем списки разменов, противников
@@ -666,7 +672,7 @@ killed(Unit) ->
 %% ====================================================================
 %% обработка уведомлений об убитых юнитах
 unit_killed(UnitPid, Unit) ->
-	?DBG("Unit ~p check killed unit ~p~n", [self(), UnitPid]),
+	%%?DBG("Unit ~p check killed unit ~p~n", [self(), UnitPid]),
 	%% убираем его из списка оппонентов, союзников и разменов
 	Unit0 = Unit#b_unit{opponents = lists:keydelete(UnitPid, 2, Unit#b_unit.opponents),
 						hits      = lists:keydelete(UnitPid, 1, Unit#b_unit.hits),
@@ -683,3 +689,17 @@ unit_killed(UnitPid, Unit) ->
 %% 		true  -> select_next_opponent(Unit0);
 %% 		false -> Unit0
 %% 	end.
+
+
+%% notify/2
+%% ====================================================================
+%% уведомление подписчиков
+notify(Unit, Message) ->
+	gproc:send({p, l, {unit, Unit#b_unit.id}}, Message).
+
+
+%% broadcast/2
+%% ====================================================================
+%% уведомление подписчиков
+broadcast(Unit, Message) ->
+	gproc:send({p, l, {battle, Unit#b_unit.battle_id}}, Message).

@@ -94,6 +94,8 @@ cancel(HitPid) when is_pid(HitPid) ->
 %% ====================================================================
 init(Hit) when is_record(Hit, b_hit) ->
 	?DBG("Start new hit ~p~n", [Hit]),
+	random:seed(now()),
+
 	%% регистрируем процесс чтобы избежать гонок
 	gproc:add_local_name({hit, Hit#b_hit.sender, Hit#b_hit.recipient}),
 	gproc:add_local_name({hit, Hit#b_hit.recipient, Hit#b_hit.sender}),
