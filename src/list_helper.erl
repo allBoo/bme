@@ -15,7 +15,10 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([keymap/4, first_nequal/2, rsublist/3]).
+-export([keymap/4,
+		 first_nequal/2,
+		 find_first/2,
+		 rsublist/3]).
 
 %% keymap/4
 %% ====================================================================
@@ -44,7 +47,21 @@ first_nequal0([_H|T], X) ->
 first_nequal0(_, _) -> false.
 
 
-%% first_nequal/2
+%% find_first/2
+%% ====================================================================
+%% Возвращет первый элемент, для которого ф-я возвращает true
+find_first(List, F) when is_list(List),
+						 is_function(F, 1) ->
+	find_first0(List, F).
+
+find_first0([El|Tail], F) ->
+	case F(El) of
+		true  -> El;
+		false -> find_first0(Tail, F)
+	end;
+find_first0([], _) -> false.
+
+%% rsublist/2
 %% ====================================================================
 %% Возвращет часть списка начиная с позиции на которой находится
 %% Elem и длиной Length

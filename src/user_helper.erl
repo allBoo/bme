@@ -15,14 +15,31 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([get/1, split_teams/3, get_weapons/1]).
+-export([get/1,
+		 split_teams/3,
+		 get_weapons/1,
+		 get_weapon_type/1,
+		 is_magic_type/1,
+		 is_natural_type/1,
+		 get_dpower_index/1,
+		 get_wpower_index/1]).
 
+%% bool_to_int/1
+%% ====================================================================
+%% boolean to integer
+
+%% get/1
+%% ====================================================================
+%%
 get(UsersIds) when is_list(UsersIds) ->
 	[example:get(Id) || Id <- UsersIds];
 
 get(_) ->
 	error.
 
+%% split_teams/3
+%% ====================================================================
+%% разбиение юзеров по командам
 split_teams(Users, TeamsCount, default) ->
 	%% маппим список юзеров на стоимость обмундирования, сортируем и в цикле раскидываем по командам
 	Sorted = [X||{_,X} <- lists:sort([ {(N#user.dress)#u_dress.cost, N} || N <- Users])],
@@ -34,6 +51,9 @@ split_teams(Users, TeamsCount, random) ->
 	create_list_teams(Shuffled, TeamsCount).
 
 
+%% get_weapons/1
+%% ====================================================================
+%% возвращает список оружия у юзера
 get_weapons(User) ->
 	[(User#user.damage)#u_damage.left] ++
 		case (User#user.damage)#u_damage.right of
@@ -41,6 +61,69 @@ get_weapons(User) ->
 				(User#user.damage)#u_damage.right;
 			undefined -> []
 		end.
+
+
+%% get_weapon_type/1
+%% ====================================================================
+%% возвращает случайно выбранный тип удара оружием
+get_weapon_type(Weapon) ->
+	AvailableTypes = get_active_weapon_types(Weapon),
+	Rnd = random:uniform(),
+	{SelectedType, _, _} = list_helper:find_first(AvailableTypes,
+												  fun({_Type, Min, Max}) ->
+														  (Rnd >= Min) and (Rnd =< Max) end),
+	SelectedType.
+
+get_active_weapon_types(Types) ->
+	AllAvailableTypes = [prick, chop, crush, cut, air, fire, water, earth, light, dark, gray],
+	get_active_weapon_types(Types, AllAvailableTypes, length(AllAvailableTypes) + 1, 0.0).
+
+get_active_weapon_types(_Types, _AvailableTypes, 1, _) ->
+	[];
+
+get_active_weapon_types(Types, AvailableTypes, Index, Acc) ->
+	Value = element(Index, Types),
+	R = case Value > 0 of
+		true  ->
+			Acc0 = Acc + Value,
+			[{lists:nth(Index - 1, AvailableTypes), Acc, Value + Acc}];
+		false -> Acc0 = Acc, []
+	end,
+	R ++ get_active_weapon_types(Types, AvailableTypes, Index - 1, Acc0).
+
+
+%% is_magic_type/1
+%% ====================================================================
+%% проверка типа урона - стихийный или физический
+is_magic_type(Type) ->
+	lists:member(Type, [air, fire, water, earth, light, dark, gray]).
+
+%% is_natural_type/1
+%% ====================================================================
+%% проверка типа урона - стихийный или физический
+is_natural_type(Type) ->
+	lists:member(Type, [prick, chop, crush, cut]).
+
+
+%% get_dpower_index/1
+%% ====================================================================
+get_dpower_index(general) -> #u_dpower.general;
+get_dpower_index(prick)   -> #u_dpower.prick;
+get_dpower_index(chop)    -> #u_dpower.chop;
+get_dpower_index(crush)   -> #u_dpower.crush;
+get_dpower_index(cut)     -> #u_dpower.cut.
+
+%% get_wpower_index/1
+%% ====================================================================
+get_wpower_index(general) -> #u_wpower.general;
+get_wpower_index(air)     -> #u_wpower.air;
+get_wpower_index(fire)    -> #u_wpower.fire;
+get_wpower_index(water)   -> #u_wpower.water;
+get_wpower_index(earth)   -> #u_wpower.earth;
+get_wpower_index(light)   -> #u_wpower.light;
+get_wpower_index(dark)    -> #u_wpower.dark;
+get_wpower_index(gray)    -> #u_wpower.gray.
+
 
 %% ====================================================================
 %% Internal functions

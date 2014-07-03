@@ -349,6 +349,7 @@ hits_queue([CurAttHit | AttackerHits],  AttackerBlock,  AttackerWeapons,  Attack
 			   DefendantHits, DefendantBlock, DefendantWeapons, Defendant,
 			   Index + 1).
 
+
 %% пустой удар - ничего не делаем
 do_hit(none, _Block, Attacker, _AttackerWeapon, Defendant) ->
 	?DBG("EMPTY HIT, ~p~n", [{Attacker#user.id, Defendant#user.id}]),
@@ -364,7 +365,7 @@ do_hit(counter, Block, Attacker, AttackerWeapon, Defendant) ->
 do_hit(Hit, Blocks, Attacker, AttackerWeapon, Defendant) ->
 	?DBG("DO HIT, ~p~n", [{Hit, Blocks, Attacker#user.id, Defendant#user.id}]),
 	%% расчитываем уворот
-	Dodge = formula:is_dodge(Attacker#user.mfs, Defendant#user.mfs),
+	Dodge = formula:is_dodge(Attacker, Defendant),
 	case Dodge of
 		true ->
 			%% котрудар
@@ -390,7 +391,7 @@ do_hit(Hit, Blocks, Attacker, AttackerWeapon, Defendant) ->
 					%% блок щитом
 					Shield = false;
 				false ->
-					%% обычный блок
+					%% попадание в блок
 					Block = lists:member(Hit, Blocks),
 					%% блок щитом
 					Shield = case Block of
@@ -399,6 +400,34 @@ do_hit(Hit, Blocks, Attacker, AttackerWeapon, Defendant) ->
 							 end
 			end
 	end,
+
+	%% попадание = попал не в блок или крит
+	Hited = not(Dodge) and (Crit or not(Block or Shield)),
+	%% пробой защиты
+	CritBreak = Hited and Crit and (Parry or Block or Shield),
+
+	case Hited of
+		%% если есть попадание, расчитываем нанесенный урон
+		true ->
+			%% определяем тип урона оружием
+			DamageType = user_helper:get_weapon_type(AttackerWeapon#u_weapon_damage.type),
+			%% считаем мощность урона данным типом оружия
+			DamagePower = formula:get_damage_power(DamageType, Attacker),
+			%% расчет базового урона оружием
+			%% зависимость от типа урона = (Статы * Процент) / 100
+			%% для двуручки * 1.2
+			%% 0.075 за каждую умелку
+			ok;
+
+		%% если нет, но есть уворот и контрудар, добавим еще один размен в очередь
+		false ->
+			case (Dodge and Counter) of
+				true  -> ok;
+				false -> ok
+			end
+	end,
+
+	%% считаем полученные тактики
 	?DBG("MFS ~p~n", [{Dodge, Counter, Crit, Parry, Block, Shield}]),
 	ok.
 
