@@ -20,7 +20,8 @@
 %% api
 -export([hit/2,
 		 reply/3,
-		 cancel/1]).
+		 cancel/1,
+		 test/0]).
 
 %% ====================================================================
 %% API functions
@@ -149,28 +150,8 @@ handle_cast({reply, BattleId, ReplyHit}, Hit) when ReplyHit#b_hit.sender == Hit#
 	Attacker  = unit:get_state(Hit#b_hit.sender),
 	Defendant = unit:get_state(Hit#b_hit.recipient),
 
-	%% пока не заморачиваемся, просто возьмем рандомное значение урона
-	AttackerHpDamage  = random:uniform(((Defendant#b_unit.user)#user.vitality)#u_vitality.hp),
-	DefendantHpDamage = random:uniform(((Attacker#b_unit.user)#user.vitality)#u_vitality.hp),
-
-	AttackerDamage = #b_damage{
-		damaged     = AttackerHpDamage,
-		lost        = DefendantHpDamage,
-		lost_mana   = 0,
-		healed      = 0,
-		tactics     = #b_tactics{attack = 1, crit = 1},
-		opponent_id = Defendant#b_unit.id,
-		exp         = 100
-	},
-	DefendantDamage = #b_damage{
-		damaged     = DefendantHpDamage,
-		lost        = AttackerHpDamage,
-		lost_mana   = 0,
-		healed      = 0,
-		tactics     = #b_tactics{attack = 2, crit = 1},
-		opponent_id = Defendant#b_unit.id,
-		exp         = 100
-	},
+	%% расчет размена ударами
+	{AttackerDamage, DefendantDamage} = hit_process(Attacker, Hit, Defendant, ReplyHit),
 
 	%% сообщаем юнитам о нанесенном им уроне
 	DefendantRes = unit:damage(Hit#b_hit.recipient, AttackerDamage),
@@ -283,3 +264,148 @@ send_hit_done({ok, alive}, UnitPid, Message) ->
 
 send_hit_done(_, _UnitPid, _Message) ->
 	ok.
+
+
+test() ->
+	hit_process(battle_helper:create_unit(example:get(1), 1),
+				#b_hit{sender = 0,
+					   recipient = 0,
+					   hits = [head],
+					   block = [head, torso, paunch],
+					   timeout_pass = false,
+					   magic_pass = false
+				},
+				battle_helper:create_unit(example:get(2), 1),
+				#b_hit{sender = 0,
+					   recipient = 0,
+					   hits = [head, legs],
+					   block = [head, torso, paunch],
+					   timeout_pass = false,
+					   magic_pass = false
+				}).
+
+%% hit_process/4
+%% ====================================================================
+%% расчет размена ударами
+hit_process(Attacker, AttackerHit, Defendant, DefendantHit) ->
+	AttackerUser  = Attacker#b_unit.user,
+	DefendantUser = Defendant#b_unit.user,
+
+	%% уравниваем кол-во ударов
+	MaxHits = max(length(AttackerHit#b_hit.hits), length(DefendantHit#b_hit.hits)),
+	AttackerHits  = AttackerHit#b_hit.hits ++ lists:duplicate(MaxHits - length(AttackerHit#b_hit.hits), none),
+	DefendantHits = DefendantHit#b_hit.hits ++ lists:duplicate(MaxHits - length(DefendantHit#b_hit.hits), none),
+	?DBG("~p", [{AttackerHits, DefendantHits}]),
+	%% получаем список оружия для каждого в виде списка
+	AttackerWeapons  = user_helper:get_weapons(AttackerUser),
+	DefendantWeapons = user_helper:get_weapons(DefendantUser),
+	?DBG("~p", [{AttackerWeapons, DefendantWeapons}]),
+	%% отработка ударов по очереди, начиная с атакующего
+
+	hits_queue(AttackerHits, AttackerHit#b_hit.block, AttackerWeapons, AttackerUser,
+			   DefendantHits, DefendantHit#b_hit.block, DefendantWeapons, DefendantUser,
+			   0),
+
+%% 	AttackerHpDamage  = random:uniform(((Defendant#b_unit.user)#user.vitality)#u_vitality.hp),
+%% 	DefendantHpDamage = random:uniform(((Attacker#b_unit.user)#user.vitality)#u_vitality.hp),
+%%
+%% 	AttackerDamage = #b_damage{
+%% 		damaged     = AttackerHpDamage,
+%% 		lost        = DefendantHpDamage,
+%% 		lost_mana   = 0,
+%% 		healed      = 0,
+%% 		tactics     = #b_tactics{attack = 1, crit = 1},
+%% 		opponent_id = Defendant#b_unit.id,
+%% 		exp         = 100
+%% 	},
+%% 	DefendantDamage = #b_damage{
+%% 		damaged     = DefendantHpDamage,
+%% 		lost        = AttackerHpDamage,
+%% 		lost_mana   = 0,
+%% 		healed      = 0,
+%% 		tactics     = #b_tactics{attack = 2, crit = 1},
+%% 		opponent_id = Defendant#b_unit.id,
+%% 		exp         = 100
+%% 	},
+%% 	{AttackerDamage, DefendantDamage}
+	ok.
+
+hits_queue([], _, _, _, [], _, _, _, _Index) ->
+	?DBG("Hits done~n", []),
+	ok;
+
+hits_queue([CurAttHit | AttackerHits],  AttackerBlock,  AttackerWeapons,  Attacker,
+		   [CurDefHit | DefendantHits], DefendantBlock, DefendantWeapons, Defendant,
+		   Index) ->
+	%% сначала бьет атакующий
+	AttackerWeapon = get_weapon(AttackerWeapons, Index),
+	ResAttacker = do_hit(CurAttHit, DefendantBlock, Attacker, AttackerWeapon, Defendant),
+	%% потом защищающийся
+	DefendantWeapon = get_weapon(DefendantWeapons, Index),
+	ResDefendant = do_hit(CurDefHit, AttackerBlock, Defendant, DefendantWeapon, Attacker),
+
+	%% продолжаем размены
+	hits_queue(AttackerHits,  AttackerBlock,  AttackerWeapons,  Attacker,
+			   DefendantHits, DefendantBlock, DefendantWeapons, Defendant,
+			   Index + 1).
+
+%% пустой удар - ничего не делаем
+do_hit(none, _Block, Attacker, _AttackerWeapon, Defendant) ->
+	?DBG("EMPTY HIT, ~p~n", [{Attacker#user.id, Defendant#user.id}]),
+	ok;
+
+%% контрудар
+do_hit(counter, Block, Attacker, AttackerWeapon, Defendant) ->
+	?DBG("COUNTER~n", []),
+	Hit = lists:nth(random:uniform(5), [head, torso, paunch, belt, legs]),
+	do_hit(Hit, Block, Attacker, AttackerWeapon, Defendant);
+
+%% удар
+do_hit(Hit, Blocks, Attacker, AttackerWeapon, Defendant) ->
+	?DBG("DO HIT, ~p~n", [{Hit, Blocks, Attacker#user.id, Defendant#user.id}]),
+	%% расчитываем уворот
+	Dodge = formula:is_dodge(Attacker#user.mfs, Defendant#user.mfs),
+	case Dodge of
+		true ->
+			%% котрудар
+			Counter = formula:is_counter(Attacker, Defendant),
+			%% крит
+			Crit = false,
+			%% парир
+			Parry = false,
+			%% обычный блок
+			Block = false,
+			%% блок щитом
+			Shield = false;
+		false ->
+			Counter = false,
+			%% крит
+			Crit = formula:is_crit(AttackerWeapon, Attacker, Defendant),
+			%% парир
+			Parry = formula:is_parry(Attacker, Defendant),
+			case Parry of
+				true ->
+					%% обычный блок
+					Block = false,
+					%% блок щитом
+					Shield = false;
+				false ->
+					%% обычный блок
+					Block = lists:member(Hit, Blocks),
+					%% блок щитом
+					Shield = case Block of
+								 true  -> false;
+								 false -> formula:is_shield_block(Attacker, Defendant)
+							 end
+			end
+	end,
+	?DBG("MFS ~p~n", [{Dodge, Counter, Crit, Parry, Block, Shield}]),
+	ok.
+
+
+get_weapon([Weapon | WeaponsList], _Index) when length(WeaponsList) == 0 ->
+	Weapon;
+
+get_weapon(WeaponsList, Index) ->
+	lists:nth((Index rem length(WeaponsList)) + 1, WeaponsList).
+

@@ -15,7 +15,7 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([get/1, split_teams/3]).
+-export([get/1, split_teams/3, get_weapons/1]).
 
 get(UsersIds) when is_list(UsersIds) ->
 	[example:get(Id) || Id <- UsersIds];
@@ -32,6 +32,15 @@ split_teams(Users, TeamsCount, random) ->
 	%% перемешиваем список юзеров и раскидываем по командам
 	Shuffled = [X||{_,X} <- lists:sort([ {random:uniform(), N} || N <- Users])],
 	create_list_teams(Shuffled, TeamsCount).
+
+
+get_weapons(User) ->
+	[(User#user.damage)#u_damage.left] ++
+		case (User#user.damage)#u_damage.right of
+			Right when is_record(Right, u_weapon_damage) ->
+				(User#user.damage)#u_damage.right;
+			undefined -> []
+		end.
 
 %% ====================================================================
 %% Internal functions

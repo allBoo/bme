@@ -15,7 +15,7 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([create_teams/1]).
+-export([create_teams/1, create_unit/2]).
 
 
 create_teams(Teams) ->
@@ -38,10 +38,14 @@ create_team(Team, Index) ->
 						   end, 0, Team),
 	%% создаем записи участников поединка
 	Members = lists:map(fun(User) ->
-								#b_unit{id = User#user.id,
-										name = User#user.name,
-										ai = User#user.ai,
-										team_id = Index,
-										user = User}
+								create_unit(User, Index)
 						end, Team),
 	{#b_team{id = Index, max_cost = MaxCost, units = Members, units_count = length(Members)}, Index + 1}.
+
+
+create_unit(User, TeamId) when is_record(User, user)->
+	#b_unit{id = User#user.id,
+			name = User#user.name,
+			ai = User#user.ai,
+			team_id = TeamId,
+			user = User}.
