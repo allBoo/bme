@@ -427,7 +427,7 @@ handle_info({battle_finish, Result}, Unit) ->
 			  true -> Unit#b_unit.exp * Result#b_result.exp_coef;
 			  false -> 0
 		  end,
-	?DBG("Unit ~p got ~p exp", [self(), Exp]),
+	?DBG("Unit ~p damaged ~pHP and got ~p exp", [self(), Unit#b_unit.total_damaged, Exp]),
 	%% сохраняем
 	{noreply, Unit};
 
@@ -613,8 +613,8 @@ add_tactics(Unit, Delta) when is_record(Unit, b_unit),
                       counter = math:limit(Current#b_tactics.counter + Delta#b_tactics.counter, 25),
                       block   = math:limit(Current#b_tactics.block + Delta#b_tactics.block, 25),
                       parry   = math:limit(Current#b_tactics.parry + Delta#b_tactics.parry, 25),
-                      hearts  = math:limit(Current#b_tactics.hearts + Delta#b_tactics.hearts, 25),
-                      spirit  = math:limit(Current#b_tactics.spirit + Delta#b_tactics.spirit, Current#b_tactics.spirit)}.
+                      hearts  = math:limit(math:precision(Current#b_tactics.hearts + Delta#b_tactics.hearts, 2), 25),
+                      spirit  = math:limit(math:precision(Current#b_tactics.spirit + Delta#b_tactics.spirit, 2), Current#b_tactics.spirit)}.
 
 
 %% do_hit_done/2

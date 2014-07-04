@@ -40,8 +40,9 @@
 		 get_protection_damage_reduce/4,
 		 get_wprotection_damage_reduce/3]).
 
-%% расчеты тактик
--export([get_hearts/3]).
+%% расчеты тактик и опыта
+-export([get_hearts/3,
+		 get_exp_by_damage/3]).
 
 %% get_d_interval/1
 %% ====================================================================
@@ -376,6 +377,55 @@ get_hearts_base(8) -> 1000;
 get_hearts_base(9) -> 1200;
 get_hearts_base(10) -> 1440;
 get_hearts_base(_) -> 1728.
+
+
+%% get_exp_by_damage/3
+%% ====================================================================
+%% расчет полученной экспы за нанесенный урон по противнику
+%% http://lib.combats.com/item-14954
+%% 2 * Базовый опыт * Стоимость комплекта противника (соратника в случае лечения) /
+%%    (Стоимость вашего комплекта + Стоимость комплекта противника (соратника) = 100%
+%% Одинаковый уровень с противником +10%
+%% Противник меньше вас на 2 и более уровней = 0 опыта
+%% Если уровень противника выше вашего на 2 и более = от -67% до +100%
+%%     Опыт умножается на коэффициент цены экипировки противника ( 0.33 до 2)
+%% Если уровень противника выше вашего не более чем на 2 = от 0% до +100%
+%%     Опыт умножается на коэффициент полноты комплекта противника (от 1 до 2)
+get_exp_by_damage(Damage, Attacker, Defendant) ->
+	AttackerLevel  = get_level(Attacker),
+	DefendantLevel = get_level(Defendant),
+
+	%% не учитываем урон, нанесенный выше уровня ХП противника
+	RealDamage = min(Damage, (Defendant#user.vitality)#u_vitality.hp) /
+					 (Defendant#user.vitality)#u_vitality.hp,
+	Base = RealDamage * 2 * get_base_exp(AttackerLevel) * (Defendant#user.dress)#u_dress.cost /
+				((Attacker#user.dress)#u_dress.cost + (Defendant#user.dress)#u_dress.cost),
+
+	LevelFactor = case AttackerLevel - DefendantLevel of
+					  0 -> 1.1;
+					  L when L >= 2 -> 0;
+					  G when G =< 2 -> 1; %% @todo Опыт умножается на коэффициент цены экипировки противника ( 0.33 до 2)
+					  _ -> 1 %% @todo Опыт умножается на коэффициент полноты комплекта противника (от 1 до 2)
+				  end,
+	trunc(Base * LevelFactor).
+
+%% get_base_exp/0
+%% ====================================================================
+%% таблица базового опыта
+get_base_exp(0) -> 5;
+get_base_exp(1) -> 10;
+get_base_exp(2) -> 20;
+get_base_exp(3) -> 30;
+get_base_exp(4) -> 60;
+get_base_exp(5) -> 120;
+get_base_exp(6) -> 180;
+get_base_exp(7) -> 540;
+get_base_exp(8) -> 1800;
+get_base_exp(9) -> 2800;
+get_base_exp(10) -> 8400;
+get_base_exp(11) -> 12000;
+get_base_exp(_) -> 0.
+
 
 %% ====================================================================
 %% Internal functions

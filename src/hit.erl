@@ -312,40 +312,36 @@ hit_process(Attacker, AttackerHit, Defendant, DefendantHit) ->
 
 	%% отработка ударов по очереди, начиная с атакующего
 
-	hits_queue(AttackerHits, AttackerHit#b_hit.block, AttackerWeapons, AttackerUser,
-			   DefendantHits, DefendantHit#b_hit.block, DefendantWeapons, DefendantUser,
-			   0),
+	{AttackerDamage, DefendantDamage} =
+		hits_queue(AttackerHits, AttackerHit#b_hit.block, AttackerWeapons, AttackerUser, #b_damage{},
+				   DefendantHits, DefendantHit#b_hit.block, DefendantWeapons, DefendantUser, #b_damage{},
+				   0),
 
-%% 	AttackerHpDamage  = random:uniform(((Defendant#b_unit.user)#user.vitality)#u_vitality.hp),
-%% 	DefendantHpDamage = random:uniform(((Attacker#b_unit.user)#user.vitality)#u_vitality.hp),
-%%
-%% 	AttackerDamage = #b_damage{
-%% 		damaged     = AttackerHpDamage,
-%% 		lost        = DefendantHpDamage,
-%% 		lost_mana   = 0,
-%% 		healed      = 0,
-%% 		tactics     = #b_tactics{attack = 1, crit = 1},
-%% 		opponent_id = Defendant#b_unit.id,
-%% 		exp         = 100
-%% 	},
-%% 	DefendantDamage = #b_damage{
-%% 		damaged     = DefendantHpDamage,
-%% 		lost        = AttackerHpDamage,
-%% 		lost_mana   = 0,
-%% 		healed      = 0,
-%% 		tactics     = #b_tactics{attack = 2, crit = 1},
-%% 		opponent_id = Defendant#b_unit.id,
-%% 		exp         = 100
-%% 	},
-%% 	{AttackerDamage, DefendantDamage}
-	ok.
+	%?DBG("TOTAL ~p~n", [{AttackerDamage, DefendantDamage}]),
+ 	{AttackerDamage, DefendantDamage}.
 
-hits_queue([], _, _, _, [], _, _, _, _Index) ->
-	?DBG("Hits done~n", []),
-	ok;
 
-hits_queue([CurAttHit | AttackerHits],  AttackerBlock,  AttackerWeapons,  Attacker,
-		   [CurDefHit | DefendantHits], DefendantBlock, DefendantWeapons, Defendant,
+%% hits_queue/4
+%% ====================================================================
+%% размен ударами
+hits_queue([], _, _, Attacker, AttackerDamage,
+		   [], _, _, Defendant, DefendantDamage,
+		   _Index) ->
+	%?DBG("Hits done~n", []),
+	{AttackerDamage#b_damage{
+			lost = DefendantDamage#b_damage.damaged,
+			opponent_id = Defendant#user.id,
+			exp = formula:get_exp_by_damage(AttackerDamage#b_damage.damaged, Attacker, Defendant)
+		},
+	 DefendantDamage#b_damage{
+			lost = AttackerDamage#b_damage.damaged,
+			opponent_id = Attacker#user.id,
+			exp = formula:get_exp_by_damage(DefendantDamage#b_damage.damaged, Defendant, Attacker)
+		}};
+
+
+hits_queue([CurAttHit | AttackerHits],  AttackerBlock,  AttackerWeapons,  Attacker, AttackerDamage,
+		   [CurDefHit | DefendantHits], DefendantBlock, DefendantWeapons, Defendant, DefendantDamage,
 		   Index) ->
 	%% сначала бьет атакующий
 	AttackerWeapon = get_weapon(AttackerWeapons, Index),
@@ -354,34 +350,46 @@ hits_queue([CurAttHit | AttackerHits],  AttackerBlock,  AttackerWeapons,  Attack
 	DefendantWeapon = get_weapon(DefendantWeapons, Index),
 	ResDefendant = do_hit(CurDefHit, AttackerBlock, Defendant, DefendantWeapon, Attacker),
 
-	?DBG("RES ~p~n", [{ResAttacker, ResDefendant}]),
+	%% если у кого-то сработала контра, добавляем еще один удар
+	{AttAddHit, DefAddHit} = case ResAttacker#hit_result.counter or ResDefendant#hit_result.counter of
+								 true  ->
+									 {case ResAttacker#hit_result.counter of true -> [counter]; false -> [none] end,
+									  case ResDefendant#hit_result.counter of true -> [counter]; false -> [none] end};
+								 false -> {[], []}
+							 end,
+
+	%?DBG("RES ~p~n", [{ResAttacker, ResDefendant, AttAddHit, DefAddHit}]),
+
+	AttackerDamage0  = merge_damage(AttackerDamage, ResAttacker, ResDefendant),
+	DefendantDamage0 = merge_damage(DefendantDamage, ResDefendant, ResAttacker),
 
 	%% продолжаем размены
-	hits_queue(AttackerHits,  AttackerBlock,  AttackerWeapons,  Attacker,
-			   DefendantHits, DefendantBlock, DefendantWeapons, Defendant,
+	hits_queue(AttackerHits ++ AttAddHit,  AttackerBlock,  AttackerWeapons,  Attacker, AttackerDamage0,
+			   DefendantHits ++ DefAddHit, DefendantBlock, DefendantWeapons, Defendant, DefendantDamage0,
 			   Index + 1).
 
 
 %% пустой удар - ничего не делаем
-do_hit(none, _Block, Attacker, _AttackerWeapon, Defendant) ->
-	?DBG("EMPTY HIT, ~p~n", [{Attacker#user.id, Defendant#user.id}]),
+do_hit(none, _Block, _Attacker, _AttackerWeapon, _Defendant) ->
+	%?DBG("EMPTY HIT, ~p~n", [{Attacker#user.id, Defendant#user.id}]),
 	#hit_result{};
 
-%% контрудар
-do_hit(counter, Block, Attacker, AttackerWeapon, Defendant) ->
-	?DBG("COUNTER~n", []),
-	Hit = lists:nth(random:uniform(5), [head, torso, paunch, belt, legs]),
-	do_hit(Hit, Block, Attacker, AttackerWeapon, Defendant);
-
 %% удар
-do_hit(Hit, Blocks, Attacker, AttackerWeapon, Defendant) ->
-	?DBG("DO HIT, ~p~n", [{Hit, Blocks, Attacker#user.id, Defendant#user.id}]),
+do_hit(HitZone, Blocks, Attacker, AttackerWeapon, Defendant) ->
+	%?DBG("DO HIT, ~p~n", [{HitZone, Blocks, Attacker#user.id, Defendant#user.id}]),
+
+	%% в случае контрудара берем рандомную зону
+	Hit = case HitZone == counter of
+			  true  -> lists:nth(random:uniform(5), [head, torso, paunch, belt, legs]);
+			  false -> HitZone
+		  end,
 	%% расчитываем уворот
 	Dodge = formula:is_dodge(Attacker, Defendant),
 	case Dodge of
 		true ->
 			%% котрудар
-			Counter = formula:is_counter(Attacker, Defendant),
+			%% нельзя произвести контр-удар в ответ на контр-удар
+			Counter = (HitZone /= counter) and formula:is_counter(Attacker, Defendant),
 			%% крит
 			Crit = false,
 			%% парир
@@ -463,3 +471,21 @@ get_weapon([Weapon | WeaponsList], _Index) when length(WeaponsList) == 0 ->
 get_weapon(WeaponsList, Index) ->
 	lists:nth((Index rem length(WeaponsList)) + 1, WeaponsList).
 
+
+%% merge_damage/3
+%% ====================================================================
+%% суммирование урона и тактик за размен
+merge_damage(Damage, AsAttacker, AsDefendant) ->
+	DT = Damage#b_damage.tactics,
+	Tactics = #b_tactics{
+		attack  = (AsAttacker#hit_result.attacker_tactics)#b_tactics.attack    + DT#b_tactics.attack,
+		crit    = (AsAttacker#hit_result.attacker_tactics)#b_tactics.crit      + DT#b_tactics.crit,
+		hearts  = math:precision((AsAttacker#hit_result.attacker_tactics)#b_tactics.hearts + DT#b_tactics.hearts, 2),
+		counter = (AsDefendant#hit_result.defendant_tactics)#b_tactics.counter + DT#b_tactics.counter,
+		block   = (AsDefendant#hit_result.defendant_tactics)#b_tactics.block   + DT#b_tactics.block,
+		parry   = (AsDefendant#hit_result.defendant_tactics)#b_tactics.parry   + DT#b_tactics.parry
+	},
+	Damage#b_damage{
+		damaged = Damage#b_damage.damaged + AsAttacker#hit_result.damage,
+		tactics = Tactics
+	}.
