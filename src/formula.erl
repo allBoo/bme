@@ -28,7 +28,7 @@
 		 is_shield_block/2]).
 
 %% расчеты урона
--export([get_damage/6,
+-export([get_damage/7,
 		 get_base_damage/6,
 		 get_reduced_damage/6,
 
@@ -40,6 +40,8 @@
 		 get_protection_damage_reduce/4,
 		 get_wprotection_damage_reduce/3]).
 
+%% расчеты тактик
+-export([get_hearts/3]).
 
 %% get_d_interval/1
 %% ====================================================================
@@ -151,18 +153,16 @@ is_shield_block(Attacker, Defendant) ->
 	is_happened(BlockChance).
 
 
-%% get_damage/6
+%% get_damage/7
 %% ====================================================================
 %% расчет величины полученного уроном от оружия
 %% = (Базовый урон - Броня) - % Защиты от урона
-get_damage(HitZone, Crit, CritBreak, Attacker, AttackerWeapon, Defendant) ->
-	%% определяем тип урона оружием на основе ГСЧ
-	DamageType = user_helper:get_weapon_type(AttackerWeapon#u_weapon.damage_type),
+get_damage(HitZone, DamageType, Crit, CritBreak, Attacker, AttackerWeapon, Defendant) ->
 	%% считаем базовый урон данным типом атаки
 	BaseDamage = formula:get_base_damage(DamageType, Crit, CritBreak, Attacker, AttackerWeapon, Defendant),
 	%% реально полученный урон
 	RealDamage = formula:get_reduced_damage(BaseDamage, HitZone, DamageType, Attacker, AttackerWeapon, Defendant),
-	?DBG("BASE DAMAGE ~p, REAL DAMAGE ~p~n", [BaseDamage, RealDamage]),
+	%?DBG("BASE DAMAGE ~p, REAL DAMAGE ~p~n", [BaseDamage, RealDamage]),
 	round(RealDamage).
 
 
@@ -195,7 +195,7 @@ get_base_damage(DamageType, Crit, CritBreak, Attacker, AttackerWeapon, Defendant
 
 	%% интервал урона оружия
 	{WeaponMinimum, WeaponMaximum} = get_d_interval(AttackerWeapon#u_weapon.damage),
-	?DBG("~p~n", [{WeaponMinimum, WeaponMaximum, AttackerWeapon#u_weapon.damage}]),
+	%?DBG("~p~n", [{WeaponMinimum, WeaponMaximum, AttackerWeapon#u_weapon.damage}]),
 
 	%% итоговый минимальный урон
 	Minimum = trunc((((5 + AttackerLevel + StrengthFactor + WeaponMinimum * SkillFactor)) *
@@ -218,7 +218,7 @@ get_reduced_damage(BaseDamage, Hit, DamageType, Attacker, AttackerWeapon, Defend
 	ArmorReduce = formula:get_armor_damage_reduce(Hit, DamageType, AttackerWeapon, Defendant),
 	%% расчитываем процент урона, поглощенного защитой
 	ProtectionReduce = formula:get_protection_damage_reduce(Hit, DamageType, Attacker, Defendant),
-	?DBG("Protection ~p~n", [ProtectionReduce]),
+	%?DBG("Protection ~p~n", [ProtectionReduce]),
 	%% броня не может снизить урон более чем на треть
 	%% урон не может уйти в минус
 	max(max(BaseDamage - ArmorReduce, BaseDamage/3) *
@@ -347,6 +347,35 @@ get_protection_damage_reduce(Hit, DamageType, Attacker, Defendant) ->
 get_wprotection_damage_reduce(DamageType, Attacker, Defendant) ->
 	ok.
 
+
+%% get_hearts/3
+%% ====================================================================
+%% расчет кол-ва тактики "сердец", полученных за нанесенный урон
+%% Для персонажей 1-7 уровня одно сердце начисляется за нанесение врагу урона, равного 10% НР противника.
+%% Для персонажей 8 уровня и выше действуют следующие правила:
+%% если у противника 8го уровня менее 1000 НР, то за 10%НР начисляется 1 сердце, как и на младших уровнях.
+%% А если более 1000 НР, то 10 сердец будет начисляться за каждую выбитую из него 1000 НР.
+%% Для 9го уровня, это соответственно - 1200 НР, для 10го - 1440 НР, для 11го – 1728 НР.
+get_hearts(Damage, Attacker, Defendant) ->
+	AttackerLevel  = get_level(Attacker),
+	DefendantLevel = get_level(Defendant),
+	DefendantMaxHp = (Defendant#user.vitality)#u_vitality.maxhp,
+
+	case AttackerLevel < 8 of
+		true  -> math:precision(Damage / (DefendantMaxHp / 10), 2);
+		false ->
+			Base = get_hearts_base(DefendantLevel),
+			case DefendantMaxHp < Base of
+				true  -> math:precision(Damage / (DefendantMaxHp / 10), 2);
+				false -> math:precision(Damage / (Base / 10), 2)
+			end
+	end.
+
+
+get_hearts_base(8) -> 1000;
+get_hearts_base(9) -> 1200;
+get_hearts_base(10) -> 1440;
+get_hearts_base(_) -> 1728.
 
 %% ====================================================================
 %% Internal functions

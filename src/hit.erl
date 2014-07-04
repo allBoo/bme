@@ -23,6 +23,14 @@
 		 cancel/1,
 		 test/0]).
 
+%% результат удара
+-record(hit_result, {damage = 0,
+					 attacker_tactics = #b_tactics{},
+					 defendant_tactics = #b_tactics{},
+					 counter = false}).
+-define(TACTIC(Cond), case Cond of true -> 1; false -> 0 end).
+-define(TACTIC(Cond1, Cond2, Val), case Cond1 of true -> (case Cond2 of true -> Val; false -> 1 end); false -> 0 end).
+
 %% ====================================================================
 %% API functions
 %% ====================================================================
@@ -295,11 +303,13 @@ hit_process(Attacker, AttackerHit, Defendant, DefendantHit) ->
 	MaxHits = max(length(AttackerHit#b_hit.hits), length(DefendantHit#b_hit.hits)),
 	AttackerHits  = AttackerHit#b_hit.hits ++ lists:duplicate(MaxHits - length(AttackerHit#b_hit.hits), none),
 	DefendantHits = DefendantHit#b_hit.hits ++ lists:duplicate(MaxHits - length(DefendantHit#b_hit.hits), none),
-	?DBG("~p", [{AttackerHits, DefendantHits}]),
+	%?DBG("~p", [{AttackerHits, DefendantHits}]),
+
 	%% получаем список оружия для каждого в виде списка
 	AttackerWeapons  = user_helper:get_weapons(AttackerUser),
 	DefendantWeapons = user_helper:get_weapons(DefendantUser),
-	?DBG("~p", [{AttackerWeapons, DefendantWeapons}]),
+	%?DBG("~p", [{AttackerWeapons, DefendantWeapons}]),
+
 	%% отработка ударов по очереди, начиная с атакующего
 
 	hits_queue(AttackerHits, AttackerHit#b_hit.block, AttackerWeapons, AttackerUser,
@@ -344,6 +354,8 @@ hits_queue([CurAttHit | AttackerHits],  AttackerBlock,  AttackerWeapons,  Attack
 	DefendantWeapon = get_weapon(DefendantWeapons, Index),
 	ResDefendant = do_hit(CurDefHit, AttackerBlock, Defendant, DefendantWeapon, Attacker),
 
+	?DBG("RES ~p~n", [{ResAttacker, ResDefendant}]),
+
 	%% продолжаем размены
 	hits_queue(AttackerHits,  AttackerBlock,  AttackerWeapons,  Attacker,
 			   DefendantHits, DefendantBlock, DefendantWeapons, Defendant,
@@ -353,7 +365,7 @@ hits_queue([CurAttHit | AttackerHits],  AttackerBlock,  AttackerWeapons,  Attack
 %% пустой удар - ничего не делаем
 do_hit(none, _Block, Attacker, _AttackerWeapon, Defendant) ->
 	?DBG("EMPTY HIT, ~p~n", [{Attacker#user.id, Defendant#user.id}]),
-	ok;
+	#hit_result{};
 
 %% контрудар
 do_hit(counter, Block, Attacker, AttackerWeapon, Defendant) ->
@@ -406,26 +418,45 @@ do_hit(Hit, Blocks, Attacker, AttackerWeapon, Defendant) ->
 	%% пробой защиты
 	CritBreak = Hited and Crit and (Parry or Block or Shield),
 
-	case Hited of
+	Damage = case Hited of
 		%% если есть попадание, расчитываем нанесенный урон
 		true ->
+			%% определяем тип урона оружием на основе ГСЧ
+			DamageType = user_helper:get_weapon_type(AttackerWeapon#u_weapon.damage_type),
 			%% считаем урон для данного удара
-			Damage = formula:get_damage(Hit, Crit, CritBreak, Attacker, AttackerWeapon, Defendant),
-			ok;
+			formula:get_damage(Hit, DamageType, Crit, CritBreak, Attacker, AttackerWeapon, Defendant);
 
 		%% если нет, но есть уворот и контрудар, добавим еще один размен в очередь
 		false ->
 			case (Dodge and Counter) of
 				true  -> ok;
 				false -> ok
-			end
+			end,
+			0
 	end,
 
 	%% считаем полученные тактики
-	?DBG("MFS ~p~n", [{Dodge, Counter, Crit, Parry, Block, Shield}]),
-	ok.
+	AttackerTactics = #b_tactics{
+		attack  = ?TACTIC(Hited and not(Crit), AttackerWeapon#u_weapon.twain == true, 3),
+		crit    = ?TACTIC(Crit, (AttackerWeapon#u_weapon.twain == true) or not(CritBreak), 2),
+		hearts  = formula:get_hearts(Damage, Attacker, Defendant)
+	},
+	DefendantTactics = #b_tactics{
+		counter = ?TACTIC(Counter),
+		block   = ?TACTIC((Block or Shield) and not(Hited), AttackerWeapon#u_weapon.twain == true, 2),
+		parry   = ?TACTIC(Parry and not(Hited))
+	},
+
+	#hit_result{damage = Damage,
+				attacker_tactics = AttackerTactics,
+				defendant_tactics = DefendantTactics,
+				counter = Counter}.
 
 
+
+%% get_weapon/2
+%% ====================================================================
+%% выбирает оружие для удара
 get_weapon([Weapon | WeaponsList], _Index) when length(WeaponsList) == 0 ->
 	Weapon;
 
