@@ -29,8 +29,8 @@ get1() ->
 			maxmana = 4355     %% максимальный уровень маны
 		},
 		stats = #'u_stats'{
-			str   = 10,    %% сила
-			agil  = 3,     %% ловкость
+			str   = 100,    %% сила
+			agil  = 30,     %% ловкость
 			int   = 10,    %% интуиция
 			dex   = 35,    %% вынос
 			intel = 204,   %% интеллект
@@ -49,20 +49,22 @@ get1() ->
 			luck    = 300.0    %% удача
 		},
 		damage = #'u_damage'{
-			left = #'u_weapon_damage'{
-				damage = #'d_value'{n=10, k=5},  %% базовый урон
+			left = #'u_weapon'{
+				damage = #'d_value'{n=60, k=16},  %% базовый урон
+				damage_type = #'u_damage_type'{   %% тип урона
+					crush = 0.7,  %% шанс дробящего урона
+					air   = 0.3   %% шанс стихийной атаки воздухом
+				},
 				crit   = 100.0,              %% мф крита
 				pierce = 5.0,                %% мф пробоя брони
-				type   = #'u_damage_type'{   %% тип урона
-					crush = 0.3,  %% шанс дробящего урона
-					air   = 0.7   %% шанс стихийной атаки воздухом
-				}
+				type = staff
 			},
 			right = undefined
 		},
 		dpower = #'u_dpower'{
 			general = 10.0,   %% мощь общего урона
-			crush   = 10.0    %% мощь дробящего урона
+			crush   = 100.0,   %% мощь дробящего урона
+			crit    = 150.0    %% мощь крита
 		},
 		wpower = #'u_wpower'{
 			general = 400.0,  %% мощь общей магии
@@ -74,6 +76,12 @@ get1() ->
 			dark    = 400.0,  %% мощь магии тьмы
 			gray    = 400.0,  %% мощь серой магии
 			reduction = 78.0  %% подавление защиты от магии
+		},
+		skills = #'u_skills'{
+			staff = 3,
+			air   = 18,
+			gray  = 1,
+			light = 4
 		},
 		armor  = #'u_armor'{
 			head   = #'d_value'{n=14, k=10},    %% броня головы

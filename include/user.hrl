@@ -85,15 +85,17 @@
                         gray  = 0.0   %% шанс стихийной атаки серой магией
         }).
 
-%% характеристика урона оружия
--record(u_weapon_damage, {damage = #'d_value'{},      %% базовый урон
-                          crit   = 0.0,               %% мф крита
-                          pierce = 0.0,               %% мф пробоя брони
-                          type   = #'u_damage_type'{} %% тип урона
+%% характеристика оружия
+-record(u_weapon, {damage      = #'d_value'{},       %% базовый урон
+                   damage_type = #'u_damage_type'{}, %% тип урона
+                   crit        = 0.0,                %% мф крита
+                   pierce      = 0.0,                %% мф пробоя брони
+                   type       :: [knife | axe | hammer | sword | staff], %% тип оружия
+                   twain       = false               %% двуручка
        }).
 
 %% показатель базового урона оружием (левая и правая руки)
--record(u_damage, {left = #'u_weapon_damage'{}, right = #'u_weapon_damage'{}}).
+-record(u_damage, {left = #'u_weapon'{}, right = #'u_weapon'{}}).
 
 %% мф мощности урона
 -record(u_dpower, {general = 0.0,   %% мощь общего урона
@@ -116,9 +118,24 @@
                    reduction = 0.0 %% подавление защиты от магии
        }).
 
+%% уменя владения оружием и магией
+-record(u_skills, {knife  = 0,     %% Владение ножами и кинжалами
+                   axe    = 0,     %% Владение топорами и секирами
+                   hammer = 0,     %% Владение молотами и дубинами
+                   sword  = 0,     %% Владение мечами
+                   staff  = 0,     %% Владение посохами
+                   fire   = 0,     %% Владение магией Огня
+                   air    = 0,     %% Владение магией Воздуха
+                   water  = 0,     %% Владение магией Воды
+                   earth  = 0,     %% Владение магией Земли
+                   light  = 0,     %% Владение магией Света
+                   dark   = 0,     %% Владение магией Тьмы
+                   gray   = 0      %% Владение серой магией
+       }).
+
 %% броня
 -record(u_armor, {head   = #'d_value'{},    %% броня головы
-                  torso  = #'d_value'{},    %% броня корпуса
+                  torso  = #'d_value'{},    %% броня корпуса (грудь, живот)
                   belt   = #'d_value'{},    %% броня пояса
                   legs   = #'d_value'{}     %% броня ног
        }).
@@ -171,6 +188,7 @@
                damage = #'u_damage'{},	%% базовый урон для левой и правой руки
                dpower = #'u_dpower'{},	%% мощь урона
                wpower = #'u_wpower'{},	%% мощь магии
+               skills = #'u_skills'{},	%% умелки
                armor  = #'u_armor'{},	%% броня
                dprotection = #'u_dprotection'{}, 	%% защита от урона
                wprotection = #'u_wprotection'{},	%% защита от магии

@@ -409,14 +409,8 @@ do_hit(Hit, Blocks, Attacker, AttackerWeapon, Defendant) ->
 	case Hited of
 		%% если есть попадание, расчитываем нанесенный урон
 		true ->
-			%% определяем тип урона оружием
-			DamageType = user_helper:get_weapon_type(AttackerWeapon#u_weapon_damage.type),
-			%% считаем мощность урона данным типом оружия
-			DamagePower = formula:get_damage_power(DamageType, Attacker),
-			%% расчет базового урона оружием
-			%% зависимость от типа урона = (Статы * Процент) / 100
-			%% для двуручки * 1.2
-			%% 0.075 за каждую умелку
+			%% считаем урон для данного удара
+			Damage = formula:get_damage(Hit, Crit, CritBreak, Attacker, AttackerWeapon, Defendant),
 			ok;
 
 		%% если нет, но есть уворот и контрудар, добавим еще один размен в очередь
