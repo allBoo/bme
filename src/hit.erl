@@ -17,17 +17,12 @@
 %% standart behaviourals
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
-%% api
--export([hit/2,
-		 reply/3,
-		 cancel/1,
-		 test/0]).
-
 %% результат удара
 -record(hit_result, {damage = 0,
 					 attacker_tactics = #b_tactics{},
 					 defendant_tactics = #b_tactics{},
 					 counter = false}).
+
 -define(TACTIC(Cond), case Cond of true -> 1; false -> 0 end).
 -define(TACTIC(Cond1, Cond2, Val), case Cond1 of true -> (case Cond2 of true -> Val; false -> 1 end); false -> 0 end).
 
@@ -35,6 +30,11 @@
 %% API functions
 %% ====================================================================
 -export([start_link/1]).
+
+-export([hit/2,
+		 reply/3,
+		 cancel/1,
+		 test/0]).
 
 
 %% start_link/1
