@@ -88,12 +88,12 @@ hit(BattleId, TransactionId, HitLog) ->
 
 
 test() ->
-	?log_hit_tpl1("01:02", <<"Кошмарский/utf8">>, 1, male).
+	get_crit_p1(torso, true).
 
 %% ====================================================================
 %% Behavioural functions
 %% ====================================================================
--record(state, {battle_id}).
+-record(state, {battle_id, file}).
 
 %% init/1
 %% ====================================================================
@@ -115,7 +115,9 @@ init(BattleId) ->
 
 	random:seed(now()),
 
-	{ok, #state{battle_id = BattleId}}.
+	{ok, File} = file:open(io_lib:format("log/battle_~b.log.html", [BattleId]), [write, {encoding, utf8}]),
+
+	{ok, #state{battle_id = BattleId, file = File}}.
 
 
 %% handle_call/3
@@ -153,7 +155,7 @@ handle_call(commit, {FromPid, _}, State) ->
 			_ ->
 				Logs = gproc:get_value({n, l, TransactionId}),
 				gproc:unregister_name({n, l, TransactionId}),
-				write(Logs)
+				write(Logs, State#state.file)
 		end,
 	{reply, R, State};
 
@@ -173,8 +175,8 @@ handle_call({hit, HitLog}, {FromPid, _}, State) ->
 	TransactionId = {log_transaction, FromPid},
 	R = case gproc:lookup_local_name(TransactionId) of
 			%% если транзакция не запущена, пишем локально
-			undefined -> write(HitLog);
-			_ -> write(HitLog, TransactionId)
+			undefined -> write(HitLog, State#state.file);
+			_ -> write(HitLog, TransactionId, State#state.file)
 		end,
 	{reply, R, State};
 
@@ -201,8 +203,8 @@ handle_call(_Request, _From, State) ->
 handle_cast({hit, TransactionId, HitLog}, State) ->
 	case gproc:lookup_local_name(TransactionId) of
 		%% если транзакция не запущена, пишем локально
-		undefined -> write(HitLog);
-		_ -> write(HitLog, TransactionId)
+		undefined -> write(HitLog, State#state.file);
+		_ -> write(HitLog, TransactionId, State#state.file)
 	end,
 	{noreply, State};
 
@@ -236,7 +238,8 @@ handle_info(_Info, State) ->
 			| {shutdown, term()}
 			| term().
 %% ====================================================================
-terminate(_Reason, _State) ->
+terminate(_Reason, State) ->
+	file:close(State#state.file),
 	ok.
 
 
@@ -256,6 +259,13 @@ code_change(_OldVsn, State, _Extra) ->
 %% Internal functions
 %% ====================================================================
 
+%% возвращает время в формате H:M
+curtime() ->
+	{_, {H, M, _}} = erlang:localtime(),
+	io_lib:format("~2..0b:~2..0b", [H, M]).
+
+
+%% выбор случайной фразы из списка
 phrase(List) ->
 	lists:nth(random:uniform(length(List)), List).
 
@@ -263,35 +273,213 @@ phrase(List) ->
 get_hit_p1(male) ->
 	X = #log_hit_p1{},
 	phrase(X#log_hit_p1.male);
-
 get_hit_p1(female) ->
 	X = #log_hit_p1{},
 	phrase(X#log_hit_p1.female).
 
+get_hit_p2() ->
+	X = #log_hit_p2{},
+	phrase(X#log_hit_p2.any).
+
+get_hit_p3(male) ->
+	X = #log_hit_p3{},
+	phrase(X#log_hit_p3.male);
+get_hit_p3(female) ->
+	X = #log_hit_p3{},
+	phrase(X#log_hit_p3.female).
+
+get_hit_p4() ->
+	X = #log_hit_p4{},
+	phrase(X#log_hit_p4.any).
+
+get_hit_p51(DamageType, male) ->
+	X = #log_hit_p51_male{},
+	get_hit_p51(DamageType, X);
+get_hit_p51(DamageType, female) ->
+	X = #log_hit_p51_female{},
+	get_hit_p51(DamageType, X);
+get_hit_p51(prick, X) ->
+	phrase(element(2, X));
+get_hit_p51(chop, X) ->
+	phrase(element(3, X));
+get_hit_p51(crush, X) ->
+	phrase(element(4, X));
+get_hit_p51(cut, X) ->
+	phrase(element(5, X)).
+
+get_hit_p52(male) ->
+	X = #log_hit_p52{},
+	phrase(X#log_hit_p52.male);
+get_hit_p52(female) ->
+	X = #log_hit_p52{},
+	phrase(X#log_hit_p52.female).
+
+get_hit_p521() ->
+	X = #log_hit_p521{},
+	phrase(X#log_hit_p521.any).
+
+get_hit_p522(prick) ->
+	X = #log_hit_p522{},
+	phrase(X#log_hit_p522.prick);
+get_hit_p522(chop) ->
+	X = #log_hit_p522{},
+	phrase(X#log_hit_p522.chop);
+get_hit_p522(crush) ->
+	X = #log_hit_p522{},
+	phrase(X#log_hit_p522.crush);
+get_hit_p522(cut) ->
+	X = #log_hit_p522{},
+	phrase(X#log_hit_p522.cut);
+get_hit_p522(air) ->
+	X = #log_hit_p522{},
+	phrase(X#log_hit_p522.air);
+get_hit_p522(fire) ->
+	X = #log_hit_p522{},
+	phrase(X#log_hit_p522.fire);
+get_hit_p522(water) ->
+	X = #log_hit_p522{},
+	phrase(X#log_hit_p522.water);
+get_hit_p522(earth) ->
+	X = #log_hit_p522{},
+	phrase(X#log_hit_p522.earth);
+get_hit_p522(light) ->
+	X = #log_hit_p522{},
+	phrase(X#log_hit_p522.light);
+get_hit_p522(dark) ->
+	X = #log_hit_p522{},
+	phrase(X#log_hit_p522.dark);
+get_hit_p522(gray) ->
+	X = #log_hit_p522{},
+	phrase(X#log_hit_p522.gray).
+
+get_hit_p6(arm) ->
+	X = #log_hit_p6{},
+	phrase(X#log_hit_p6.arm);
+get_hit_p6(knife) ->
+	X = #log_hit_p6{},
+	phrase(X#log_hit_p6.knife);
+get_hit_p6(axe) ->
+	X = #log_hit_p6{},
+	phrase(X#log_hit_p6.axe);
+get_hit_p6(hammer) ->
+	X = #log_hit_p6{},
+	phrase(X#log_hit_p6.hammer);
+get_hit_p6(sword) ->
+	X = #log_hit_p6{},
+	phrase(X#log_hit_p6.sword);
+get_hit_p6(staff) ->
+	X = #log_hit_p6{},
+	phrase(X#log_hit_p6.staff);
+get_hit_p6(bucket) ->
+	X = #log_hit_p6{},
+	phrase(X#log_hit_p6.bucket);
+get_hit_p6(nails) ->
+	X = #log_hit_p6{},
+	phrase(X#log_hit_p6.nails).
+
+get_hit_p8() ->
+	X = #log_hit_p8{},
+	phrase(X#log_hit_p8.any).
+
+get_hit_p7(head) ->
+	X = #log_hit_p7{},
+	phrase(X#log_hit_p7.head);
+get_hit_p7(torso) ->
+	X = #log_hit_p7{},
+	phrase(X#log_hit_p7.torso);
+get_hit_p7(paunch) ->
+	X = #log_hit_p7{},
+	phrase(X#log_hit_p7.paunch);
+get_hit_p7(belt) ->
+	X = #log_hit_p7{},
+	phrase(X#log_hit_p7.belt);
+get_hit_p7(legs) ->
+	X = #log_hit_p7{},
+	phrase(X#log_hit_p7.legs).
+
+get_crit_p1(HitZone, false) ->
+	X = #log_crit_p1{},
+	get_crit_p1(HitZone, X);
+get_crit_p1(HitZone, true) ->
+	X = #log_critblock_p1{},
+	get_crit_p1(HitZone, X);
+get_crit_p1(head, X) ->
+	element(2, X);
+get_crit_p1(torso, X) ->
+	element(3, X);
+get_crit_p1(paunch, X) ->
+	element(4, X);
+get_crit_p1(belt, X) ->
+	element(5, X);
+get_crit_p1(legs, X) ->
+	element(6, X).
+
+
+get_crit_p2(HitZone, male) ->
+	X = #log_crit_p2_male{},
+	get_crit_p1(HitZone, X);
+get_crit_p2(HitZone, female) ->
+	X = #log_crit_p2_female{},
+	get_crit_p1(HitZone, X).
 
 
 %% запись логов
-write(LogsList) when is_list(LogsList) ->
-	lists:foreach(fun write/1, LogsList),
-	?LOG("~n=================~n", []),
+write(LogsList, File) when is_list(LogsList) ->
+	io:fwrite(File, ?log_delimiter, []),
+	lists:foreach(fun(El) -> write(El, File) end, LogsList),
 	ok;
 
-write(Log) when is_record(Log, log_hit) ->
-	P1 = get_hit_p1(male),
-	%LogMsg = << <<"<b>/utf8">>/binary, (Log#log_hit.defandant_name)/binary, <<"</b> /utf8">>/binary, P1/binary >>,
-	?LOG("~p~n", [Log]);
+write(Log, File) when is_record(Log, log_hit) ->
+	Attacker  = Log#log_hit.attacker,
+	Defendant = Log#log_hit.defendant,
+	%% общая для всех видов лога часть параметров
+	HeadParams = [curtime(), Defendant#log_unit.team, Defendant#log_unit.name, get_hit_p1(Defendant#log_unit.sex),
+				  get_hit_p2(), get_hit_p3(Defendant#log_unit.sex), Attacker#log_unit.team, Attacker#log_unit.name],
+	TailParams = [Attacker#log_unit.name, Log#log_hit.damage, Defendant#log_unit.hp, Defendant#log_unit.maxhp],
 
-write(Log) when is_record(Log, log_miss) ->
+	%% выбираем шаблоны
+	case Log#log_hit.crit of
+		true  ->
+			Template = ?log_crit_tpl,
+			Params = HeadParams ++
+						 [get_crit_p1(Log#log_hit.hit, Log#log_hit.crit_break),
+						  get_crit_p2(Log#log_hit.hit, Attacker#log_unit.sex)] ++
+						 TailParams;
+		false ->
+			%% все магические атаки идут на 2-й шаблон
+			%% атаки оружием рандомно на 1-й или 2-й
+			case
+				lists:member(Log#log_hit.damage_type, [prick, chop, crush, cut]) and
+					(random:uniform(2) == 1) of
+				true ->
+					Template = ?log_hit_tpl1,
+					Params = HeadParams ++
+						 [get_hit_p4(), get_hit_p51(Log#log_hit.damage_type, Attacker#log_unit.sex),
+						  get_hit_p6(Log#log_hit.weapon_type), get_hit_p7(Log#log_hit.hit),
+						  get_hit_p8()] ++
+						 TailParams;
+				false ->
+					Template = ?log_hit_tpl2,
+					Params = HeadParams ++
+						 [get_hit_p4(), get_hit_p52(Attacker#log_unit.sex), get_hit_p521(),
+						  get_hit_p522(Log#log_hit.damage_type), get_hit_p6(Log#log_hit.weapon_type),
+						  get_hit_p7(Log#log_hit.hit), get_hit_p8()] ++
+						 TailParams
+			end
+	end,
+
+	io:fwrite(File, Template, Params),
+	ok;
+
+write(Log, File) when is_record(Log, log_miss) ->
 	?LOG("~p", [Log]),
 	ok;
 
-write(Log) ->
+write(Log, File) ->
 	?LOG("~p", [Log]),
 	ok.
 
-write(Log, TransactionId) ->
+write(Log, TransactionId, _File) ->
 	Logs = gproc:get_value({n, l, TransactionId}),
 	gproc:set_value({n, l, TransactionId}, Logs ++ [Log]),
 	ok.
-
-

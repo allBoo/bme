@@ -9,14 +9,14 @@
 get1() ->
 	#user{
 		id    = 104962,
-		name = <<"Кошмарский/utf8">>,
+		name = <<"Кошмарский"/utf8>>,
 		city  = 1,
 		room  = 1,
 		info  = #'u_info'{
 			level = 10,
 			align = 0.98,
-			klan  = <<"DarkRunes/utf8">>,
-			pic   = <<"indiv_104962/utf8">>,
+			klan  = <<"DarkRunes"/utf8>>,
+			pic   = <<"indiv_104962"/utf8>>,
 			sex   = male
 		},
 		dress  = #'u_dress'{
@@ -140,11 +140,11 @@ get1() ->
 
 get2() ->
 	User = get1(),
-	User#user{id = 10000104962, name = <<"Кошмарский клон1/utf8">>, dress = (User#user.dress)#u_dress{cost = 4499}}.
+	User#user{id = 10000104962, name = <<"Кошмарский клон1"/utf8>>, dress = (User#user.dress)#u_dress{cost = 4499}}.
 
 get3() ->
 	User = get1(),
-	User#user{id = 10001104962, name = <<"Кошмарский клон2/utf8">>, dress = (User#user.dress)#u_dress{cost = 100}}.
+	User#user{id = 10001104962, name = <<"Кошмарский клон2"/utf8>>, dress = (User#user.dress)#u_dress{cost = 100}}.
 
 get(Id) ->
 	User = get1(),
@@ -152,5 +152,5 @@ get(Id) ->
 	CloneIndex = integer_to_binary(Id),
 	User#user{id = Id,
 			  ai = true,
-			  name = <<(User#user.name)/binary, <<" клон/utf8">>/binary, CloneIndex/binary >>,
+			  name = <<(User#user.name)/binary, <<" клон"/utf8>>/binary, CloneIndex/binary >>,
 			  dress = (User#user.dress)#u_dress{cost = Cost}}.

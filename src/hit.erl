@@ -498,17 +498,17 @@ do_hit(HitZone, Blocks, AttackerUnit, AttackerWeapon, DefendantUnit, BattleId) -
 	%% пишем лог
 	Log = case Hited of
 			  true  ->
-				  #log_hit{attacker = ?log_unit(AttackerUnit0), defandant = ?log_unit(DefendantUnit0),
+				  #log_hit{attacker = ?log_unit(AttackerUnit0), defendant = ?log_unit(DefendantUnit0),
 						   hit = HitZone, blocks = Blocks, damage = AttackerDamage,
 						   damage_type = DamageType, weapon_type = AttackerWeapon#u_weapon.type,
 						   crit = Crit, crit_break = CritBreak, parry = Parry, block = Block, shield = Shield};
 			  false ->
-				  #log_miss{attacker = ?log_unit(AttackerUnit0), defandant = ?log_unit(DefendantUnit0),
+				  #log_miss{attacker = ?log_unit(AttackerUnit0), defendant = ?log_unit(DefendantUnit0),
 						    hit = HitZone, blocks = Blocks, damage_type = DamageType,
 						    weapon_type = AttackerWeapon#u_weapon.type, dodge = Dodge,
 						    counter = Counter, parry = Parry, block = Block, shield = Shield}
 		  end,
-	%battle_log:hit(BattleId, Log),
+	battle_log:hit(BattleId, Log),
 
 	%% собираем результат
 	#hit_result{attacker_damage = #hit_damage{
