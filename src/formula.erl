@@ -387,6 +387,7 @@ get_hearts_base(_) -> 1728.
 %%    (Стоимость вашего комплекта + Стоимость комплекта противника (соратника) = 100%
 %% Одинаковый уровень с противником +10%
 %% Противник меньше вас на 2 и более уровней = 0 опыта
+%% Противник меньше вас на 1 уровень = 10% опыта
 %% Если уровень противника выше вашего на 2 и более = от -67% до +100%
 %%     Опыт умножается на коэффициент цены экипировки противника ( 0.33 до 2)
 %% Если уровень противника выше вашего не более чем на 2 = от 0% до +100%
@@ -396,7 +397,8 @@ get_exp_by_damage(Damage, Attacker, Defendant) ->
 	DefendantLevel = ?level(Defendant),
 
 	%% не учитываем урон, нанесенный выше уровня ХП противника
-	RealDamage = case ?hp(Defendant) of 0 -> 0; _ -> min(Damage, ?hp(Defendant)) / ?hp(Defendant) end,
+	%% считаем процент нанесенного урона по отношению к максимальному
+	RealDamage = case ?hp(Defendant) of 0 -> 0; _ -> min(Damage, ?hp(Defendant)) / ?maxhp(Defendant) end,
 	Base = case ?drcost(Attacker) + ?drcost(Defendant) of
 			   0 -> 0;
 			   Fact -> RealDamage * 2 * get_base_exp(AttackerLevel) * ?drcost(Defendant) / Fact
@@ -404,9 +406,10 @@ get_exp_by_damage(Damage, Attacker, Defendant) ->
 
 	LevelFactor = case AttackerLevel - DefendantLevel of
 					  0 -> 1.1;
+					  1 -> 0.1;
 					  L when L >= 2 -> 0;
-					  G when G =< 2 -> 1; %% @todo Опыт умножается на коэффициент цены экипировки противника ( 0.33 до 2)
-					  _ -> 1 %% @todo Опыт умножается на коэффициент полноты комплекта противника (от 1 до 2)
+					  -1 -> 1; %% @todo Опыт умножается на коэффициент полноты комплекта противника (от 1 до 2)
+					  _ -> 1 %% @todo Опыт умножается на коэффициент цены экипировки противника ( 0.33 до 2)
 				  end,
 	trunc(Base * LevelFactor).
 

@@ -1,6 +1,8 @@
 %% -*- coding: utf-8 -*-
 
 -include_lib("user.hrl").
+-define(user(User), (User#b_unit.user)).
+-define(userid(User), (User#b_unit.user)#user.id).
 
 %% уровень персонажей поединка
 -record(b_level, {min = 0  :: integer(),

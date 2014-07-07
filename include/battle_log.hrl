@@ -9,10 +9,18 @@
 %%% Строковые константы для формирования текстового лога боя
 %%% ====================================================================
 
--record(log_hit, {attacker_name,
-				  defandant_name,
-				  defandant_hp,
-				  defandant_maxhp,
+-define(log_unit(Unit), #log_unit{name    = Unit#b_unit.name,
+								  sex     = ?sex(Unit#b_unit.user),
+								  hp      = ?hp(Unit#b_unit.user),
+								  maxhp   = ?maxhp(Unit#b_unit.user),
+								  mana    = ?mana(Unit#b_unit.user),
+								  maxmana = ?maxmana(Unit#b_unit.user),
+								  team    = Unit#b_unit.team_id}).
+
+-record(log_unit, {name, sex, hp, maxhp, mana, maxmana, team}).
+
+-record(log_hit, {attacker  = #log_unit{},
+				  defandant = #log_unit{},
 				  hit,
 				  blocks,
 				  damage,
@@ -24,8 +32,8 @@
 				  block,
 				  shield}).
 
--record(log_miss, {attacker_name,
-				   defandant_name,
+-record(log_miss, {attacker  = #log_unit{},
+				   defandant = #log_unit{},
 				   hit,
 				   blocks,
 				   damage_type,
@@ -38,15 +46,19 @@
 
 
 %% попадание по противнику
--define(log_date, "<span class=date>~s</span> ").
--define(log_unit, "<span class=c~b>~ts</span> ").
--define(log_damage, "<b>-~b</b> [~b/~b]").
--define(log_crit_damage, "<b><font color=red>-~b</font></b> [~b/~b]").
+-define(log_date, "<span class=\"date\">~s</span> ").
+-define(log_unit, "<span class=\"B~b\">~ts</span>").
+-define(log_damage, "<b onmouseout=\"ghideshow();\" onmouseover=\"gfastshow('<b>~ts</b><br>')\">-~b</b> [~b/~b]").
+-define(log_crit_damage, "<b style=\"color: red\" onmouseout=\"ghideshow();\" onmouseover=\"gfastshow('<b>~ts</b><br>')\">-~b</b> [~b/~b]").
 
-%% X1 не контролировал ситуацию, и за это обезумевший X2 случайно ткнул ножом по затылку противника -100 [100/1000]
--define(log_hit_tpl1, ?log_date ++ ?log_unit ++ "~ts, ~ts ~ts " ++ ?log_unit ++ "~ts ~ts ~ts ~ts ~ts " ++ ?log_damage).
+%% X1 не контролировал ситуацию, и за это обезумевший X2, случайно, ткнул ножом по затылку противника -100 [100/1000]
+-define(log_hit_tpl1, ?log_date ++ ?log_unit ++ " ~ts, ~ts ~ts " ++ ?log_unit ++ ", ~ts, ~ts ~ts ~ts ~ts " ++ ?log_damage).
 %% X1 не контролировал ситуацию, и за это обезумевший X2 случайно саданул грубый тычок по затылку противника -100 [100/1000]
 -define(log_hit_tpl2, ?log_date ++ ?log_unit ++ "~ts, ~ts ~ts " ++ ?log_unit ++ "~ts ~ts ~ts ~ts ~ts ~ts " ++ ?log_damage).
+
+%% X1 обернулся, как внезапно расстроенный X2, сказав "БУ!", ласково заломил руку за спину соперника. -55 [1321/1464]
+%% X1 думал не о том, как внезапно X2, пробив блок, расцарапал <вырезано цензурой>. -341 [854/2945]
+-define(log_crit_tpl, ?log_date ++ ?log_unit ++ "~ts, ~ts ~ts " ++ ?log_unit ++ ", ~ts, ~ts " ++ ?log_damage).
 
 
 -record(log_hit_tpl, {
@@ -65,8 +77,8 @@
 }).
 
 -record(log_hit_p2, {
-	any = [<<"и за это/utf8">>, <<"как вдруг/utf8">>, <<"а/utf8">>, <<"но в это время/utf8">>, <<"и тут/utf8">>,
-		   <<"но вдруг, неожиданно/utf8">>, <<"и вдруг/utf8">>, <<"но/utf8">>, <<"и внезапно/utf8">>, <<"но неожиданно/utf8">>,
+	any = [<<"и за это/utf8">>, <<"как вдруг/utf8">>, <<"а/utf8">>, <<"и/utf8">>, <<"но в это время/utf8">>, <<"и тут/utf8">>,
+		   <<"но вдруг, неожиданно/utf8">>, <<"как вдруг/utf8">>, <<"но/utf8">>, <<"как внезапно/utf8">>, <<"но неожиданно/utf8">>,
 		   <<"и в этот момент/utf8">>, <<"и в ту же секунду/utf8">>, <<"и в этот миг/utf8">>]
 }).
 
@@ -160,4 +172,36 @@
 
 -record(log_hit_p8, {
 	any = [<<"оппонента/utf8">>, <<"врага/utf8">>, <<"противника/utf8">>, <<"соперника/utf8">>]
+}).
+
+
+-record(log_crit_p1, {
+	head   = <<"напугав всех/utf8">>,
+	torso  = <<"сказав \"БУ!\"/utf8">>,
+	paunch = <<"проклиная этот сайт/utf8">>,
+	belt   = <<"расслабившись/utf8">>,
+	legs   = <<"показав сразу два пальца/utf8">>
+}).
+
+-record(log_critblock_p1, {
+	head   = <<"пробив блок/utf8">>,
+	torso  = <<"пробив блок/utf8">>,
+	paunch = <<"пробив блок/utf8">>,
+	belt   = <<"пробив блок/utf8">>,
+	legs   = <<"пробив блок/utf8">>
+}).
+
+-record(log_crit_p2_male, {
+	head   = <<"неслышно подойдя сзади ударил по голове булыжником оппонента./utf8">>,
+	torso  = <<"ласково заломил руку за спину соперника./utf8">>,
+	paunch = <<"провел ужасный бросок через пупок оппонента./utf8">>,
+	belt   = <<"расцарапал <вырезано цензурой> соперника./utf8">>,
+	legs   = <<"наступил на ногу врага./utf8">>
+}).
+-record(log_crit_p2_female, {
+	head   = <<"неслышно подойдя сзади ударила по голове булыжником оппонента./utf8">>,
+	torso  = <<"ласково заломила руку за спину соперника./utf8">>,
+	paunch = <<"провела ужасный бросок через пупок оппонента./utf8">>,
+	belt   = <<"расцарапала <вырезано цензурой> соперника./utf8">>,
+	legs   = <<"наступила на ногу врага./utf8">>
 }).

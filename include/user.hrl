@@ -4,10 +4,13 @@
 -ifndef(USER_HRL).
 -define(USER_HRL, true).
 
--define(vitality(User), (User#user.vitality)).
+-define(vitality(User), User#user.vitality).
 -define(hp(User), (User#user.vitality)#u_vitality.hp).
 -define(maxhp(User), (User#user.vitality)#u_vitality.maxhp).
+-define(mana(User), (User#user.vitality)#u_vitality.mana).
+-define(maxmana(User), (User#user.vitality)#u_vitality.maxmana).
 -define(level(User), (User#user.info)#u_info.level).
+-define(sex(User), (User#user.info)#u_info.sex).
 -define(mfs(User), User#user.mfs).
 -define(drcost(User), (User#user.dress)#u_dress.cost).
 

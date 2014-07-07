@@ -278,8 +278,8 @@ write(LogsList) when is_list(LogsList) ->
 
 write(Log) when is_record(Log, log_hit) ->
 	P1 = get_hit_p1(male),
-	LogMsg = << <<"<b>/utf8">>/binary, (Log#log_hit.defandant_name)/binary, <<"</b> /utf8">>/binary, P1/binary >>,
-	?LOG("~p~n", [LogMsg]);
+	%LogMsg = << <<"<b>/utf8">>/binary, (Log#log_hit.defandant_name)/binary, <<"</b> /utf8">>/binary, P1/binary >>,
+	?LOG("~p~n", [Log]);
 
 write(Log) when is_record(Log, log_miss) ->
 	?LOG("~p", [Log]),
