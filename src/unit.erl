@@ -539,6 +539,7 @@ create_hit(HitsList, Block, Unit) ->
 	Blocks   = create_blocks_list(Block, Unit),
 	#b_hit{sender    = self(),
 		   recipient = Opponent#b_opponent.pid,
+		   battle_id = Unit#b_unit.battle_id,
 		   hits      = HitsList,
 		   block     = Blocks,
 		   timeout   = battle:get_timeout(Unit#b_unit.battle_pid)}.

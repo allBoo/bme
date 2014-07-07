@@ -13,7 +13,6 @@
 -module(battle_log).
 -behaviour(gen_server).
 -include_lib("bme.hrl").
--include_lib("battle_log.hrl").
 
 %% standart behaviourals
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -41,7 +40,8 @@
 		 commit/1,
 		 rollback/1,
 		 hit/2,
-		 hit/3]).
+		 hit/3,
+		 test/0]).
 
 
 %% start_link/1
@@ -75,16 +75,20 @@ rollback(BattleId) ->
 %% hit/2
 %% ====================================================================
 %% запись удара в лог
-hit(BattleId, Hit) ->
-	?CALL(BattleId, {hit, Hit}).
+hit(BattleId, HitLog) ->
+	?CALL(BattleId, {hit, HitLog}).
 
 
 %% hit/3
 %% ====================================================================
 %% запись удара в лог
-hit(BattleId, TransactionId, Hit) ->
-	?CAST(BattleId, {hit, TransactionId, Hit}).
+hit(BattleId, TransactionId, HitLog) ->
+	?CAST(BattleId, {hit, TransactionId, HitLog}).
 
+
+
+test() ->
+	?log_hit_tpl1("01:02", <<"Кошмарский/utf8">>, 1, male).
 
 %% ====================================================================
 %% Behavioural functions
@@ -108,6 +112,8 @@ init(BattleId) ->
 
 	%% регистрируем имя сервера
 	true = gproc:add_local_name({battle_log, BattleId}),
+
+	random:seed(now()),
 
 	{ok, #state{battle_id = BattleId}}.
 
@@ -134,7 +140,7 @@ init(BattleId) ->
 handle_call(start_block, {FromPid, _}, State) ->
 	TransactionId = {log_transaction, FromPid},
 	gproc:reg_or_locate({n, l, TransactionId}, []),
-	gproc:set_value(TransactionId, []),
+	gproc:set_value({n, l, TransactionId}, []),
 	{reply, {ok, TransactionId}, State};
 
 
@@ -144,8 +150,9 @@ handle_call(commit, {FromPid, _}, State) ->
 	TransactionId = {log_transaction, FromPid},
 	R = case gproc:lookup_local_name(TransactionId) of
 			undefined -> ?ERROR_NOT_APPLICABLE;
-			Logs ->
-				gproc:unregister_name(TransactionId),
+			_ ->
+				Logs = gproc:get_value({n, l, TransactionId}),
+				gproc:unregister_name({n, l, TransactionId}),
 				write(Logs)
 		end,
 	{reply, R, State};
@@ -162,12 +169,12 @@ handle_call(rollback, {FromPid, _}, State) ->
 
 
 %% запись строки удара в лог
-handle_call({hit, Hit}, {FromPid, _}, State) ->
+handle_call({hit, HitLog}, {FromPid, _}, State) ->
 	TransactionId = {log_transaction, FromPid},
 	R = case gproc:lookup_local_name(TransactionId) of
 			%% если транзакция не запущена, пишем локально
-			undefined -> write({hit, Hit});
-			_ -> write({hit, Hit}, TransactionId)
+			undefined -> write(HitLog);
+			_ -> write(HitLog, TransactionId)
 		end,
 	{reply, R, State};
 
@@ -191,11 +198,11 @@ handle_call(_Request, _From, State) ->
 
 
 %% запись строки удара в лог
-handle_cast({hit, TransactionId, Hit}, State) ->
+handle_cast({hit, TransactionId, HitLog}, State) ->
 	case gproc:lookup_local_name(TransactionId) of
 		%% если транзакция не запущена, пишем локально
-		undefined -> write({hit, Hit});
-		_ -> write({hit, Hit}, TransactionId)
+		undefined -> write(HitLog);
+		_ -> write(HitLog, TransactionId)
 	end,
 	{noreply, State};
 
@@ -249,12 +256,37 @@ code_change(_OldVsn, State, _Extra) ->
 %% Internal functions
 %% ====================================================================
 
+phrase(List) ->
+	lists:nth(random:uniform(length(List)), List).
+
+
+get_hit_p1(male) ->
+	X = #log_hit_p1{},
+	phrase(X#log_hit_p1.male);
+
+get_hit_p1(female) ->
+	X = #log_hit_p1{},
+	phrase(X#log_hit_p1.female).
+
+
+
+%% запись логов
 write(LogsList) when is_list(LogsList) ->
-	?DBG("~p", [LogsList]),
+	lists:foreach(fun write/1, LogsList),
+	?LOG("~n=================~n", []),
+	ok;
+
+write(Log) when is_record(Log, log_hit) ->
+	P1 = get_hit_p1(male),
+	LogMsg = << <<"<b>/utf8">>/binary, (Log#log_hit.defandant_name)/binary, <<"</b> /utf8">>/binary, P1/binary >>,
+	?LOG("~p~n", [LogMsg]);
+
+write(Log) when is_record(Log, log_miss) ->
+	?LOG("~p", [Log]),
 	ok;
 
 write(Log) ->
-	?DBG("~p", [Log]),
+	?LOG("~p", [Log]),
 	ok.
 
 write(Log, TransactionId) ->

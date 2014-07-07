@@ -4,6 +4,14 @@
 -ifndef(USER_HRL).
 -define(USER_HRL, true).
 
+-define(vitality(User), (User#user.vitality)).
+-define(hp(User), (User#user.vitality)#u_vitality.hp).
+-define(maxhp(User), (User#user.vitality)#u_vitality.maxhp).
+-define(level(User), (User#user.info)#u_info.level).
+-define(mfs(User), User#user.mfs).
+-define(drcost(User), (User#user.dress)#u_dress.cost).
+
+
 %% d-value (N+Kd)
 -record(d_value, {n = 0.0, k = 0.0}).
 
@@ -12,7 +20,7 @@
                  align = 0.0,
                  klan  = <<"">>,
                  pic   = <<"">>,
-                 sex   = 0
+                 sex   :: male | female
        }).
 
 %% описание шмоток
@@ -90,7 +98,7 @@
                    damage_type = #'u_damage_type'{}, %% тип урона
                    crit        = 0.0,                %% мф крита
                    pierce      = 0.0,                %% мф пробоя брони
-                   type       :: [knife | axe | hammer | sword | staff], %% тип оружия
+                   type       :: [knife | axe | hammer | sword | staff | arm | nails], %% тип оружия
                    twain       = false               %% двуручка
        }).
 

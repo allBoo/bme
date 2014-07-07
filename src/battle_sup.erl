@@ -56,7 +56,7 @@ init([Battle]) ->
 	%% запускаем супервайзеры команд, супервайзер очереди ударов и в конце ген-сервер боя
 	%% запуск сервера боя означает полную готовность
 	Children = lists:map(fun(Team) -> ?TEAM_SUP(Battle, Team) end, Battle#battle.teams) ++
-				   [?HITS_SUP(Battle), ?BATTLE(Battle)],
+				   [?HITS_SUP(Battle), ?BATTLE_LOG(Battle), ?BATTLE(Battle)],
 	Strategy = one_for_one,
 	MaxR = 0, MaxT = 1,
 	{ok, {{Strategy, MaxR, MaxT}, Children}}.

@@ -21,6 +21,7 @@
 %% удар
 -record(b_hit, {sender     :: pid(),
                 recipient  :: pid(),
+                battle_id  :: non_neg_integer(),
                 hits = []  :: [head | torso | paunch | belt | legs | none | counter],
                 block = [] :: [head | torso | paunch | belt | legs | none],
                 timeout = 5,

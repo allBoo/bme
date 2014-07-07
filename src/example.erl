@@ -17,7 +17,7 @@ get1() ->
 			align = 0.98,
 			klan  = <<"DarkRunes/utf8">>,
 			pic   = <<"indiv_104962/utf8">>,
-			sex   = 1
+			sex   = male
 		},
 		dress  = #'u_dress'{
 			cost = 4500

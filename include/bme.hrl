@@ -12,6 +12,7 @@
 -include_lib("error.hrl").
 -include_lib("user.hrl").
 -include_lib("battle.hrl").
+-include_lib("battle_log.hrl").
 
 %%% ====================================================================
 %%% Helper macro for declaring children of supervisor
@@ -19,6 +20,7 @@
 -define(GSI(String, Integer), String ++ integer_to_list(Integer)).
 
 -define(BATTLE(Battle), {?GSI("battle_", Battle#battle.id), {battle, start_link, [Battle]}, transient, 5000, worker, [battle]}).
+-define(BATTLE_LOG(Battle), {?GSI("battle_log_", Battle#battle.id), {battle_log, start_link, [Battle#battle.id]}, transient, 5000, worker, [battle_log]}).
 -define(HITS_SUP(Battle), {hits_sup, {hits_sup, start_link, [Battle]}, transient, infinity, supervisor, [hits_sup]}).
 -define(TEAM_SUP(Battle, Team), {?GSI("teamsup_", Team#b_team.id), {team_sup, start_link, [Team#b_team{battle_id=Battle#battle.id}]}, transient, infinity, supervisor, [team_sup]}).
 -define(TEAM(Team), {?GSI("team_", Team#b_team.id), {team, start_link, [Team]}, transient, 1000, worker, [team]}).

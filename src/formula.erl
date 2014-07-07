@@ -57,8 +57,8 @@ get_d_interval(DValue) when is_record(DValue, d_value) ->
 %% ====================================================================
 %% уворот
 is_dodge(Attacker, Defendant) ->
-	AttackerMf  = get_mf(Attacker),
-	DefendantMf = get_mf(Defendant),
+	AttackerMf  = ?mfs(Attacker),
+	DefendantMf = ?mfs(Defendant),
 
 	%% максимальный шанс уворота 80%, под своей удачей 90%, под удачей атакера - 70%
 	%% удача атакера и защитника нивелируют
@@ -83,7 +83,7 @@ is_dodge(Attacker, Defendant) ->
 %% ====================================================================
 %% контр-удар
 is_counter(_Attacker, Defendant) ->
-	DefendantMf = get_mf(Defendant),
+	DefendantMf = ?mfs(Defendant),
 
 	%% минимальный мф контрудара 10%, максимальный - 80%
 	CounterChance = math:limit(DefendantMf#u_mf.counter / 100, 0.1, 0.8),
@@ -96,8 +96,8 @@ is_counter(_Attacker, Defendant) ->
 %% ====================================================================
 %% крит
 is_crit(Weapon, Attacker, Defendant) ->
-	AttackerMf  = get_mf(Attacker),
-	DefendantMf = get_mf(Defendant),
+	AttackerMf  = ?mfs(Attacker),
+	DefendantMf = ?mfs(Defendant),
 
 	%% максимальный шанс крита 80%, под своей удачей 90%, под удачей защищающегося - 70%
 	%% удача атакера и защитника нивелируют
@@ -124,10 +124,10 @@ is_crit(Weapon, Attacker, Defendant) ->
 %% Шанс парирования в бою равен разнице вашего мф. парирования и половины мф. парирования противника.
 %% Модификатор парирования теряет эффективность в 1.2 раза за каждый уровень атакующего выше 8.
 is_parry(Attacker, Defendant) ->
-	AttackerMf  = get_mf(Attacker),
-	DefendantMf = get_mf(Defendant),
-	AttackerLevel  = get_level(Attacker),
-	DefendantLevel = get_level(Defendant),
+	AttackerMf  = ?mfs(Attacker),
+	DefendantMf = ?mfs(Defendant),
+	AttackerLevel  = ?level(Attacker),
+	DefendantLevel = ?level(Defendant),
 
 	%% коэффициент уменьшения шанса парира = 1.2 ^ (AttLevel - DefLevel)
 	Reduce = math:pow(1.2, max(max(AttackerLevel - 8, 0) - max(DefendantLevel - 8, 0), 0)),
@@ -141,10 +141,10 @@ is_parry(Attacker, Defendant) ->
 %% ====================================================================
 %% блок щитом
 is_shield_block(Attacker, Defendant) ->
-	AttackerMf  = get_mf(Attacker),
-	DefendantMf = get_mf(Defendant),
-	AttackerLevel  = get_level(Attacker),
-	DefendantLevel = get_level(Defendant),
+	AttackerMf  = ?mfs(Attacker),
+	DefendantMf = ?mfs(Defendant),
+	AttackerLevel  = ?level(Attacker),
+	DefendantLevel = ?level(Defendant),
 
 	%% коэффициент уменьшения шанса блока  = 1.2 ^ (AttLevel - DefLevel)
 	Reduce = math:pow(1.2, max(max(AttackerLevel - 8, 0) - max(DefendantLevel - 8, 0), 0)),
@@ -192,7 +192,7 @@ get_base_damage(DamageType, Crit, CritBreak, Attacker, AttackerWeapon, Defendant
 	%% фактор влияния умелок
 	SkillFactor = get_skill_factor(DamageType, AttackerWeapon, Attacker),
 	%% коэффициент увеличения удара за счет уровня персонажа
-	AttackerLevel = get_level(Attacker),
+	AttackerLevel = ?level(Attacker),
 
 	%% интервал урона оружия
 	{WeaponMinimum, WeaponMaximum} = get_d_interval(AttackerWeapon#u_weapon.damage),
@@ -334,8 +334,8 @@ get_protection_damage_reduce(Hit, DamageType, Attacker, Defendant) ->
 	end,
 
 	%% коэффициент уменьшения защиты = 1.2 ^ (AttLevel - DefLevel)
-	AttackerLevel  = get_level(Attacker),
-	DefendantLevel = get_level(Defendant),
+	AttackerLevel  = ?level(Attacker),
+	DefendantLevel = ?level(Defendant),
 	Reduce = math:pow(1.2, max(max(AttackerLevel - 8, 0) - max(DefendantLevel - 8, 0), 0)),
 
 	math:precision((1 - math:pow(0.5, ((Protection / Reduce) / 250))) * 100, 2).
@@ -358,8 +358,8 @@ get_wprotection_damage_reduce(DamageType, Attacker, Defendant) ->
 %% А если более 1000 НР, то 10 сердец будет начисляться за каждую выбитую из него 1000 НР.
 %% Для 9го уровня, это соответственно - 1200 НР, для 10го - 1440 НР, для 11го – 1728 НР.
 get_hearts(Damage, Attacker, Defendant) ->
-	AttackerLevel  = get_level(Attacker),
-	DefendantLevel = get_level(Defendant),
+	AttackerLevel  = ?level(Attacker),
+	DefendantLevel = ?level(Defendant),
 	DefendantMaxHp = (Defendant#user.vitality)#u_vitality.maxhp,
 
 	case AttackerLevel < 8 of
@@ -392,14 +392,15 @@ get_hearts_base(_) -> 1728.
 %% Если уровень противника выше вашего не более чем на 2 = от 0% до +100%
 %%     Опыт умножается на коэффициент полноты комплекта противника (от 1 до 2)
 get_exp_by_damage(Damage, Attacker, Defendant) ->
-	AttackerLevel  = get_level(Attacker),
-	DefendantLevel = get_level(Defendant),
+	AttackerLevel  = ?level(Attacker),
+	DefendantLevel = ?level(Defendant),
 
 	%% не учитываем урон, нанесенный выше уровня ХП противника
-	RealDamage = min(Damage, (Defendant#user.vitality)#u_vitality.hp) /
-					 (Defendant#user.vitality)#u_vitality.hp,
-	Base = RealDamage * 2 * get_base_exp(AttackerLevel) * (Defendant#user.dress)#u_dress.cost /
-				((Attacker#user.dress)#u_dress.cost + (Defendant#user.dress)#u_dress.cost),
+	RealDamage = case ?hp(Defendant) of 0 -> 0; _ -> min(Damage, ?hp(Defendant)) / ?hp(Defendant) end,
+	Base = case ?drcost(Attacker) + ?drcost(Defendant) of
+			   0 -> 0;
+			   Fact -> RealDamage * 2 * get_base_exp(AttackerLevel) * ?drcost(Defendant) / Fact
+		   end,
 
 	LevelFactor = case AttackerLevel - DefendantLevel of
 					  0 -> 1.1;
@@ -430,13 +431,6 @@ get_base_exp(_) -> 0.
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
-
-get_mf(User) ->
-	User#user.mfs.
-
-get_level(User) ->
-	(User#user.info)#u_info.level.
-
 
 %% is_happened/1
 %% ====================================================================
