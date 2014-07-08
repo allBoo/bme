@@ -291,6 +291,7 @@ handle_call({damage, Damage}, _, Unit) when is_record(Damage, b_damage) ->
 							  total_lost    = Unit#b_unit.total_lost    + Damage#b_damage.lost,
 							  exp = Unit#b_unit.exp + Damage#b_damage.exp},
 	?DBG("Damage result ~p~n", [{Hp, Mana, Tactics}]),
+	battle_log:damage(DamagedUnit#b_unit.battle_id, ?log_unit(DamagedUnit)),
 	%% если уровень ХП = 0, значит юнит помер
 	case Hp > 0 of
 		true  -> {reply, {ok, alive},  DamagedUnit};

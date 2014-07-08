@@ -360,7 +360,7 @@ get_wprotection_damage_reduce(DamageType, Attacker, Defendant) ->
 get_hearts(Damage, Attacker, Defendant) ->
 	AttackerLevel  = ?level(Attacker),
 	DefendantLevel = ?level(Defendant),
-	DefendantMaxHp = (Defendant#user.vitality)#u_vitality.maxhp,
+	DefendantMaxHp = ?maxhp(Defendant),
 
 	case AttackerLevel < 8 of
 		true  -> math:precision(Damage / (DefendantMaxHp / 10), 2);

@@ -41,6 +41,7 @@
 		 rollback/1,
 		 hit/2,
 		 hit/3,
+		 damage/2,
 		 test/0]).
 
 
@@ -86,6 +87,8 @@ hit(BattleId, TransactionId, HitLog) ->
 	?CAST(BattleId, {hit, TransactionId, HitLog}).
 
 
+damage(BattleId, Unit) ->
+	?CALL(BattleId, {damage, Unit}).
 
 test() ->
 	get_hit_index([head, torso, legs]).
@@ -181,6 +184,12 @@ handle_call({hit, HitLog}, {FromPid, _}, State) ->
 			_ -> write(HitLog, TransactionId, State#state.file)
 		end,
 	{reply, R, State};
+
+
+%% запись полученного урона (дебаг)
+handle_call({damage, Unit}, _From, State) ->
+	write(Unit, State#state.file),
+	{reply, ok, State};
 
 
 %% unknown request
@@ -552,6 +561,13 @@ write(Log, File) when is_record(Log, log_miss) ->
 						 [get_hit_p6(Log#log_miss.weapon_type), get_hit_p7(Log#log_miss.hit)]
 			 end,
 
+	io:fwrite(File, Template, Params),
+	ok;
+
+
+write(Unit, File) when is_record(Unit, log_unit) ->
+	Template = ?log_start ++ ?log_unit ++ "[~b/~b]" ++ ?log_end,
+	Params = [Unit#log_unit.team, Unit#log_unit.name, Unit#log_unit.hp, Unit#log_unit.maxhp],
 	io:fwrite(File, Template, Params),
 	ok;
 

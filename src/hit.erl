@@ -164,20 +164,19 @@ handle_call(_, _, State) ->
 handle_cast({reply, BattleId, ReplyHit}, Hit) when ReplyHit#b_hit.sender == Hit#b_hit.recipient,
 												   ReplyHit#b_hit.recipient == Hit#b_hit.sender ->
 	?DBG("Hit reply omitted ~p~n", [{Hit, BattleId, ReplyHit}]),
-	Attacker  = unit:get_state(Hit#b_hit.sender),
-	Defendant = unit:get_state(Hit#b_hit.recipient),
 
 	%% расчет размена ударами
-	{AttackerDamage, DefendantDamage} = hit_process(BattleId, Attacker, Hit, Defendant, ReplyHit),
+	%{AttackerDamage, DefendantDamage} =
+	hit_process(BattleId, Hit#b_hit.sender, Hit, Hit#b_hit.recipient, ReplyHit),
 
 	%% сообщаем юнитам о нанесенном им уроне
-	DefendantRes = unit:damage(Hit#b_hit.recipient, AttackerDamage),
-	AttackerRes  = unit:damage(Hit#b_hit.sender, DefendantDamage),
+	%DefendantRes = unit:damage(Hit#b_hit.recipient, AttackerDamage),
+	%AttackerRes  = unit:damage(Hit#b_hit.sender, DefendantDamage),
 
 	%% отправляем выжившим юнитам сообщение о завершении хода
 	%% тип размена и с кем
-	send_hit_done(DefendantRes, Hit#b_hit.recipient, {obtained, Hit#b_hit.sender}),
-	send_hit_done(AttackerRes,  Hit#b_hit.sender,    {sended,   Hit#b_hit.recipient}),
+	%send_hit_done(DefendantRes, Hit#b_hit.recipient, {obtained, Hit#b_hit.sender}),
+	%send_hit_done(AttackerRes,  Hit#b_hit.sender,    {sended,   Hit#b_hit.recipient}),
 
 	%% завершаем процесс
 	{stop, normal, Hit};
@@ -285,7 +284,7 @@ send_hit_done(_, _UnitPid, _Message) ->
 
 test() ->
 	hit_process(0,
-				battle_helper:create_unit(example:get(1), 1),
+				1,
 				#b_hit{sender = 0,
 					   recipient = 0,
 					   battle_id = 0,
@@ -294,7 +293,7 @@ test() ->
 					   timeout_pass = false,
 					   magic_pass = false
 				},
-				battle_helper:create_unit(example:get(2), 1),
+				2,
 				#b_hit{sender = 0,
 					   recipient = 0,
 					   battle_id = 0,
@@ -307,101 +306,68 @@ test() ->
 %% hit_process/5
 %% ====================================================================
 %% расчет размена ударами
-hit_process(BattleId, Attacker, AttackerHit, Defendant, DefendantHit) ->
-	AttackerUser  = Attacker#b_unit.user,
-	DefendantUser = Defendant#b_unit.user,
-
-	%% уравниваем кол-во ударов
-	MaxHits = max(length(AttackerHit#b_hit.hits), length(DefendantHit#b_hit.hits)),
-	AttackerHits  = AttackerHit#b_hit.hits ++ lists:duplicate(MaxHits - length(AttackerHit#b_hit.hits), none),
-	DefendantHits = DefendantHit#b_hit.hits ++ lists:duplicate(MaxHits - length(DefendantHit#b_hit.hits), none),
-	%?DBG("~p", [{AttackerHits, DefendantHits}]),
-
-	%% получаем список оружия для каждого в виде списка
-	AttackerWeapons  = user_helper:get_weapons(AttackerUser),
-	DefendantWeapons = user_helper:get_weapons(DefendantUser),
-	%?DBG("~p", [{AttackerWeapons, DefendantWeapons}]),
+hit_process(BattleId, AttackerPid, AttackerHit, DefendantPid, DefendantHit) ->
+	%% сформируем общий список поочередных ударов
+	HitsQueue = generate_hits_queue(AttackerPid, AttackerHit, DefendantPid, DefendantHit),
 
 	%% отработка ударов по очереди, начиная с атакующего
 	battle_log:start_block(BattleId),
-	{AttackerDamage, DefendantDamage} =
-		hits_queue(AttackerHits, AttackerHit#b_hit.block, AttackerWeapons, Attacker, #b_damage{},
-				   DefendantHits, DefendantHit#b_hit.block, DefendantWeapons, Defendant, #b_damage{},
-				   0, BattleId),
+	hits_queue(BattleId, HitsQueue),
 	battle_log:commit(BattleId),
 
 	%?DBG("TOTAL ~p~n", [{AttackerDamage, DefendantDamage}]),
- 	{AttackerDamage, DefendantDamage}.
+	ok.
 
 
-%% hits_queue/4
+%% generate_hits_queue/4
+%% ====================================================================
+%% генерация очереди разменов ударами
+generate_hits_queue(AttackerPid, AttackerHit, DefendantPid, DefendantHit) ->
+	generate_hits_queue0(AttackerPid, AttackerHit#b_hit.hits, AttackerHit#b_hit.block,
+						 DefendantPid, DefendantHit#b_hit.hits, DefendantHit#b_hit.block,
+						 0, []).
+
+generate_hits_queue0(_, [], _, _, [], _, _, Acc) ->
+	Acc;
+
+generate_hits_queue0(AttackerPid, AttackerHits, AttackerBlock, DefendantPid, DefendantHits, DefendantBlock, Index, Acc) ->
+	{R1, T1} = generate_hits_queue1(AttackerPid, AttackerHits, AttackerBlock, DefendantPid, DefendantBlock, Index),
+	{R2, T2} = generate_hits_queue1(DefendantPid, DefendantHits, DefendantBlock, AttackerPid, AttackerBlock, Index),
+	generate_hits_queue0(AttackerPid, T1, AttackerBlock, DefendantPid, T2, DefendantBlock, Index + 1, Acc ++ R1 ++ R2).
+
+generate_hits_queue1(_, [], _, _, _, _) ->
+	{[], []};
+
+generate_hits_queue1(AttackerPid, [Hit | AttackerHits], AttackerBlock, DefendantPid, DefendantBlock, Index) ->
+	{[{AttackerPid, Hit, AttackerBlock, DefendantPid, DefendantBlock, Index}], AttackerHits}.
+
+
+%% hits_queue/2
 %% ====================================================================
 %% размен ударами
-hits_queue([], _, _, Attacker, AttackerDamage,
-		   [], _, _, Defendant, DefendantDamage,
-		   _Index, _BattleId) ->
+hits_queue(_, []) ->
 	%?DBG("Hits done~n", []),
-	{AttackerDamage#b_damage{
-			opponent_id = ?userid(Defendant)
-		},
-	 DefendantDamage#b_damage{
-			opponent_id = ?userid(Attacker)
-		}};
+	ok;
 
 
-hits_queue([CurAttHit | AttackerHits],  AttackerBlock,  AttackerWeapons,  Attacker, AttackerDamage,
-		   [CurDefHit | DefendantHits], DefendantBlock, DefendantWeapons, Defendant, DefendantDamage,
-		   Index, BattleId) ->
-	%% сначала бьет атакующий
-	AttackerWeapon = get_weapon(AttackerWeapons, Index),
-	ResAttacker = do_hit(CurAttHit, DefendantBlock, Attacker, AttackerWeapon, Defendant, BattleId),
-
-	Attacker0  = ResAttacker#hit_result.attacker,
-	Defendant0 = ResAttacker#hit_result.defendant,
-
-	%% потом защищающийся
-	DefendantWeapon = get_weapon(DefendantWeapons, Index),
-	ResDefendant = do_hit(CurDefHit, AttackerBlock, Defendant0, DefendantWeapon, Attacker0, BattleId),
-
-	Attacker1  = ResDefendant#hit_result.defendant,
-	Defendant1 = ResDefendant#hit_result.attacker,
-
-	%% если у кого-то сработала контра, добавляем еще один удар
-	{AttAddHit, DefAddHit} = case ResAttacker#hit_result.counter or ResDefendant#hit_result.counter of
-								 true  ->
-									 {case ResAttacker#hit_result.counter of true -> [counter]; false -> [none] end,
-									  case ResDefendant#hit_result.counter of true -> [counter]; false -> [none] end};
-								 false -> {[], []}
-							 end,
-
-	%?DBG("RES ~p~n", [{ResAttacker, ResDefendant, AttAddHit, DefAddHit}]),
-
-	%% суммирование урона и тактик за размен
-	AttackerDamage0  = merge_damage(AttackerDamage, ResAttacker, ResDefendant),
-	DefendantDamage0 = merge_damage(DefendantDamage, ResDefendant, ResAttacker),
-
-	%% продолжаем размены
-	hits_queue(AttackerHits ++ AttAddHit,  AttackerBlock,  AttackerWeapons,  Attacker1, AttackerDamage0,
-			   DefendantHits ++ DefAddHit, DefendantBlock, DefendantWeapons, Defendant1, DefendantDamage0,
-			   Index + 1, BattleId).
-
-
-%% пустой удар - ничего не делаем
-do_hit(none, _Block, AttackerUnit, _AttackerWeapon, DefendantUnit, _BattleId) ->
-	%?DBG("EMPTY HIT, ~p~n", [{Attacker#user.id, Defendant#user.id}]),
-	#hit_result{attacker = AttackerUnit,  defendant = DefendantUnit, miss = true};
-
-%% удар
-do_hit(HitZone, Blocks, AttackerUnit, AttackerWeapon, DefendantUnit, BattleId) ->
+hits_queue(BattleId, [{AttackerPid, HitZone, AttackerBlock, DefendantPid, DefendantBlock, Index} | TailHits]) ->
 	%?DBG("DO HIT, ~p~n", [{HitZone, Blocks, Attacker#user.id, Defendant#user.id}]),
+	%% получаем данные юнитов при каждом ударе, чтобы не потерять ничего при конкурентных запросах
+	AttackerUnit  = unit:get_state(AttackerPid),
+	DefendantUnit = unit:get_state(DefendantPid),
+
 	Attacker  = ?user(AttackerUnit),
 	Defendant = ?user(DefendantUnit),
+
+	%% получаем оружие атакующего
+	AttackerWeapon = get_weapon(user_helper:get_weapons(Attacker), Index),
 
 	%% в случае контрудара берем рандомную зону
 	Hit = case HitZone == counter of
 			  true  -> lists:nth(random:uniform(5), [head, torso, paunch, belt, legs]);
 			  false -> HitZone
 		  end,
+
 	%% расчитываем уворот
 	Dodge = formula:is_dodge(Attacker, Defendant),
 	case Dodge of
@@ -431,7 +397,7 @@ do_hit(HitZone, Blocks, AttackerUnit, AttackerWeapon, DefendantUnit, BattleId) -
 					Shield = false;
 				false ->
 					%% попадание в блок
-					Block = lists:member(Hit, Blocks),
+					Block = lists:member(Hit, DefendantBlock),
 					%% блок щитом
 					Shield = case Block of
 								 true  -> false;
@@ -457,43 +423,23 @@ do_hit(HitZone, Blocks, AttackerUnit, AttackerWeapon, DefendantUnit, BattleId) -
 		false -> 0
 	end,
 
-	%% @todo обработка приемов влияющих на получение урона
-	%% сначала защищающегося, потом атакующего
-	DefendantDamage  = 0,
-	DefendantLost    = Damage,
-	DefendantHealed  = 0,
-	DefendantManaLost   = 0,
-	DefendantManaHealed = 0,
-
-	AttackerDamage  = Damage,
-	AttackerLost    = 0,
-	AttackerHealed  = 0,
-	AttackerManaLost   = 0,
-	AttackerManaHealed = 0,
-
-	%% пересчет отставшихся ХП и маны
-	AttackerHp    = math:limit(?hp(Attacker) - AttackerLost + AttackerHealed, 0, ?maxhp(Attacker)),
-	AttackerMana  = math:limit(?mana(Attacker) - AttackerManaLost + AttackerManaHealed, 0, ?maxmana(Attacker)),
-	DefendantHp   = math:limit(?hp(Defendant) - DefendantLost + DefendantHealed, 0, ?maxhp(Defendant)),
-	DefendantMana = math:limit(?mana(Defendant) - DefendantManaLost + DefendantManaHealed, 0, ?maxmana(Defendant)),
-	AttackerUnit0  = AttackerUnit#b_unit{user = Attacker#user{vitality = (Attacker#user.vitality)#u_vitality{
-					hp = AttackerHp, mana = AttackerMana
-	}}},
-	DefendantUnit0 = DefendantUnit#b_unit{user = Defendant#user{vitality = (Defendant#user.vitality)#u_vitality{
-					hp = DefendantHp, mana = DefendantMana
-	}}},
-
-	%% считаем полученные тактики
-	AttackerTactics = #b_tactics{
-		attack  = ?TACTIC(Hited and not(Crit), AttackerWeapon#u_weapon.twain == true, 3),
-		crit    = ?TACTIC(Crit, (AttackerWeapon#u_weapon.twain == true) or not(CritBreak), 2),
-		hearts  = formula:get_hearts(Damage, Attacker, Defendant)
-	},
+	%% теперь отправляем защищающемуся сообщение с кол-вом нанесенного ему урона и полученных им тактиках
+	%% он в ответ должен сказать сколько он реально получил урона (за счет защитных приемов и тд)
+	%% при этом он может парралельно нанести ответный урон атакующему, но нам здесь это не важно
 	DefendantTactics = #b_tactics{
 		counter = ?TACTIC(Counter),
 		block   = ?TACTIC((Block or Shield) and not(Hited), AttackerWeapon#u_weapon.twain == true, 2),
 		parry   = ?TACTIC(Parry and not(Hited))
 	},
+	AttackerDamage = unit:got_damage(DefendantPid, AttackerUnit, Damage, DefendantTactics, self()),
+
+	%% полученный результат сообщаем атакующему, сколько он реально нанес, кому и полученные тактики
+	AttackerTactics = #b_tactics{
+		attack  = ?TACTIC(Hited and not(Crit), AttackerWeapon#u_weapon.twain == true, 3),
+		crit    = ?TACTIC(Crit, (AttackerWeapon#u_weapon.twain == true) or not(CritBreak), 2),
+		hearts  = formula:get_hearts(AttackerDamage, Attacker, Defendant)
+	},
+	unit:hit_damage(AttackerPid, DefendantUnit, AttackerDamage, AttackerTactics, self()),
 
 	%% пишем лог
 	Log = case Hited of
@@ -510,26 +456,35 @@ do_hit(HitZone, Blocks, AttackerUnit, AttackerWeapon, DefendantUnit, BattleId) -
 		  end,
 	battle_log:hit(BattleId, Log),
 
+	%% если сработала контра, добавляем удар от защищающегося
+	AddHit = case Counter of
+				 true -> [{DefendantPid, counter, DefendantBlock, AttackerPid, AttackerBlock, Index + 1}];	% @todo поправить index
+				 false -> []
+			 end,
+
+	%% продолжаем размены
+	hits_queue(BattleId, TailHits ++ AddHit).
+
 	%% собираем результат
-	#hit_result{attacker_damage = #hit_damage{
-					damage = AttackerDamage,
-					lost   = AttackerLost - AttackerHealed,
-					healed = AttackerHealed,
-					lost_mana = AttackerManaLost - AttackerManaHealed,
-					exp = formula:get_exp_by_damage(AttackerDamage, ?user(AttackerUnit0), ?user(DefendantUnit0))
-				},
-				defendant_damage = #hit_damage{
-					damage = DefendantDamage,
-					lost   = DefendantLost - DefendantHealed,
-					healed = DefendantHealed,
-					lost_mana = DefendantManaLost - DefendantManaHealed,
-					exp = formula:get_exp_by_damage(DefendantDamage, ?user(DefendantUnit0), ?user(AttackerUnit0))
-				},
-				attacker_tactics = AttackerTactics,
-				defendant_tactics = DefendantTactics,
-				attacker = AttackerUnit0,
-				defendant = DefendantUnit0,
-				counter = Counter}.
+%% 	#hit_result{attacker_damage = #hit_damage{
+%% 					damage = AttackerDamage,
+%% 					lost   = AttackerLost - AttackerHealed,
+%% 					healed = AttackerHealed,
+%% 					lost_mana = AttackerManaLost - AttackerManaHealed,
+%% 					exp = formula:get_exp_by_damage(AttackerDamage, ?user(AttackerUnit0), ?user(DefendantUnit0))
+%% 				},
+%% 				defendant_damage = #hit_damage{
+%% 					damage = DefendantDamage,
+%% 					lost   = DefendantLost - DefendantHealed,
+%% 					healed = DefendantHealed,
+%% 					lost_mana = DefendantManaLost - DefendantManaHealed,
+%% 					exp = formula:get_exp_by_damage(DefendantDamage, ?user(DefendantUnit0), ?user(AttackerUnit0))
+%% 				},
+%% 				attacker_tactics = AttackerTactics,
+%% 				defendant_tactics = DefendantTactics,
+%% 				attacker = AttackerUnit0,
+%% 				defendant = DefendantUnit0,
+%% 				counter = Counter}.
 
 
 
