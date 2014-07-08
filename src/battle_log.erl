@@ -88,7 +88,7 @@ hit(BattleId, TransactionId, HitLog) ->
 
 
 test() ->
-	get_crit_p1(torso, true).
+	get_hit_index([head, torso, legs]).
 
 %% ====================================================================
 %% Behavioural functions
@@ -115,7 +115,9 @@ init(BattleId) ->
 
 	random:seed(now()),
 
-	{ok, File} = file:open(io_lib:format("log/battle_~b.log.html", [BattleId]), [write, {encoding, utf8}]),
+	LogFile = io_lib:format("log/battle_~b.log.html", [BattleId]),
+	file:copy("tmp/battle_log.tpl", LogFile),
+	{ok, File} = file:open(LogFile, [append, {encoding, utf8}]),
 
 	{ok, #state{battle_id = BattleId, file = File}}.
 
@@ -281,6 +283,10 @@ get_hit_p2() ->
 	X = #log_hit_p2{},
 	phrase(X#log_hit_p2.any).
 
+get_miss_p2() ->
+	X = #log_miss_p2{},
+	phrase(X#log_miss_p2.any).
+
 get_hit_p3(male) ->
 	X = #log_hit_p3{},
 	phrase(X#log_hit_p3.male);
@@ -414,13 +420,55 @@ get_crit_p1(belt, X) ->
 get_crit_p1(legs, X) ->
 	element(6, X).
 
-
 get_crit_p2(HitZone, male) ->
 	X = #log_crit_p2_male{},
 	get_crit_p1(HitZone, X);
 get_crit_p2(HitZone, female) ->
 	X = #log_crit_p2_female{},
 	get_crit_p1(HitZone, X).
+
+
+get_miss_p5(dodge, Sex) ->
+	X = #log_miss_p5_dodge{},
+	get_miss_p5(X, Sex);
+get_miss_p5(block, Sex) ->
+	X = #log_miss_p5_block{},
+	get_miss_p5(X, Sex);
+get_miss_p5(shield, Sex) ->
+	X = #log_miss_p5_shield{},
+	get_miss_p5(X, Sex);
+get_miss_p5(parry, Sex) ->
+	X = #log_miss_p5_parry{},
+	get_miss_p5(X, Sex);
+get_miss_p5(X, male) ->
+	phrase(element(2, X));
+get_miss_p5(X, female) ->
+	phrase(element(3, X)).
+
+get_miss_p6(counter, male) ->
+	X = #log_miss_p6_counter{},
+	phrase(X#log_miss_p6_counter.male);
+get_miss_p6(counter, female) ->
+	X = #log_miss_p6_counter{},
+	phrase(X#log_miss_p6_counter.female).
+
+
+get_hit_index(Hits) when is_list(Hits) ->
+	get_hits_index(Hits, 0);
+
+get_hit_index(head)   -> 1;
+get_hit_index(torso)  -> 2;
+get_hit_index(paunch) -> 3;
+get_hit_index(belt)   -> 4;
+get_hit_index(legs)   -> 5;
+get_hit_index(_)      -> 0.
+
+get_hits_index([], Acc) ->
+	Acc;
+
+get_hits_index([Hit|Hits], Acc) ->
+	Acc0 = Acc * 10 + get_hit_index(Hit),
+	get_hits_index(Hits, Acc0).
 
 
 %% запись логов
@@ -433,8 +481,9 @@ write(Log, File) when is_record(Log, log_hit) ->
 	Attacker  = Log#log_hit.attacker,
 	Defendant = Log#log_hit.defendant,
 	%% общая для всех видов лога часть параметров
-	HeadParams = [curtime(), Defendant#log_unit.team, Defendant#log_unit.name, get_hit_p1(Defendant#log_unit.sex),
-				  get_hit_p2(), get_hit_p3(Defendant#log_unit.sex), Attacker#log_unit.team, Attacker#log_unit.name],
+	HeadParams = [curtime(), get_hit_index(Log#log_hit.hit), get_hit_index(Log#log_hit.blocks), Defendant#log_unit.team, Attacker#log_unit.team,
+				  Defendant#log_unit.team, Defendant#log_unit.name, get_hit_p1(Defendant#log_unit.sex),
+				  get_hit_p2(), get_hit_p3(Attacker#log_unit.sex), Attacker#log_unit.team, Attacker#log_unit.name],
 	TailParams = [Attacker#log_unit.name, Log#log_hit.damage, Defendant#log_unit.hp, Defendant#log_unit.maxhp],
 
 	%% выбираем шаблоны
@@ -449,7 +498,7 @@ write(Log, File) when is_record(Log, log_hit) ->
 			%% все магические атаки идут на 2-й шаблон
 			%% атаки оружием рандомно на 1-й или 2-й
 			case
-				lists:member(Log#log_hit.damage_type, [prick, chop, crush, cut]) and
+				user_helper:is_natural_type(Log#log_hit.damage_type) and
 					(random:uniform(2) == 1) of
 				true ->
 					Template = ?log_hit_tpl1,
@@ -472,8 +521,40 @@ write(Log, File) when is_record(Log, log_hit) ->
 	ok;
 
 write(Log, File) when is_record(Log, log_miss) ->
-	?LOG("~p", [Log]),
+	Attacker  = Log#log_miss.attacker,
+	Defendant = Log#log_miss.defendant,
+	%% общая для всех видов лога часть параметров
+	HeadParams = [curtime(), get_hit_index(Log#log_miss.hit), get_hit_index(Log#log_miss.blocks), Defendant#log_unit.team, Attacker#log_unit.team,
+				  Attacker#log_unit.team, Attacker#log_unit.name, get_hit_p1(Attacker#log_unit.sex),
+				  get_miss_p2(), get_hit_p3(Defendant#log_unit.sex), Defendant#log_unit.team, Defendant#log_unit.name],
+
+	Template = case Log#log_miss.counter of
+				   true  -> ?log_counter_tpl;
+				   false -> ?log_miss_tpl
+			   end,
+
+	Params = HeadParams ++ case Log#log_miss.dodge of
+				 true  ->
+					 [get_miss_p5(dodge, Defendant#log_unit.sex), get_hit_p6(Log#log_miss.weapon_type),
+									get_hit_p7(Log#log_miss.hit)] ++
+						 case Log#log_miss.counter of
+							 true  -> [get_miss_p6(counter, Defendant#log_unit.sex)];
+							 false -> []
+						 end;
+				 false ->
+					 case Log#log_miss.parry of
+						 true -> [get_miss_p5(parry, Defendant#log_unit.sex)];
+						 false -> case Log#log_miss.shield of
+									  true  -> [get_miss_p5(shield, Defendant#log_unit.sex)];
+									  false -> [get_miss_p5(block, Defendant#log_unit.sex)]
+								  end
+					 end ++
+						 [get_hit_p6(Log#log_miss.weapon_type), get_hit_p7(Log#log_miss.hit)]
+			 end,
+
+	io:fwrite(File, Template, Params),
 	ok;
+
 
 write(Log, File) ->
 	?LOG("~p", [Log]),

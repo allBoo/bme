@@ -403,7 +403,7 @@ do_hit(HitZone, Blocks, AttackerUnit, AttackerWeapon, DefendantUnit, BattleId) -
 			  false -> HitZone
 		  end,
 	%% расчитываем уворот
-	Dodge = false,%formula:is_dodge(Attacker, Defendant),
+	Dodge = formula:is_dodge(Attacker, Defendant),
 	case Dodge of
 		true ->
 			%% котрудар
@@ -499,12 +499,12 @@ do_hit(HitZone, Blocks, AttackerUnit, AttackerWeapon, DefendantUnit, BattleId) -
 	Log = case Hited of
 			  true  ->
 				  #log_hit{attacker = ?log_unit(AttackerUnit0), defendant = ?log_unit(DefendantUnit0),
-						   hit = HitZone, blocks = Blocks, damage = AttackerDamage,
+						   hit = Hit, blocks = Blocks, damage = AttackerDamage,
 						   damage_type = DamageType, weapon_type = AttackerWeapon#u_weapon.type,
 						   crit = Crit, crit_break = CritBreak, parry = Parry, block = Block, shield = Shield};
 			  false ->
 				  #log_miss{attacker = ?log_unit(AttackerUnit0), defendant = ?log_unit(DefendantUnit0),
-						    hit = HitZone, blocks = Blocks, damage_type = DamageType,
+						    hit = Hit, blocks = Blocks, damage_type = DamageType,
 						    weapon_type = AttackerWeapon#u_weapon.type, dodge = Dodge,
 						    counter = Counter, parry = Parry, block = Block, shield = Shield}
 		  end,
