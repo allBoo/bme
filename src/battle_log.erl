@@ -41,6 +41,7 @@
 		 rollback/1,
 		 hit/2,
 		 hit/3,
+		 killed/2,
 		 damage/2,
 		 test/0]).
 
@@ -85,6 +86,13 @@ hit(BattleId, HitLog) ->
 %% запись удара в лог
 hit(BattleId, TransactionId, HitLog) ->
 	?CAST(BattleId, {hit, TransactionId, HitLog}).
+
+
+%% killed/2
+%% ====================================================================
+%% запись об убийстве юнита
+killed(BattleId, Unit) ->
+	?CALL(BattleId, {killed, Unit}).
 
 
 damage(BattleId, Unit) ->
@@ -186,6 +194,12 @@ handle_call({hit, HitLog}, {FromPid, _}, State) ->
 	{reply, R, State};
 
 
+%% запись об убийстве юнита
+handle_call({killed, Unit}, _From, State) ->
+	write({killed, Unit}, State#state.file),
+	{reply, ok, State};
+
+
 %% запись полученного урона (дебаг)
 handle_call({damage, Unit}, _From, State) ->
 	write(Unit, State#state.file),
@@ -211,7 +225,8 @@ handle_call(_Request, _From, State) ->
 
 
 %% запись строки удара в лог
-handle_cast({hit, TransactionId, HitLog}, State) ->
+handle_cast({hit, FromPid, HitLog}, State) ->
+	TransactionId = {log_transaction, FromPid},
 	case gproc:lookup_local_name(TransactionId) of
 		%% если транзакция не запущена, пишем локально
 		undefined -> write(HitLog, State#state.file);
@@ -461,6 +476,12 @@ get_miss_p6(counter, female) ->
 	X = #log_miss_p6_counter{},
 	phrase(X#log_miss_p6_counter.female).
 
+get_killed_p1(male) ->
+	X = #log_killed_p1{},
+	phrase(X#log_killed_p1.male);
+get_killed_p1(female) ->
+	X = #log_killed_p1{},
+	phrase(X#log_killed_p1.female).
 
 get_hit_index(Hits) when is_list(Hits) ->
 	get_hits_index(Hits, 0);
@@ -486,42 +507,43 @@ write(LogsList, File) when is_list(LogsList) ->
 	lists:foreach(fun(El) -> write(El, File) end, LogsList),
 	ok;
 
-write(Log, File) when is_record(Log, log_hit) ->
-	Attacker  = Log#log_hit.attacker,
-	Defendant = Log#log_hit.defendant,
+write(HitLog, File) when is_record(HitLog, log_hit) ->
+	Log = HitLog#log_hit.hit_result,
+	Attacker  = HitLog#log_hit.attacker,
+	Defendant = HitLog#log_hit.defendant,
 	%% общая для всех видов лога часть параметров
-	HeadParams = [curtime(), get_hit_index(Log#log_hit.hit), get_hit_index(Log#log_hit.blocks), Defendant#log_unit.team, Attacker#log_unit.team,
+	HeadParams = [curtime(), get_hit_index(Log#b_hit_result.hit), get_hit_index(Log#b_hit_result.blocks), Defendant#log_unit.team, Attacker#log_unit.team,
 				  Defendant#log_unit.team, Defendant#log_unit.name, get_hit_p1(Defendant#log_unit.sex),
 				  get_hit_p2(), get_hit_p3(Attacker#log_unit.sex), Attacker#log_unit.team, Attacker#log_unit.name],
-	TailParams = [Attacker#log_unit.name, Log#log_hit.damage, Defendant#log_unit.hp, Defendant#log_unit.maxhp],
+	TailParams = [Attacker#log_unit.name, Log#b_hit_result.damage, Defendant#log_unit.hp, Defendant#log_unit.maxhp],
 
 	%% выбираем шаблоны
-	case Log#log_hit.crit of
+	case Log#b_hit_result.crit of
 		true  ->
 			Template = ?log_crit_tpl,
 			Params = HeadParams ++
-						 [get_crit_p1(Log#log_hit.hit, Log#log_hit.crit_break),
-						  get_crit_p2(Log#log_hit.hit, Attacker#log_unit.sex)] ++
+						 [get_crit_p1(Log#b_hit_result.hit, Log#b_hit_result.crit_break),
+						  get_crit_p2(Log#b_hit_result.hit, Attacker#log_unit.sex)] ++
 						 TailParams;
 		false ->
 			%% все магические атаки идут на 2-й шаблон
 			%% атаки оружием рандомно на 1-й или 2-й
 			case
-				user_helper:is_natural_type(Log#log_hit.damage_type) and
+				user_helper:is_natural_type(Log#b_hit_result.damage_type) and
 					(random:uniform(2) == 1) of
 				true ->
 					Template = ?log_hit_tpl1,
 					Params = HeadParams ++
-						 [get_hit_p4(), get_hit_p51(Log#log_hit.damage_type, Attacker#log_unit.sex),
-						  get_hit_p6(Log#log_hit.weapon_type), get_hit_p7(Log#log_hit.hit),
+						 [get_hit_p4(), get_hit_p51(Log#b_hit_result.damage_type, Attacker#log_unit.sex),
+						  get_hit_p6(Log#b_hit_result.weapon_type), get_hit_p7(Log#b_hit_result.hit),
 						  get_hit_p8()] ++
 						 TailParams;
 				false ->
 					Template = ?log_hit_tpl2,
 					Params = HeadParams ++
 						 [get_hit_p4(), get_hit_p52(Attacker#log_unit.sex), get_hit_p521(),
-						  get_hit_p522(Log#log_hit.damage_type), get_hit_p6(Log#log_hit.weapon_type),
-						  get_hit_p7(Log#log_hit.hit), get_hit_p8()] ++
+						  get_hit_p522(Log#b_hit_result.damage_type), get_hit_p6(Log#b_hit_result.weapon_type),
+						  get_hit_p7(Log#b_hit_result.hit), get_hit_p8()] ++
 						 TailParams
 			end
 	end,
@@ -529,38 +551,46 @@ write(Log, File) when is_record(Log, log_hit) ->
 	io:fwrite(File, Template, Params),
 	ok;
 
-write(Log, File) when is_record(Log, log_miss) ->
-	Attacker  = Log#log_miss.attacker,
-	Defendant = Log#log_miss.defendant,
+write(HitLog, File) when is_record(HitLog, log_miss) ->
+	Log = HitLog#log_miss.hit_result,
+	Attacker  = HitLog#log_miss.attacker,
+	Defendant = HitLog#log_miss.defendant,
 	%% общая для всех видов лога часть параметров
-	HeadParams = [curtime(), get_hit_index(Log#log_miss.hit), get_hit_index(Log#log_miss.blocks), Defendant#log_unit.team, Attacker#log_unit.team,
+	HeadParams = [curtime(), get_hit_index(Log#b_hit_result.hit), get_hit_index(Log#b_hit_result.blocks), Defendant#log_unit.team, Attacker#log_unit.team,
 				  Attacker#log_unit.team, Attacker#log_unit.name, get_hit_p1(Attacker#log_unit.sex),
 				  get_miss_p2(), get_hit_p3(Defendant#log_unit.sex), Defendant#log_unit.team, Defendant#log_unit.name],
 
-	Template = case Log#log_miss.counter of
+	Template = case Log#b_hit_result.counter of
 				   true  -> ?log_counter_tpl;
 				   false -> ?log_miss_tpl
 			   end,
 
-	Params = HeadParams ++ case Log#log_miss.dodge of
+	Params = HeadParams ++ case Log#b_hit_result.dodge of
 				 true  ->
-					 [get_miss_p5(dodge, Defendant#log_unit.sex), get_hit_p6(Log#log_miss.weapon_type),
-									get_hit_p7(Log#log_miss.hit)] ++
-						 case Log#log_miss.counter of
+					 [get_miss_p5(dodge, Defendant#log_unit.sex), get_hit_p6(Log#b_hit_result.weapon_type),
+									get_hit_p7(Log#b_hit_result.hit)] ++
+						 case Log#b_hit_result.counter of
 							 true  -> [get_miss_p6(counter, Defendant#log_unit.sex)];
 							 false -> []
 						 end;
 				 false ->
-					 case Log#log_miss.parry of
+					 case Log#b_hit_result.parry of
 						 true -> [get_miss_p5(parry, Defendant#log_unit.sex)];
-						 false -> case Log#log_miss.shield of
+						 false -> case Log#b_hit_result.shield of
 									  true  -> [get_miss_p5(shield, Defendant#log_unit.sex)];
 									  false -> [get_miss_p5(block, Defendant#log_unit.sex)]
 								  end
 					 end ++
-						 [get_hit_p6(Log#log_miss.weapon_type), get_hit_p7(Log#log_miss.hit)]
+						 [get_hit_p6(Log#b_hit_result.weapon_type), get_hit_p7(Log#b_hit_result.hit)]
 			 end,
 
+	io:fwrite(File, Template, Params),
+	ok;
+
+
+write({killed, Unit}, File) when is_record(Unit, log_unit) ->
+	Template = ?log_killed_tpl,
+	Params = [curtime(), Unit#log_unit.name, get_killed_p1(Unit#log_unit.sex)],
 	io:fwrite(File, Template, Params),
 	ok;
 
@@ -572,7 +602,7 @@ write(Unit, File) when is_record(Unit, log_unit) ->
 	ok;
 
 
-write(Log, File) ->
+write(Log, _File) ->
 	?LOG("~p", [Log]),
 	ok.
 

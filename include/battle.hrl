@@ -4,6 +4,10 @@
 -define(user(User), (User#b_unit.user)).
 -define(userid(User), (User#b_unit.user)#user.id).
 
+-define(TACTIC(Cond), case Cond of true -> 1; false -> 0 end).
+-define(TACTIC(Cond1, Cond2, Val), case Cond1 of true -> (case Cond2 of true -> Val; false -> 1 end); false -> 0 end).
+
+
 %% уровень персонажей поединка
 -record(b_level, {min = 0  :: integer(),
                   max = 21 :: integer()
@@ -31,6 +35,22 @@
                 timeout_pass = false,
                 magic_pass = false
        }).
+
+%% результат удара
+-record(b_hit_result, {hit,
+                       blocks,
+                       damage,
+                       damage_type,
+                       weapon_type,
+                       weapon_twain = false,
+                       hited = false,
+                       crit = false,
+                       crit_break = false,
+                       dodge = false,
+                       counter = false,
+                       parry = false,
+                       block = false,
+                       shield = false}).
 
 %% краткое представление оппонента в бою
 -record(b_opponent, {pid :: pid(),

@@ -13,7 +13,22 @@
 -module(unit).
 -behaviour(gen_server).
 -include_lib("bme.hrl").
+
+%% standart behaviourals
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+
+-define(CAST(UserId, Cmd), case is_pid(UserId) of
+								 true -> gen_server:cast(UserId, Cmd);
+								 false ->
+									 case gproc:lookup_local_name({unit, UserId}) of
+										 undefined -> ?ERROR_NOT_IN_BATTLE;
+										 UnitPid -> gen_server:cast(UnitPid, Cmd) end end).
+-define(CALL(UserId, Cmd), case is_pid(UserId) of
+								 true -> gen_server:call(UserId, Cmd);
+								 false ->
+									 case gproc:lookup_local_name({unit, UserId}) of
+										 undefined -> ?ERROR_NOT_IN_BATTLE;
+										 UnitPid -> gen_server:call(UnitPid, Cmd) end end).
 
 %% ====================================================================
 %% API functions
@@ -24,6 +39,9 @@
 		 set_opponents/2,
 		 hit/3,
 		 hited/2,
+		 got_damage/4,
+		 hit_damage/4,
+		 avoid_damage/4,
 		 damage/2,
 		 hit_done/2,
 		 kill/1,
@@ -40,53 +58,29 @@ start_link(Unit) when is_record(Unit, b_unit) ->
 %% get/1
 %% ====================================================================
 %% возвращает текущий State (информацию о юните)
-get_state(UserId) when (is_list(UserId) or is_integer(UserId)) ->
-	case gproc:lookup_local_name({unit, UserId}) of
-		undefined -> ?ERROR_NOT_IN_BATTLE;
-		UserPid   -> get_state(UserPid)
-	end;
-
-get_state(UserPid) when is_pid(UserPid) ->
-	gen_server:call(UserPid, get_state).
+get_state(UserId) ->
+	?CALL(UserId, get_state).
 
 
 %% create_opponent_info/1
 %% ====================================================================
 %% возвращает краткую информацию о юните
-create_opponent_info(UserId) when (is_list(UserId) or is_integer(UserId)) ->
-	case gproc:lookup_local_name({unit, UserId}) of
-		undefined -> ?ERROR_NOT_IN_BATTLE;
-		UserPid   -> create_opponent_info(UserPid)
-	end;
-
-create_opponent_info(UserPid) when is_pid(UserPid) ->
-	gen_server:call(UserPid, create_opponent_info).
+create_opponent_info(UserId) ->
+	?CALL(UserId, create_opponent_info).
 
 
 %% set_opponents/2
 %% ====================================================================
 %% устанавливает юниту список оппонентов
-set_opponents(UserId, OpponentsList) when (is_list(UserId) or is_integer(UserId)) ->
-	case gproc:lookup_local_name({unit, UserId}) of
-		undefined -> ?ERROR_NOT_IN_BATTLE;
-		UserPid   -> set_opponents(UserPid, OpponentsList)
-	end;
-
-set_opponents(UserPid, OpponentsList) when is_pid(UserPid) ->
-	gen_server:cast(UserPid, {set_opponents, OpponentsList}).
+set_opponents(UserId, OpponentsList) ->
+	?CAST(UserId, {set_opponents, OpponentsList}).
 
 
 %% hit/3
 %% ====================================================================
 %% выставление удара противнику
-hit(UserId, Hits, Block) when (is_list(UserId) or is_integer(UserId)) ->
-	case gproc:lookup_local_name({unit, UserId}) of
-		undefined -> ?ERROR_NOT_IN_BATTLE;
-		UserPid   -> hit(UserPid, Hits, Block)
-	end;
-
-hit(UserPid, Hits, Block) when is_pid(UserPid) ->
-	gen_server:call(UserPid, {hit, Hits, Block}).
+hit(UserId, Hits, Block) ->
+	?CALL(UserId, {hit, Hits, Block}).
 
 
 %% hited/2
@@ -99,41 +93,43 @@ hited(UnitPid, {From, Hit}) when is_pid(UnitPid), is_pid(From), is_pid(Hit) ->
 %% damage/2
 %% ====================================================================
 %% нанесение урона юниту
-damage(UserId, Damage) when (is_list(UserId) or is_integer(UserId)),
-							is_record(Damage, b_damage) ->
-	case gproc:lookup_local_name({unit, UserId}) of
-		undefined -> ?ERROR_NOT_IN_BATTLE;
-		UserPid   -> damage(UserPid, Damage)
-	end;
+damage(UserId, Damage) when is_record(Damage, b_damage) ->
+	?CALL(UserId, {damage, Damage}).
 
-damage(UserPid, Damage) when is_pid(UserPid), is_record(Damage, b_damage) ->
-	gen_server:call(UserPid, {damage, Damage}).
+
+%% got_damage/4
+%% ====================================================================
+%% получение урона
+got_damage(UserId, Attacker, HitResult, From) ->
+	?CALL(UserId, {got_damage, Attacker, HitResult, From}).
+
+
+%% hit_damage/4
+%% ====================================================================
+%% нанесение урона
+hit_damage(UserId, Defendant, HitResult, From) ->
+	?CALL(UserId, {hit_damage, Defendant, HitResult, From}).
+
+
+%% avoid_damage/4
+%% ====================================================================
+%% избегание урона
+avoid_damage(UserId, Attacker, HitResult, From) ->
+	?CALL(UserId, {avoid_damage, Attacker, HitResult, From}).
 
 
 %% hit_done/2
 %% ====================================================================
 %% уведомление о завершении размена
-hit_done(UserId, HitFrom) when (is_list(UserId) or is_integer(UserId)) ->
-	case gproc:lookup_local_name({unit, UserId}) of
-		undefined -> ?ERROR_NOT_IN_BATTLE;
-		UserPid   -> hit_done(UserPid, HitFrom)
-	end;
-
-hit_done(UserPid, HitFrom) when is_pid(UserPid) ->
-	gen_server:cast(UserPid, {hit_done, HitFrom}).
+hit_done(UserId, HitFrom) ->
+	?CAST(UserId, {hit_done, HitFrom}).
 
 
 %% kill/1
 %% ====================================================================
 %% мгновенное убийство юнита
-kill(UserId) when (is_list(UserId) or is_integer(UserId)) ->
-	case gproc:lookup_local_name({unit, UserId}) of
-		undefined -> ?ERROR_NOT_IN_BATTLE;
-		UserPid   -> kill(UserPid)
-	end;
-
-kill(UserPid) when is_pid(UserPid) ->
-	gen_server:call(UserPid, kill).
+kill(UserId) ->
+	?CALL(UserId, kill).
 
 
 %% timeout_alarm/2
@@ -146,14 +142,9 @@ timeout_alarm(UnitPid, OpponentPid) ->
 %% crash/1
 %% ====================================================================
 %% тестирование падения юнита
-crash(UserId) when is_integer(UserId) ->
-	case gproc:lookup_local_name({unit, UserId}) of
-		undefined -> ?ERROR_NOT_IN_BATTLE;
-		UserPid   -> crash(UserPid)
-	end;
+crash(UserId) ->
+	?CALL(UserId, crash).
 
-crash(UserPid) when is_pid(UserPid) ->
-	gen_server:call(UserPid, crash).
 
 %% ====================================================================
 %% Behavioural functions
@@ -276,6 +267,78 @@ handle_call({hit, HitsList, Block}, _, Unit) ->
 
 
 %% получение урона
+handle_call({got_damage, Attacker, HitResult, From}, _, Unit) ->
+	?DBG("Got Damage ~p~n", [HitResult]),
+	%% считаем что получилось
+	%% @todo обработка приемов на снижение урона (призрачки, щиты и тд)
+	Damage   = HitResult#b_hit_result.damage,
+
+	User     = ?user(Unit),
+	Vitality = ?vitality(User),
+	Hp       = math:limit(?hp(User) - Damage, ?maxhp(User)),
+	Mana     = math:limit(?mana(User) - 0, ?maxmana(User)),
+
+	DamagedUnit = Unit#b_unit{user = User#user{vitality = Vitality#u_vitality{hp = Hp, mana = Mana}},
+							  %total_damaged = Unit#b_unit.total_damaged + Damage#b_damage.damaged,
+							  %total_healed  = Unit#b_unit.total_healed  + Damage#b_damage.healed,
+							  total_lost    = Unit#b_unit.total_lost    + Damage},
+
+	%% пишем в лог получение урона
+	Log = #log_hit{attacker = ?log_unit(Attacker), defendant = ?log_unit(DamagedUnit),
+				   hit_result = HitResult},
+	battle_log:hit(Unit#b_unit.battle_id, From, Log),
+	%battle_log:damage(DamagedUnit#b_unit.battle_id, ?log_unit(DamagedUnit)),
+
+	{reply, {ok, Damage},  DamagedUnit};
+
+
+%% нанесение урона
+handle_call({hit_damage, Defendant, HitResult, _From}, _, Unit) ->
+	?DBG("Hit Damage ~p~n", [HitResult]),
+
+	Damage = HitResult#b_hit_result.damage,
+
+	%% считаем полученные тактики
+	Tactics = add_tactics(Unit, #b_tactics{
+			attack  = ?TACTIC(HitResult#b_hit_result.hited and not(HitResult#b_hit_result.crit), HitResult#b_hit_result.weapon_twain, 3),
+			crit    = ?TACTIC(HitResult#b_hit_result.crit, HitResult#b_hit_result.weapon_twain or not(HitResult#b_hit_result.crit_break), 2),
+			hearts  = formula:get_hearts(Damage, ?user(Unit), ?user(Defendant))
+		}),
+
+	%% кол-во экспы за удар
+	Exp = formula:get_exp_by_damage(Damage, ?user(Unit), ?user(Defendant)),
+
+	DamagedUnit = Unit#b_unit{total_damaged = Unit#b_unit.total_damaged + Damage,
+							  exp = Unit#b_unit.exp + Exp,
+							  tactics = Tactics},
+
+	{reply, {ok, Damage},  DamagedUnit};
+
+
+%% избегание урона
+handle_call({avoid_damage, Attacker, HitResult, From}, _, Unit) ->
+	?DBG("Avoid Damage ~p~n", [HitResult]),
+
+	%% считаем полученные тактики
+	Tactics = add_tactics(Unit, #b_tactics{
+			counter = ?TACTIC(HitResult#b_hit_result.counter),
+			block   = ?TACTIC((HitResult#b_hit_result.block or HitResult#b_hit_result.shield)
+					  and not(HitResult#b_hit_result.hited), HitResult#b_hit_result.weapon_twain, 2),
+			parry   = ?TACTIC(HitResult#b_hit_result.parry and not(HitResult#b_hit_result.hited))
+		}),
+
+	DamagedUnit = Unit#b_unit{tactics = Tactics},
+
+	%% пишем в лог избегание урона
+	Log = #log_miss{attacker = ?log_unit(Attacker), defendant = ?log_unit(DamagedUnit),
+				    hit_result = HitResult},
+	battle_log:hit(Unit#b_unit.battle_id, From, Log),
+
+	{reply, ok,  DamagedUnit};
+
+
+%% получение урона
+%% @deprecated
 handle_call({damage, Damage}, _, Unit) when is_record(Damage, b_damage) ->
 	?DBG("Damage omitted ~p~n", [Damage]),
 	%% считаем что получилось
@@ -644,7 +707,13 @@ do_hit_done(OpponentPid, Unit) ->
 					  _ -> Unit#b_unit.opponent
 				  end,
 	%% @todo сбросить лок с приемов, увеличить счетчик ходов, etc
-	Unit#b_unit{opponent = NewOpponent, opponents = Opponents}.
+	Unit0 = Unit#b_unit{opponent = NewOpponent, opponents = Opponents},
+
+	%% если уровень ХП = 0, значит юнит помер
+	case ?hp(?user(Unit0)) > 0 of
+		true  -> Unit0;
+		false -> killed(Unit0)
+	end.
 
 
 %% killed/1
@@ -670,6 +739,10 @@ killed(Unit) ->
 							 hits      = []},
 	%% @todo записываем убийство на счет оппонента
 	?DBG("Unit ~p killed", [self()]),
+
+	%% записываем в лог
+	battle_log:killed(KilledUnit#b_unit.battle_id, ?log_unit(KilledUnit)),
+
 	KilledUnit.
 
 

@@ -19,37 +19,22 @@
 
 -record(log_unit, {name, sex, hp, maxhp, mana, maxmana, team}).
 
--record(log_hit, {attacker  = #log_unit{},
-				  defendant = #log_unit{},
-				  hit,
-				  blocks,
-				  damage,
-				  damage_type,
-				  weapon_type,
-				  crit = false,
-				  crit_break = false,
-				  parry = false,
-				  block = false,
-				  shield = false}).
+-record(log_hit, {attacker   = #log_unit{},
+				  defendant  = #log_unit{},
+				  hit_result = #b_hit_result{}}).
 
--record(log_miss, {attacker  = #log_unit{},
-				   defendant = #log_unit{},
-				   hit,
-				   blocks,
-				   damage_type,
-				   weapon_type,
-				   dodge = false,
-				   counter = false,
-				   parry = false,
-				   block = false,
-				   shield = false}).
+-record(log_miss, {attacker   = #log_unit{},
+				   defendant  = #log_unit{},
+				   hit_result = #b_hit_result{}}).
+
 
 -define(log_start, "<div class=\"logs_php_line\">").
 -define(log_end, "</div>~n").
 -define(log_delimiter, "<hr/>~n").
 
--define(log_date, "<span class=\"date\">~s</span> ").
+-define(log_date, "<span class=\"sysdate\">~s</span> ").
 -define(log_unit, "<span class=\"B~b\">~ts</span>").
+-define(log_unit1, "<span class=\"b\"><b>~ts</b></span>").
 -define(log_hits, "<script>adh(~b,~b,\"00:00\",~b~b)</script>").
 
 %% попадание по противнику
@@ -71,6 +56,9 @@
 -define(log_miss_tpl, ?log_start ++ ?log_date ++ ?log_hits ++ ?log_unit ++ " ~ts, ~ts ~ts " ++ ?log_unit ++ " ~ts ~ts ~ts." ++ ?log_end).
 %% X1 не контролировал ситуацию, вследствие чего обезумевший X2 отскочил от удара ножом по затылку и нанес контрудар.
 -define(log_counter_tpl, ?log_start ++ ?log_date ++ ?log_hits ++ ?log_unit ++ " ~ts, ~ts ~ts " ++ ?log_unit ++ " ~ts ~ts ~ts ~ts." ++ ?log_end).
+
+%% X1 убит!
+-define(log_killed_tpl, ?log_start ++ ?log_date ++ ?log_unit1 ++ " ~ts!" ++ ?log_end).
 
 
 -record(log_hit_p1, {
@@ -251,4 +239,9 @@
 	paunch = <<"Живот"/utf8>>,
 	belt   = <<"Пояс"/utf8>>,
 	legs   = <<"Ноги"/utf8>>
+}).
+
+-record(log_killed_p1, {
+	male   = [<<"мертв"/utf8>>, <<"убит"/utf8>>, <<"повержен"/utf8>>, <<"проиграл бой"/utf8>>],
+	female = [<<"мертва"/utf8>>, <<"убита"/utf8>>, <<"повержена"/utf8>>, <<"проиграла бой"/utf8>>]
 }).

@@ -179,7 +179,7 @@ handle_info({new_opponent, Opponent}, StateName, StateData) ->
 			%% определяем таймаут для выставления удара
 			%% @todo если оппонент - бот, то тайм 8-10 сек, иначе 1-2 сек
 			Timeout = case Opponent#b_opponent.ai of
-						  true  -> 1000;%8000 + random:uniform(2000);
+						  true  -> 10;%8000 + random:uniform(2000);
 						  false -> 1000 + random:uniform(1000)
 					  end,
 			{next_state, alive, StateData, Timeout}
