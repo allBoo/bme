@@ -39,13 +39,10 @@ start_link(Ev, Module, Unit, Options) ->
 		charges = proplists:get_value(charges, Options)
 	},
 
-	R = gen_event:add_handler(Ev, Module, [exists, Module, Buff]),
-	?DBG("Event result = ~p~n", [R]).
-
-%% 	case proplists:get_value(exists, Options) of
-%% 		true  -> gen_event:add_handler(Ev, Module, [exists, Module, Buff]);
-%% 		_     -> gen_event:add_handler(Ev, Module, [Module, Buff])
-%% 	end.
+	case proplists:get_value(exists, Options) of
+		true  -> gen_event:add_handler(Ev, ?MODULE, [exists, Module, Buff]);
+		_     -> gen_event:add_handler(Ev, ?MODULE, [Module, Buff])
+	end.
 
 
 %% calc_charges/4
@@ -74,9 +71,9 @@ calc_charges(_) -> 0.
 %% ====================================================================
 
 init([exists, Module, Buff]) ->
-	?DBG("Start exists buff ~p ~p", [Module, Buff]),
 	case Module:new(Buff) of
 		{ok, DefBuff} when is_record(DefBuff, buff) ->
+			?DBG("Start exists buff ~p ~p", [Module, DefBuff]),
 			{ok, #state{mod = Module, buff = DefBuff}};
 		{error, Error} ->
 			{error, Error};
@@ -85,9 +82,9 @@ init([exists, Module, Buff]) ->
 	end;
 
 init([Module, Buff]) ->
-	?DBG("Start new buff ~p ~p", [Module, Buff]),
 	case Module:new(Buff) of
 		{ok, DefBuff} when is_record(DefBuff, buff) ->
+			?DBG("Start new buff ~p ~p", [Module, DefBuff]),
 			{ok, #state{mod = Module, buff = DefBuff}};
 		{error, Error} ->
 			{error, Error};

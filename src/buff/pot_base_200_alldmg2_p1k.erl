@@ -22,10 +22,10 @@
 
 new(Buff) ->
 	?DBG("Start pot_base_200_alldmg2_p1k module~n", []),
-	Buff#buff{
-		name = <<"Снадобье каменной стойкости"/utf8>>,
-		charges = gen_buff:calc_charges(Buff#buff.time)
-	}.
+	{ok, Buff#buff{
+			name = <<"Снадобье каменной стойкости"/utf8>>,
+			charges = gen_buff:calc_charges(Buff#buff.time)
+		}}.
 
 %% ====================================================================
 %% Internal functions
