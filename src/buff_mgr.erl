@@ -34,7 +34,7 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_ev/1, start_mgr/1]).
+-export([start_ev/1, start_mgr/1, notify/2]).
 
 
 %% start_mgr/1
@@ -52,6 +52,9 @@ start_ev(Unit) ->
 start_mgr(Unit) when is_record(Unit, b_unit) ->
 	gen_server:start_link(?MODULE, Unit, []).
 
+
+notify(Unit, Event) ->
+	?CAST(Unit, {notify, Event}).
 
 %% ====================================================================
 %% Behavioural functions
@@ -120,6 +123,13 @@ handle_call(_Request, _From, State) ->
 	NewState :: term(),
 	Timeout :: non_neg_integer() | infinity.
 %% ====================================================================
+
+handle_cast({notify, Event}, State) ->
+	gen_event:notify(State#state.event_mgr, Event),
+	{noreply, State};
+
+
+%% unknown request
 handle_cast(_Msg, State) ->
 	{noreply, State}.
 
@@ -174,4 +184,4 @@ code_change(_OldVsn, State, _Extra) ->
 apply_exists(Ev, UnitPid, Buff) when is_pid(Ev),
 									 is_record(Buff, u_buff) ->
 	?DBG("Start buff ~p~n", [{Ev, UnitPid, Buff}]),
-	gen_buff:start_link(Ev, Buff#u_buff.id, UnitPid, [{time, Buff#u_buff.time}, exists]).
+	gen_buff:start_link(Ev, Buff#u_buff.id, UnitPid, [{time, Buff#u_buff.time}, {value, Buff#u_buff.value}, exists]).

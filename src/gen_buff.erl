@@ -24,7 +24,19 @@
 %% ====================================================================
 -export([start_link/4, calc_charges/1]).
 
+%% создание нового баффа
+%% ф-я должна вернуть актуальный статус баффа
 -callback new(Buff0 :: #buff{}) -> Buff ::#buff{}.
+
+%% ф-я вызывается по окончании хода пользователя
+%% но после пересчета оставшихся зарядов
+-callback on_hit_done(Buff0 :: #buff{}) -> Buff ::#buff{}.
+
+%% ф-я вызывается при начале действия эффекта
+-callback on_start(Buff0 :: #buff{}) -> Buff ::#buff{}.
+
+%% ф-я вызывается при завершении действия эффекта
+-callback on_end(Buff0 :: #buff{}) -> Buff ::#buff{}.
 
 
 %% start_link/4
@@ -32,16 +44,18 @@
 %% запуск процессов баффа
 start_link(Ev, Module, Unit, Options) ->
 	Buff = #buff{
-		id = Module,
-		unit = Unit,
-		owner = proplists:get_value(owner, Options, Unit),
-		time = proplists:get_value(time, Options),
+		id      = Module,
+		unit    = Unit,
+		owner   = proplists:get_value(owner, Options, Unit),
+		value   = proplists:get_value(value, Options),
+		time    = proplists:get_value(time, Options),
 		charges = proplists:get_value(charges, Options)
 	},
 
+	Id = {Buff#buff.unit, Buff#buff.owner},
 	case proplists:get_value(exists, Options) of
-		true  -> gen_event:add_handler(Ev, ?MODULE, [exists, Module, Buff]);
-		_     -> gen_event:add_handler(Ev, ?MODULE, [Module, Buff])
+		true  -> gen_event:add_handler(Ev, {?MODULE, Id}, [exists, Module, Buff]);
+		_     -> gen_event:add_handler(Ev, {?MODULE, Id}, [Module, Buff])
 	end.
 
 
@@ -85,15 +99,22 @@ init([Module, Buff]) ->
 	case Module:new(Buff) of
 		{ok, DefBuff} when is_record(DefBuff, buff) ->
 			?DBG("Start new buff ~p ~p", [Module, DefBuff]),
-			{ok, #state{mod = Module, buff = DefBuff}};
+			case Module:on_start(DefBuff) of
+				{ok, Buff0} ->
+					{ok, #state{mod = Module, buff = Buff0}};
+				{error, Error} ->
+					{error, Error};
+				_ ->
+					{error, undef}
+			end;
 		{error, Error} ->
 			{error, Error};
 		_ ->
-			{error, no_config}
+			{error, undef}
 	end;
 
 init(_) ->
-	{error, undefined_call}.
+	{error, undef}.
 
 
 %% handle_event/2
@@ -108,6 +129,24 @@ init(_) ->
 	Handler2 :: Module2 | {Module2, Id :: term()},
 	Module2 :: atom().
 %% ====================================================================
+
+%% обработка конца хода
+handle_event(hit_done, #state{mod = Module, buff = Buff} = State) ->
+	?DBG("EVENT HitDone when state ~p~n", [State]),
+
+	Buff0 = decrease_charges(Buff),
+
+	case Module:on_hit_done(Buff0) of
+		{ok, Buff1} ->
+			case check_charges(Buff1) of
+				0 -> remove_handler;
+				_ -> {ok, State#state{buff = Buff1}}
+			end;
+		_ ->
+			remove_handler
+	end;
+
+
 handle_event(_Event, State) ->
 	{ok, State}.
 
@@ -157,7 +196,11 @@ handle_info(_Info, State) ->
 		| {error, Term :: term()},
 	Args :: term(), Reason :: term().
 %% ====================================================================
-terminate(_Arg, _State) ->
+
+%% завершение действия баффа
+terminate(_Arg, #state{mod = Module, buff = Buff} = State) ->
+	?DBG("Terminate buff ~p~n", [State]),
+	Module:on_end(Buff),
 	ok.
 
 
@@ -176,4 +219,14 @@ code_change(_OldVsn, State, _Extra) ->
 %% Internal functions
 %% ====================================================================
 
+decrease_charges(Buff) ->
+	case Buff#buff.charges of
+		undefined -> Buff;
+		X when is_integer(X) -> Buff#buff{charges = X - 1}
+	end.
 
+check_charges(Buff) ->
+	case Buff#buff.charges of
+		X when X =< 0 -> 0;
+		_ -> Buff#buff.charges
+	end.

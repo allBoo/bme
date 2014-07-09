@@ -186,6 +186,7 @@
 
 %% инфа о наложенных баффах
 -record(u_buff, {id :: atom(),
+                 value :: any(),
                  time :: non_neg_integer() | infinity
         }).
 

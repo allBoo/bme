@@ -135,7 +135,8 @@ get1() ->
 			magic_points = 2,   %% кол-во магических кастов
 			block_points = 3    %% кол-во зон блока
 		},
-		buffs = [#u_buff{id = pot_base_intel_15, time = 150}, #u_buff{id = pot_base_200_alldmg2_p1k, time = 30}]
+		buffs = [#u_buff{id = pot_base_intel_15, value = 22, time = 150},
+				 #u_buff{id = pot_base_200_alldmg2_p1k, value = 175, time = 30}]
 	}.
 
 

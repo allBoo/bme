@@ -46,6 +46,9 @@
 		 hit_done/2,
 		 kill/1,
 		 timeout_alarm/2,
+		 increase_state/2,
+		 reduce_state/2,
+		 change_state/3,
 		 crash/1]).
 
 %% start_link/1
@@ -137,6 +140,20 @@ kill(UserId) ->
 %% предупреждение о приближении таймаута от противника
 timeout_alarm(UnitPid, OpponentPid) ->
 	gen_server:cast(UnitPid, {timeout_alarm, OpponentPid}).
+
+
+%% increase_state/2
+%% ====================================================================
+%% увеличение параметров юнита
+increase_state(UserId, Params) ->
+	?CAST(UserId, {increase_state, Params}).
+
+
+%% reduce_state/2
+%% ====================================================================
+%% уменьшение параметров юнита
+reduce_state(UserId, Params) ->
+	?CAST(UserId, {reduce_state, Params}).
 
 
 %% crash/1
@@ -394,6 +411,15 @@ handle_call(_, _, State) ->
 	NewState :: term(),
 	Timeout :: non_neg_integer() | infinity.
 %% ====================================================================
+
+%% увеличение параметров юнита
+handle_cast({increase_state, Params}, Unit) ->
+	{noreply, change_state(increase, Unit, Params)};
+
+
+%% уменьшение параметров юнита
+handle_cast({reduce_state, Params}, Unit) ->
+	{noreply, change_state(reduce, Unit, Params)};
 
 
 %% блокируем все остальные вызовы к убитому юниту
@@ -790,3 +816,93 @@ notify(Unit, Message) ->
 broadcast(Unit, Message) ->
 	reg:broadcast({battle, Unit#b_unit.battle_id}, Message).
 
+
+%% change_state/3
+%% ====================================================================
+%% изменение параметров юнита
+change_state(_, Unit, []) ->
+	Unit;
+
+change_state(increase, Unit, [HParam | TParams]) ->
+	Unit0 = change_state(Unit, HParam),
+	change_state(increase, Unit0, TParams);
+
+change_state(reduce, Unit, [{State, Delta} | TParams]) ->
+	Unit0 = change_state(Unit, {State, -Delta}),
+	change_state(increase, Unit0, TParams).
+
+
+change_state(Unit, {State, Delta}) when is_atom(State),
+										is_record(Unit, b_unit) ->
+	SState = erlang:atom_to_list(State),
+	change_state(Unit, {SState, Delta});
+
+%% изменение внутреннего параметра User
+change_state(Unit, {"user." ++ Part, Delta}) when is_record(Unit, b_unit) ->
+	Unit#b_unit{user = change_state(Unit#b_unit.user, {Part, Delta})};
+
+%% изменение защиты от оружия
+change_state(User, {"dprotection", Delta}) when is_record(User, user) ->
+	Zones = ["head", "torso", "belt", "legs"],
+	Types = ["general", "prick", "chop", "crush", "cut"],
+
+	lists:foldl(
+		fun(Zone, UserAcc0) ->
+			lists:foldl(
+			  fun(Type, UserAcc1) ->
+					  change_state(UserAcc1, {"dprotection." ++ Zone ++ "." ++ Type, Delta})
+			  end,
+			  UserAcc0, Types)
+		end,
+		User, Zones);
+
+change_state(User, {"dprotection." ++ Part, Delta}) when is_record(User, user) ->
+	User#user{dprotection = change_state(User#user.dprotection, {Part, Delta})};
+
+change_state(DProtection, {"head." ++ Part, Delta}) when is_record(DProtection, u_dprotection) ->
+	DProtection#u_dprotection{head = change_state(DProtection#u_dprotection.head, {Part, Delta})};
+change_state(DProtection, {"torso." ++ Part, Delta}) when is_record(DProtection, u_dprotection) ->
+	DProtection#u_dprotection{torso = change_state(DProtection#u_dprotection.torso, {Part, Delta})};
+change_state(DProtection, {"belt." ++ Part, Delta}) when is_record(DProtection, u_dprotection) ->
+	DProtection#u_dprotection{belt = change_state(DProtection#u_dprotection.belt, {Part, Delta})};
+change_state(DProtection, {"legs." ++ Part, Delta}) when is_record(DProtection, u_dprotection) ->
+	DProtection#u_dprotection{legs = change_state(DProtection#u_dprotection.legs, {Part, Delta})};
+
+change_state(ZoneDProtection, {"general", Delta}) when is_record(ZoneDProtection, u_dprotection_zone) ->
+	ZoneDProtection#u_dprotection_zone{general = change_state(ZoneDProtection#u_dprotection_zone.general, Delta)};
+change_state(ZoneDProtection, {"prick", Delta}) when is_record(ZoneDProtection, u_dprotection_zone) ->
+	ZoneDProtection#u_dprotection_zone{prick = change_state(ZoneDProtection#u_dprotection_zone.prick, Delta)};
+change_state(ZoneDProtection, {"chop", Delta}) when is_record(ZoneDProtection, u_dprotection_zone) ->
+	ZoneDProtection#u_dprotection_zone{chop = change_state(ZoneDProtection#u_dprotection_zone.chop, Delta)};
+change_state(ZoneDProtection, {"crush", Delta}) when is_record(ZoneDProtection, u_dprotection_zone) ->
+	ZoneDProtection#u_dprotection_zone{crush = change_state(ZoneDProtection#u_dprotection_zone.crush, Delta)};
+change_state(ZoneDProtection, {"cut", Delta}) when is_record(ZoneDProtection, u_dprotection_zone) ->
+	ZoneDProtection#u_dprotection_zone{cut = change_state(ZoneDProtection#u_dprotection_zone.cut, Delta)};
+
+
+%% изменение статов
+change_state(User, {"stats." ++ Part, Delta}) when is_record(User, user) ->
+	User#user{stats = change_state(User#user.stats, {Part, Delta})};
+change_state(Stats, {"str", Delta}) when is_record(Stats, u_stats) ->
+	Stats#u_stats{str = change_state(Stats#u_stats.str, Delta)};
+change_state(Stats, {"agil", Delta}) when is_record(Stats, u_stats) ->
+	%% @todo дополнительное изменение мф уворота и антиуворота
+	Stats#u_stats{agil = change_state(Stats#u_stats.agil, Delta)};
+change_state(Stats, {"int", Delta}) when is_record(Stats, u_stats) ->
+	%% @todo дополнительное изменение мф крита и антикрита
+	Stats#u_stats{int = change_state(Stats#u_stats.int, Delta)};
+change_state(Stats, {"dex", Delta}) when is_record(Stats, u_stats) ->
+	%% @todo дополнительное изменение защиты от урона и магии
+	Stats#u_stats{dex = change_state(Stats#u_stats.dex, Delta)};
+change_state(Stats, {"intel", Delta}) when is_record(Stats, u_stats) ->
+	%% @todo дополнительное изменение мф мощности магии
+	Stats#u_stats{intel = change_state(Stats#u_stats.intel, Delta)};
+change_state(Stats, {"wisd", Delta}) when is_record(Stats, u_stats) ->
+	Stats#u_stats{wisd = change_state(Stats#u_stats.wisd, Delta)};
+change_state(Stats, {"spir", Delta}) when is_record(Stats, u_stats) ->
+	Stats#u_stats{spir = change_state(Stats#u_stats.spir, Delta)};
+
+
+change_state(Param, Delta) when is_number(Param),
+								is_number(Delta) ->
+	Param + Delta.

@@ -17,7 +17,7 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([new/1]).
+-export([new/1, on_start/1, on_hit_done/1, on_end/1]).
 
 
 new(Buff) ->
@@ -26,6 +26,18 @@ new(Buff) ->
 			name = <<"Снадобье разума"/utf8>>,
 			charges = gen_buff:calc_charges(Buff#buff.time)
 		}}.
+
+
+on_hit_done(Buff) -> {ok, Buff}.
+
+
+on_start(Buff) ->
+	unit:increase_state(Buff#buff.unit, [{'user.stats.intel', Buff#buff.value}]).
+
+
+on_end(Buff) ->
+	unit:reduce_state(Buff#buff.unit, [{'user.stats.intel', Buff#buff.value}]).
+
 
 %% ====================================================================
 %% Internal functions
