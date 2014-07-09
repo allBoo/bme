@@ -13,7 +13,22 @@
 -module(battle).
 -behaviour(gen_server).
 -include_lib("bme.hrl").
+
+%% standart behaviourals
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+
+-define(CAST(BattleId, Cmd), case is_pid(BattleId) of
+								 true -> gen_server:cast(BattleId, Cmd);
+								 false ->
+									 case reg:find({battle, BattleId}) of
+										 undefined -> ?ERROR_NOT_IN_BATTLE;
+										 BattlePid -> gen_server:cast(BattlePid, Cmd) end end).
+-define(CALL(BattleId, Cmd), case is_pid(BattleId) of
+								 true -> gen_server:call(BattleId, Cmd);
+								 false ->
+									 case reg:find({battle, BattleId}) of
+										 undefined -> ?ERROR_NOT_IN_BATTLE;
+										 BattlePid -> gen_server:call(BattlePid, Cmd) end end).
 
 %% ====================================================================
 %% API functions
@@ -35,38 +50,22 @@ start_link(Battle) when is_record(Battle, battle) ->
 %% возвращает список вражеских команд
 -spec get_enemy_teams(BattleId :: non_neg_integer(), MyTeamId :: non_neg_integer()) -> [non_neg_integer()].
 get_enemy_teams(BattleId, MyTeamId) ->
-	case gproc:lookup_local_name({battle, BattleId}) of
-		undefined -> ?ERROR_NOT_IN_BATTLE;
-		BattlePid -> gen_server:call(BattlePid, {get_enemy_teams, MyTeamId})
-	end.
+	?CALL(BattleId, {get_enemy_teams, MyTeamId}).
 
 
 %% get_timeout/1
 %% ====================================================================
 %% возвращает текущий таймаут боя
-get_timeout(BattleId) when is_integer(BattleId) ->
-	case gproc:lookup_local_name({battle, BattleId}) of
-		undefined -> ?ERROR_NOT_IN_BATTLE;
-		BattlePid -> get_timeout(BattlePid)
-	end;
-
-get_timeout(BattlePid) when is_pid(BattlePid) ->
-	gen_server:call(BattlePid, get_timeout).
+get_timeout(BattleId) ->
+	?CALL(BattleId, get_timeout).
 
 
 %% team_lost/2
 %% ====================================================================
 %% уведомление о проигравшей команде
-team_lost(BattleId, TeamPid) when is_integer(BattleId),
-								  is_pid(TeamPid) ->
-	case gproc:lookup_local_name({battle, BattleId}) of
-		undefined -> ?ERROR_NOT_IN_BATTLE;
-		BattlePid -> team_lost(BattlePid, TeamPid)
-	end;
+team_lost(BattleId, TeamPid) when is_pid(TeamPid) ->
+	?CAST(BattleId, {team_lost, TeamPid}).
 
-team_lost(BattlePid, TeamPid) when is_pid(BattlePid),
-								   is_pid(TeamPid) ->
-	gen_server:cast(BattlePid, {team_lost, TeamPid}).
 
 %% ====================================================================
 %% Behavioural functions
@@ -88,16 +87,16 @@ init(Battle) when is_record(Battle, battle) ->
 	?DBG("Start battle server ~p~n", [Battle#battle.id]),
 	process_flag(trap_exit, true),
 	%% регистрируем имя сервера
-	true = gproc:add_local_name({battle, Battle#battle.id}),
+	ok = reg:name({battle, Battle#battle.id}),
 
 	%% список пидов запущенных тим
-	StartedTeams = gproc:lookup_pids({p, l, {team, Battle#battle.id}}),
+	StartedTeams = reg:binded({team, Battle#battle.id}),
 
 	%% формируем списки противников и раздаем их юнитам
 	create_opponents_list(StartedTeams),
 
 	%% отправляем всем сообщение о начале боя
-	gproc:send({p, l, {battle, Battle#battle.id}}, {battle_start, self()}),
+	reg:broadcast({battle, Battle#battle.id}, {battle_start, self()}),
 
 	{ok, Battle#battle{alive_teams = StartedTeams}}.
 
@@ -282,7 +281,7 @@ finish(Battle, Result) when is_record(Battle, battle),
 
 	%% сохраняем статистику поединка
 	%% отправляем всем тимам сообщение о завершении поединка
-	gproc:send({p, l, {team, Battle#battle.id}}, {battle_finish, Result0}),
+	reg:broadcast({team, Battle#battle.id}, {battle_finish, Result0}),
 
 	%% завершаем все процессы поединка
 	bme:finish_battle(Battle),

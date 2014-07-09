@@ -34,7 +34,7 @@
 %% ====================================================================
 %% регистрирует процесс нового AI
 start_link(Unit) when is_record(Unit, b_unit) ->
-	case gproc:lookup_local_name({unit, Unit#b_unit.id}) of
+	case reg:find({unit, Unit#b_unit.id}) of
 		undefined -> ?ERROR_NOT_IN_BATTLE;
 		UnitPid   -> start_link(UnitPid)
 	end;
@@ -228,7 +228,7 @@ code_change(_OldVsn, StateName, StateData, _Extra) ->
 %% ====================================================================
 %% подписка на изменения юнита
 subscribe(Unit) ->
-	gproc:add_local_property({unit, Unit#b_unit.id}, self()).
+	reg:bind({unit, Unit#b_unit.id}).
 
 
 %% get_hits/1

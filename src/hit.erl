@@ -40,7 +40,7 @@ start_link(Hit) when is_record(Hit, b_hit) ->
 %% запуск процесса удара
 hit(BattleId, Hit) when is_record(Hit, b_hit), is_integer(BattleId) ->
 	%% если очередь ударов существует (бой запущен), выставляем новый удар
-	case gproc:lookup_local_name({hits_queue, BattleId}) of
+	case reg:find({hits_queue, BattleId}) of
 		undefined -> ?ERROR_NOT_APPLICABLE;
 		QueuePid  ->
 			%% пробуем стартануть размен
@@ -51,7 +51,7 @@ hit(BattleId, Hit) when is_record(Hit, b_hit), is_integer(BattleId) ->
 				_ ->
 					%% пробуем найти существующий размен
 					%% выставленный оппонентом
-					case gproc:lookup_local_name({hit, Hit#b_hit.recipient, Hit#b_hit.sender}) of
+					case reg:find({hit, Hit#b_hit.recipient, Hit#b_hit.sender}) of
 						ExistsHit when is_pid(ExistsHit) ->
 							%% делаем ответ на размен
 							reply(BattleId, ExistsHit, Hit);
@@ -97,14 +97,19 @@ init(Hit) when is_record(Hit, b_hit) ->
 	random:seed(now()),
 
 	%% регистрируем процесс чтобы избежать гонок
-	gproc:add_local_name({hit, Hit#b_hit.sender, Hit#b_hit.recipient}),
-	gproc:add_local_name({hit, Hit#b_hit.recipient, Hit#b_hit.sender}),
+	Names = [{hit, Hit#b_hit.sender, Hit#b_hit.recipient},
+			 {hit, Hit#b_hit.recipient, Hit#b_hit.sender}],
+	case reg:name(Names) of
+		ok ->
+			%% уведомляем юнита, которому выставили размен
+			unit:hited(Hit#b_hit.recipient, {Hit#b_hit.sender, self()}),
 
-	%% уведомляем юнита, которому выставили размен
-	unit:hited(Hit#b_hit.recipient, {Hit#b_hit.sender, self()}),
+			%% если за отведенное время не будет ответа на размен, то удар по тайму
+			{ok, Hit, get_timeout(Hit)};
 
-	%% если за отведенное время не будет ответа на размен, то удар по тайму
-	{ok, Hit, get_timeout(Hit)}.
+		_ ->
+			{stop, normal}
+	end.
 
 
 %% handle_call/3

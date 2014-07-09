@@ -20,13 +20,13 @@
 -define(CAST(UserId, Cmd), case is_pid(UserId) of
 								 true -> gen_server:cast(UserId, Cmd);
 								 false ->
-									 case gproc:lookup_local_name({unit, UserId}) of
+									 case reg:find({unit, UserId}) of
 										 undefined -> ?ERROR_NOT_IN_BATTLE;
 										 UnitPid -> gen_server:cast(UnitPid, Cmd) end end).
 -define(CALL(UserId, Cmd), case is_pid(UserId) of
 								 true -> gen_server:call(UserId, Cmd);
 								 false ->
-									 case gproc:lookup_local_name({unit, UserId}) of
+									 case reg:find({unit, UserId}) of
 										 undefined -> ?ERROR_NOT_IN_BATTLE;
 										 UnitPid -> gen_server:call(UnitPid, Cmd) end end).
 
@@ -168,14 +168,14 @@ init(Unit) when is_record(Unit, b_unit) ->
 	random:seed(now()),
 
 	%% регистрируем имя сервера
-	true = gproc:add_local_name({unit, Unit#b_unit.battle_id, Unit#b_unit.team_id, Unit#b_unit.id}),
-	true = gproc:add_local_name({unit, Unit#b_unit.id}),
-	true = gproc:add_local_name({unit, Unit#b_unit.name}),
+	ok = reg:name([{unit, Unit#b_unit.battle_id, Unit#b_unit.team_id, Unit#b_unit.id},
+				   {unit, Unit#b_unit.id},
+				   {unit, Unit#b_unit.name}]),
 
 	%% регистрируем теги для получения broadcast сообщений
-	true = gproc:add_local_property({team_unit, Unit#b_unit.battle_id, Unit#b_unit.team_id}, Unit#b_unit.id),
-	true = gproc:add_local_property({battle_unit, Unit#b_unit.battle_id}, Unit#b_unit.id),
-	true = gproc:add_local_property({battle, Unit#b_unit.battle_id}, Unit#b_unit.id),
+	ok = reg:bind([{team_unit, Unit#b_unit.battle_id, Unit#b_unit.team_id},
+				   {battle_unit, Unit#b_unit.battle_id},
+				   {battle, Unit#b_unit.battle_id}]),
 
 	{ok, Unit}.
 
@@ -394,6 +394,13 @@ handle_call(_, _, State) ->
 	NewState :: term(),
 	Timeout :: non_neg_integer() | infinity.
 %% ====================================================================
+
+
+%% блокируем все остальные вызовы к убитому юниту
+handle_cast(_, Unit) when is_record(Unit, b_unit),
+						  Unit#b_unit.alive == false ->
+	{noreply, Unit};
+
 
 %% устанавливает юниту список оппонентов
 handle_cast({set_opponents, OpponentsList}, Unit) ->
@@ -722,9 +729,10 @@ do_hit_done(OpponentPid, Unit) ->
 killed(Unit) ->
 	%% @todo обработка магии спасения
 	%% отключаем получение broadcast сообщений
-	gproc:munreg(p, l, [{team_unit, Unit#b_unit.battle_id, Unit#b_unit.team_id},
-						{battle_unit, Unit#b_unit.battle_id},
-						{battle, Unit#b_unit.battle_id}]),
+	reg:unbind([{team_unit, Unit#b_unit.battle_id, Unit#b_unit.team_id},
+				{battle_unit, Unit#b_unit.battle_id},
+				{battle, Unit#b_unit.battle_id}]),
+
 	%% уведомляем всех юнитов и подписчиков, что юнит убит
 	Message = {unit_killed, self()},
 	broadcast(Unit, Message),
@@ -773,11 +781,12 @@ unit_killed(UnitPid, Unit) ->
 %% ====================================================================
 %% уведомление подписчиков
 notify(Unit, Message) ->
-	gproc:send({p, l, {unit, Unit#b_unit.id}}, Message).
+	reg:broadcast({unit, Unit#b_unit.id}, Message).
 
 
 %% broadcast/2
 %% ====================================================================
 %% уведомление подписчиков
 broadcast(Unit, Message) ->
-	gproc:send({p, l, {battle, Unit#b_unit.battle_id}}, Message).
+	reg:broadcast({battle, Unit#b_unit.battle_id}, Message).
+

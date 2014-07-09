@@ -31,7 +31,7 @@ start_link(Team) when is_record(Team, b_team) ->
 %% ====================================================================
 %% Возвращает список pid() живых юнитов
 get_alive_units(BattleId, TeamId) ->
-	case gproc:lookup_local_name({team, BattleId, TeamId}) of
+	case reg:find({team, BattleId, TeamId}) of
 		undefined -> ?ERROR_NOT_IN_BATTLE;
 		TeamPid   -> get_alive_units(TeamPid)
 	end.
@@ -59,17 +59,17 @@ init(Team) when is_record(Team, b_team) ->
 	?DBG("Start team server ~p~n", [Team#b_team.id]),
 	process_flag(trap_exit, true),
 	%% регистрируем имя сервера
-	true = gproc:add_local_name({team, Team#b_team.battle_id, Team#b_team.id}),
+	ok = reg:name({team, Team#b_team.battle_id, Team#b_team.id}),
 
 	%% регистрируем теги с номером боя для получения broadcast сообщений
-	true = gproc:add_local_property({battle, Team#b_team.battle_id}, Team#b_team.id),
-	true = gproc:add_local_property({team, Team#b_team.battle_id}, Team#b_team.id),
+	ok = reg:bind([{battle, Team#b_team.battle_id},
+				   {team, Team#b_team.battle_id}]),
 
 	%% список пидов запущенных юнитов
-	StartedUnits = gproc:lookup_pids({p, l, {team_unit, Team#b_team.battle_id, Team#b_team.id}}),
+	StartedUnits = reg:binded({team_unit, Team#b_team.battle_id, Team#b_team.id}),
 
 	%% уведомляем их о пиде тимы
-	gproc:send({p, l, {team_unit, Team#b_team.battle_id, Team#b_team.id}}, {team_start, self()}),
+	reg:broadcast({team_unit, Team#b_team.battle_id, Team#b_team.id}, {team_start, self()}),
 
 	{ok, Team#b_team{alive_units = StartedUnits, alive_count = length(StartedUnits), units = StartedUnits}}.
 
