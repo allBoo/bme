@@ -134,7 +134,8 @@ get1() ->
 			hit_points = 2,     %% кол-во точек удара
 			magic_points = 2,   %% кол-во магических кастов
 			block_points = 3    %% кол-во зон блока
-		}
+		},
+		buffs = [#u_buff{id = pot_base_intel_15, time = 150}, #u_buff{id = pot_base_200_alldmg2_p1k, time = 30}]
 	}.
 
 
@@ -151,6 +152,6 @@ get(Id) ->
 	Cost = random:uniform((User#user.dress)#u_dress.cost),
 	CloneIndex = integer_to_binary(Id),
 	User#user{id = Id,
-			  ai = true,
+			  ai = false,
 			  name = <<(User#user.name)/binary, <<" клон"/utf8>>/binary, CloneIndex/binary >>,
 			  dress = (User#user.dress)#u_dress{cost = Cost}}.

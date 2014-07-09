@@ -20,7 +20,8 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([name/1, find/1, bind/1, unbind/1, binded/1, send/2, broadcast/2]).
+-export([name/1, find/1, bind/1, unbind/1, binded/1, send/2, broadcast/2,
+		 set/2, get/1]).
 
 
 name(Names) when is_list(Names) ->
@@ -54,6 +55,15 @@ send(Name, Message) ->
 
 broadcast(Name, Message) ->
 	gproc:send({p, l, Name}, Message).
+
+set(Name, Value) ->
+	?TRY(gproc:add_local_property(Name, Value)).
+
+get(Name) ->
+	case gproc:lookup_values({p, l, Name}) of
+		[] -> undefined;
+		[{_, Value} | _Tail] -> Value
+	end.
 
 %% ====================================================================
 %% Internal functions

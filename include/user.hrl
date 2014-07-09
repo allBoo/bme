@@ -21,8 +21,8 @@
 %% информация о персонаже
 -record(u_info, {level = 0,
                  align = 0.0,
-                 klan  = <<"">>,
-                 pic   = <<"">>,
+                 klan  = <<""/utf8>>,
+                 pic   = <<""/utf8>>,
                  sex   :: male | female
        }).
 
@@ -184,6 +184,11 @@
         }).
 
 
+%% инфа о наложенных баффах
+-record(u_buff, {id :: atom(),
+                 time :: non_neg_integer() | infinity
+        }).
+
 %% информация о персонаже
 -record(user, {id,
                name,
@@ -203,12 +208,11 @@
                armor  = #'u_armor'{},	%% броня
                dprotection = #'u_dprotection'{}, 	%% защита от урона
                wprotection = #'u_wprotection'{},	%% защита от магии
-               battle_spec = #'u_battle_spec'{}		%% боевые спецификации
-%% умелки
+               battle_spec = #'u_battle_spec'{},	%% боевые спецификации
+               buffs = [] :: [#u_buff{}]			%% наложенные баффы
 %% одетые приемы
 %% одетые заклинания
 %% баффы
-%% боевые параметры (точек удара, блока, кол-во кастов)
        }).
 
 
