@@ -82,7 +82,7 @@ init(Unit) ->
 					ok = reg:name({buff_mgr, Unit#b_unit.id}),
 
 					%% запускаем уже наложенные баффы
-					lists:foreach(fun(Buff) -> apply_exists(BuffEv, Buff) end, ?user(Unit)#user.buffs),
+					lists:foreach(fun(Buff) -> apply_exists(BuffEv, UnitPid, Buff) end, ?user(Unit)#user.buffs),
 					{ok, #state{unit = UnitPid, event_mgr = BuffEv}}
 			end
 	end.
@@ -168,10 +168,10 @@ code_change(_OldVsn, State, _Extra) ->
 %% Internal functions
 %% ====================================================================
 
-%% apply_exists/1
+%% apply_exists/3
 %% ====================================================================
 %% запуск процесса существующего баффа
-apply_exists(Ev, Buff) when is_pid(Ev),
-							is_record(Buff, u_buff) ->
-	?DBG("Start buff ~p~n", [Buff]),
-	ok.
+apply_exists(Ev, UnitPid, Buff) when is_pid(Ev),
+									 is_record(Buff, u_buff) ->
+	?DBG("Start buff ~p~n", [{Ev, UnitPid, Buff}]),
+	gen_buff:start_link(Ev, Buff#u_buff.id, UnitPid, [{time, Buff#u_buff.time}, exists]).
