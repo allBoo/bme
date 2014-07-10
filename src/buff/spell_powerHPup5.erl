@@ -10,7 +10,7 @@
 %%% ====================================================================
 
 
--module(pot_base_200_alldmg2_p1k).
+-module(spell_powerHPup5).
 -behaviour(gen_buff).
 -include_lib("bme.hrl").
 
@@ -21,21 +21,26 @@
 
 
 new(Buff) ->
-	?DBG("Start pot_base_200_alldmg2_p1k module~n", []),
 	{ok, Buff#buff{
-			name = <<"Снадобье каменной стойкости"/utf8>>,
-			charges = gen_buff:calc_charges(Buff#buff.time)
+			name = <<"Жажда жизни +5"/utf8>>,
+			charges = gen_buff:calc_charges(Buff#buff.time),
+			value = case Buff#buff.value of undefined -> get_value(Buff); Val -> Val end
 		}}.
 
 
 on_start(Buff) ->
-	unit:increase_state(Buff#buff.unit, [{'user.dprotection', Buff#buff.value}]).
+	unit:increase_state(Buff#buff.unit, [{'user.vitality.maxhp', Buff#buff.value}]).
 
 
 on_end(Buff) ->
-	unit:reduce_state(Buff#buff.unit, [{'user.dprotection', Buff#buff.value}]).
+	unit:reduce_state(Buff#buff.unit, [{'user.vitality.maxhp', Buff#buff.value}]).
 
 
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
+
+get_value(Buff) ->
+	Unit = unit:get_state(Buff#buff.unit),
+	?stats(?user(Unit))#u_stats.dex * 5.
+

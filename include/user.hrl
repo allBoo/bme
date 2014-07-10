@@ -12,6 +12,7 @@
 -define(level(User), (User#user.info)#u_info.level).
 -define(sex(User), (User#user.info)#u_info.sex).
 -define(mfs(User), User#user.mfs).
+-define(stats(User), (User#user.stats)).
 -define(drcost(User), (User#user.dress)#u_dress.cost).
 
 

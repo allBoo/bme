@@ -18,6 +18,7 @@
 -export([init/1, handle_event/2, handle_call/2, handle_info/2, terminate/2, code_change/3]).
 
 -define(default(X1, X2), case X1 of undefined -> X2; _ -> X1 end).
+-define(callback(M, F, State), case is_callable(F, State) of true  -> M:F(State#state.buff); false -> {ok, State#state.buff} end).
 
 %% ====================================================================
 %% API functions
@@ -30,7 +31,7 @@
 
 %% ф-я вызывается по окончании хода пользователя
 %% но после пересчета оставшихся зарядов
--callback on_hit_done(Buff0 :: #buff{}) -> Buff ::#buff{}.
+%-callback on_hit_done(Buff0 :: #buff{}) -> Buff ::#buff{}.
 
 %% ф-я вызывается при начале действия эффекта
 -callback on_start(Buff0 :: #buff{}) -> Buff ::#buff{}.
@@ -70,7 +71,7 @@ calc_charges(_) -> 0.
 %% ====================================================================
 %% Behavioural functions
 %% ====================================================================
--record(state, {mod, buff}).
+-record(state, {mod, callbacks, buff}).
 
 %% init/1
 %% ====================================================================
@@ -87,8 +88,9 @@ calc_charges(_) -> 0.
 init([exists, Module, Buff]) ->
 	case Module:new(Buff) of
 		{ok, DefBuff} when is_record(DefBuff, buff) ->
-			?DBG("Start exists buff ~p ~p", [Module, DefBuff]),
-			{ok, #state{mod = Module, buff = DefBuff}};
+			%% получаем определенные коллбеки в модуле
+			CallBacks = Module:module_info(exports),
+			{ok, #state{mod = Module, callbacks = CallBacks, buff = DefBuff}};
 		{error, Error} ->
 			{error, Error};
 		_ ->
@@ -98,10 +100,10 @@ init([exists, Module, Buff]) ->
 init([Module, Buff]) ->
 	case Module:new(Buff) of
 		{ok, DefBuff} when is_record(DefBuff, buff) ->
-			?DBG("Start new buff ~p ~p", [Module, DefBuff]),
 			case Module:on_start(DefBuff) of
 				{ok, Buff0} ->
-					{ok, #state{mod = Module, buff = Buff0}};
+					CallBacks = Module:module_info(exports),
+					{ok, #state{mod = Module, callbacks = CallBacks, buff = Buff0}};
 				{error, Error} ->
 					{error, Error};
 				_ ->
@@ -135,8 +137,7 @@ handle_event(hit_done, #state{mod = Module, buff = Buff} = State) ->
 	?DBG("EVENT HitDone when state ~p~n", [State]),
 
 	Buff0 = decrease_charges(Buff),
-
-	case Module:on_hit_done(Buff0) of
+	case ?callback(Module, on_hit_done, State#state{buff = Buff0}) of
 		{ok, Buff1} ->
 			case check_charges(Buff1) of
 				0 -> remove_handler;
@@ -229,4 +230,11 @@ check_charges(Buff) ->
 	case Buff#buff.charges of
 		X when X =< 0 -> 0;
 		_ -> Buff#buff.charges
+	end.
+
+
+is_callable(Fn, State) ->
+	case lists:keyfind(Fn, 1, State#state.callbacks) of
+		false -> false;
+		_     -> true
 	end.

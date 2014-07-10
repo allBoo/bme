@@ -879,6 +879,15 @@ change_state(ZoneDProtection, {"crush", Delta}) when is_record(ZoneDProtection, 
 change_state(ZoneDProtection, {"cut", Delta}) when is_record(ZoneDProtection, u_dprotection_zone) ->
 	ZoneDProtection#u_dprotection_zone{cut = change_state(ZoneDProtection#u_dprotection_zone.cut, Delta)};
 
+%% изменение живучести
+change_state(User, {"vitality." ++ Part, Delta}) when is_record(User, user) ->
+	User#user{vitality = change_state(User#user.vitality, {Part, Delta})};
+change_state(Vitality, {"maxhp", Delta}) when is_record(Vitality, u_vitality) ->
+	%% @todo проверить текущий уровень ХП
+	Vitality#u_vitality{maxhp = change_state(Vitality#u_vitality.maxhp, Delta)};
+change_state(Vitality, {"maxmana", Delta}) when is_record(Vitality, u_vitality) ->
+	%% @todo проверить текущий уровень маны
+	Vitality#u_vitality{maxmana = change_state(Vitality#u_vitality.maxmana, Delta)};
 
 %% изменение статов
 change_state(User, {"stats." ++ Part, Delta}) when is_record(User, user) ->

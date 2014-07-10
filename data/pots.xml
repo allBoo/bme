@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pots>
+	<pot id="pot_base_intel_15">
+		<name>Снадобье разума</name>
+		<charges value="true" />
+		<buffs>
+			<buff name="user.stats.intel" value="dinamic" />
+		</buffs>
+	</pot>
+	<pot id="pot_base_200_alldmg2_p1k">
+		<name>Снадобье каменной стойкости</name>
+		<charges value="true" />
+		<buffs>
+			<buff name="user.dprotection" value="dinamic" />
+		</buffs>
+	</pot>
+</pots>
