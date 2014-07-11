@@ -146,6 +146,14 @@ handle_cast(_Msg, State) ->
 	NewState :: term(),
 	Timeout :: non_neg_integer() | infinity.
 %% ====================================================================
+
+%% messages from unit
+handle_info({unit, Msg}, State) ->
+	gen_event:notify(State#state.event_mgr, Msg),
+	{noreply, State};
+
+
+%% unknows message
 handle_info(_Info, State) ->
 	{noreply, State}.
 

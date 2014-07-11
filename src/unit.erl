@@ -840,11 +840,36 @@ change_state(reduce, Unit, [{State, Delta} | TParams]) ->
 change_state(Unit, {State, Delta}) when is_atom(State),
 										is_record(Unit, b_unit) ->
 	SState = erlang:atom_to_list(State),
-	change_state(Unit, {SState, Delta});
+	Unit0 = change_state(Unit, {SState, Delta}),
+	notify(Unit0#b_unit.id, {change_state, {State, Delta}}),
+	Unit0;
 
 %% изменение внутреннего параметра User
 change_state(Unit, {"user." ++ Part, Delta}) when is_record(Unit, b_unit) ->
 	Unit#b_unit{user = change_state(Unit#b_unit.user, {Part, Delta})};
+
+%% изменение мощности урона
+change_state(User, {"dpower." ++ Part, Delta}) when is_record(User, user) ->
+	User#user{dpower = change_state(User#user.dpower, {Part, Delta})};
+change_state(DPower, {"general", Delta}) when is_record(DPower, u_dpower) ->
+	DPower#u_dpower{general = change_state(DPower#u_dpower.general, Delta)};
+change_state(DPower, {"prick", Delta}) when is_record(DPower, u_dpower) ->
+	DPower#u_dpower{prick = change_state(DPower#u_dpower.prick, Delta)};
+change_state(DPower, {"chop", Delta}) when is_record(DPower, u_dpower) ->
+	DPower#u_dpower{chop = change_state(DPower#u_dpower.chop, Delta)};
+change_state(DPower, {"crush", Delta}) when is_record(DPower, u_dpower) ->
+	DPower#u_dpower{crush = change_state(DPower#u_dpower.crush, Delta)};
+change_state(DPower, {"cut", Delta}) when is_record(DPower, u_dpower) ->
+	DPower#u_dpower{cut = change_state(DPower#u_dpower.cut, Delta)};
+change_state(DPower, {"crit", Delta}) when is_record(DPower, u_dpower) ->
+	DPower#u_dpower{crit = change_state(DPower#u_dpower.crit, Delta)};
+
+%% изменение базового урона
+change_state(User, {"damage." ++ Part, Delta}) when is_record(User, user) ->
+	User#user{damage = change_state(User#user.damage, {Part, Delta})};
+change_state(Damage, {"base." ++ Part, Delta}) when is_record(Damage, u_damage) ->
+	Damage#u_damage{base = change_state(Damage#u_damage.base, {Part, Delta})};
+
 
 %% изменение защиты от оружия
 change_state(User, {"dprotection", Delta}) when is_record(User, user) ->
@@ -887,12 +912,22 @@ change_state(ZoneDProtection, {"cut", Delta}) when is_record(ZoneDProtection, u_
 %% изменение живучести
 change_state(User, {"vitality." ++ Part, Delta}) when is_record(User, user) ->
 	User#user{vitality = change_state(User#user.vitality, {Part, Delta})};
+change_state(Vitality, {"hp", Delta}) when is_record(Vitality, u_vitality) ->
+	Vitality#u_vitality{hp = change_state(Vitality#u_vitality.hp, Delta)};
 change_state(Vitality, {"maxhp", Delta}) when is_record(Vitality, u_vitality) ->
-	%% @todo проверить текущий уровень ХП
-	Vitality#u_vitality{maxhp = change_state(Vitality#u_vitality.maxhp, Delta)};
+	MaxHP = change_state(Vitality#u_vitality.maxhp, Delta),
+	case Vitality#u_vitality.hp > MaxHP of
+		true  ->  change_state(Vitality#u_vitality{maxhp = MaxHP}, {"hp", MaxHP - Vitality#u_vitality.hp});
+		false -> Vitality#u_vitality{maxhp = MaxHP}
+	end;
+change_state(Vitality, {"mana", Delta}) when is_record(Vitality, u_vitality) ->
+	Vitality#u_vitality{mana = change_state(Vitality#u_vitality.mana, Delta)};
 change_state(Vitality, {"maxmana", Delta}) when is_record(Vitality, u_vitality) ->
-	%% @todo проверить текущий уровень маны
-	Vitality#u_vitality{maxmana = change_state(Vitality#u_vitality.maxmana, Delta)};
+	MaxMana = change_state(Vitality#u_vitality.maxmana, Delta),
+	case Vitality#u_vitality.mana > MaxMana of
+		true  ->  change_state(Vitality#u_vitality{maxmana = MaxMana}, {"mana", MaxMana - Vitality#u_vitality.mana});
+		false -> Vitality#u_vitality{maxmana = MaxMana}
+	end;
 
 %% изменение статов
 change_state(User, {"stats." ++ Part, Delta}) when is_record(User, user) ->
@@ -901,7 +936,6 @@ change_state(Stats, {"str", Delta}) when is_record(Stats, u_stats) ->
 	Stats#u_stats{str = change_state(Stats#u_stats.str, Delta)};
 change_state(Stats, {"agil", Delta}) when is_record(Stats, u_stats) ->
 	%% @todo дополнительное изменение мф уворота и антиуворота
-	%% @todo проверка бонуса статов
 	Stats#u_stats{agil = change_state(Stats#u_stats.agil, Delta)};
 change_state(Stats, {"int", Delta}) when is_record(Stats, u_stats) ->
 	%% @todo дополнительное изменение мф крита и антикрита
@@ -919,7 +953,41 @@ change_state(Stats, {"spir", Delta}) when is_record(Stats, u_stats) ->
 	%% @todo изменить уровень духа
 	Stats#u_stats{spir = change_state(Stats#u_stats.spir, Delta)};
 
+%% изменение МФ
+change_state(User, {"mfs." ++ Part, Delta}) when is_record(User, user) ->
+	User#user{mfs = change_state(User#user.mfs, {Part, Delta})};
+change_state(Mfs, {"crit", Delta}) when is_record(Mfs, u_mf) ->
+	Mfs#u_mf{crit = change_state(Mfs#u_mf.crit, Delta)};
+change_state(Mfs, {"ucrit", Delta}) when is_record(Mfs, u_mf) ->
+	Mfs#u_mf{ucrit = change_state(Mfs#u_mf.ucrit, Delta)};
+change_state(Mfs, {"aucrit", Delta}) when is_record(Mfs, u_mf) ->
+	Mfs#u_mf{aucrit = change_state(Mfs#u_mf.aucrit, Delta)};
+change_state(Mfs, {"acrit", Delta}) when is_record(Mfs, u_mf) ->
+	Mfs#u_mf{acrit = change_state(Mfs#u_mf.acrit, Delta)};
+change_state(Mfs, {"dodge", Delta}) when is_record(Mfs, u_mf) ->
+	Mfs#u_mf{dodge = change_state(Mfs#u_mf.dodge, Delta)};
+change_state(Mfs, {"udodge", Delta}) when is_record(Mfs, u_mf) ->
+	Mfs#u_mf{udodge = change_state(Mfs#u_mf.udodge, Delta)};
+change_state(Mfs, {"audodge", Delta}) when is_record(Mfs, u_mf) ->
+	Mfs#u_mf{audodge = change_state(Mfs#u_mf.audodge, Delta)};
+change_state(Mfs, {"adodge", Delta}) when is_record(Mfs, u_mf) ->
+	Mfs#u_mf{adodge = change_state(Mfs#u_mf.adodge, Delta)};
+change_state(Mfs, {"counter", Delta}) when is_record(Mfs, u_mf) ->
+	Mfs#u_mf{counter = change_state(Mfs#u_mf.counter, Delta)};
+change_state(Mfs, {"parry", Delta}) when is_record(Mfs, u_mf) ->
+	Mfs#u_mf{parry = change_state(Mfs#u_mf.parry, Delta)};
+change_state(Mfs, {"block", Delta}) when is_record(Mfs, u_mf) ->
+	Mfs#u_mf{block = change_state(Mfs#u_mf.block, Delta)};
+change_state(Mfs, {"luck", Delta}) when is_record(Mfs, u_mf) ->
+	Mfs#u_mf{luck = change_state(Mfs#u_mf.luck, Delta)};
 
+%% изменение d-value
+change_state(DValue, {"n", Delta}) when is_record(DValue, d_value) ->
+	DValue#d_value{n = change_state(DValue#d_value.n, Delta)};
+change_state(DValue, {"k", Delta}) when is_record(DValue, d_value) ->
+	DValue#d_value{k = change_state(DValue#d_value.k, Delta)};
+
+%% изменение числового параметра
 change_state(Param, Delta) when is_number(Param),
 								is_number(Delta) ->
 	Param + Delta.

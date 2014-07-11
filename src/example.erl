@@ -49,8 +49,9 @@ get1() ->
 			luck    = 300.0    %% удача
 		},
 		damage = #'u_damage'{
+			base = #'d_value'{n=14, k=5},  %% базовый урон
 			left = #'u_weapon'{
-				damage = #'d_value'{n=60, k=16},  %% базовый урон
+				damage = #'d_value'{n=60, k=16},  %% урон оружия
 				damage_type = #'u_damage_type'{   %% тип урона
 					crush = 0.7,  %% шанс дробящего урона
 					air   = 0.3   %% шанс стихийной атаки воздухом
@@ -62,7 +63,7 @@ get1() ->
 			right = undefined
 		},
 		dpower = #'u_dpower'{
-			general = 10.0,   %% мощь общего урона
+			general = 25.0,   %% мощь общего урона
 			crush   = 100.0,   %% мощь дробящего урона
 			crit    = 150.0    %% мощь крита
 		},
@@ -137,7 +138,8 @@ get1() ->
 		},
 		buffs = [#u_buff{id = pot_base_intel_15, value = 22, time = 150},
 				 #u_buff{id = pot_base_200_alldmg2_p1k, value = 175, time = 30},
-				 #u_buff{id = spell_powerHPup5, time = 30}]
+				 #u_buff{id = spell_powerHPup5, time = 30},
+				 #u_buff{id = bonus_str_100}]
 	}.
 
 
@@ -154,6 +156,6 @@ get(Id) ->
 	Cost = random:uniform((User#user.dress)#u_dress.cost),
 	CloneIndex = integer_to_binary(Id),
 	User#user{id = Id,
-			  ai = true,
+			  ai = false,
 			  name = <<(User#user.name)/binary, <<" клон"/utf8>>/binary, CloneIndex/binary >>,
 			  dress = (User#user.dress)#u_dress{cost = Cost}}.

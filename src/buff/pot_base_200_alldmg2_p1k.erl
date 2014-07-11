@@ -6,7 +6,7 @@
 %%% Author contact: alboo@list.ru
 
 %%% ====================================================================
-%%% базовый модуль всех баффов
+%%% Элексир Снадобье каменной стойкости
 %%% ====================================================================
 
 
@@ -23,17 +23,20 @@
 new(Buff) ->
 	?DBG("Start pot_base_200_alldmg2_p1k module~n", []),
 	{ok, Buff#buff{
+			type = pot,
 			name = <<"Снадобье каменной стойкости"/utf8>>,
 			charges = gen_buff:calc_charges(Buff#buff.time)
 		}}.
 
 
 on_start(Buff) ->
-	unit:increase_state(Buff#buff.unit, [{'user.dprotection', Buff#buff.value}]).
+	unit:increase_state(Buff#buff.unit, [{'user.dprotection', Buff#buff.value}]),
+	{ok, Buff}.
 
 
 on_end(Buff) ->
-	unit:reduce_state(Buff#buff.unit, [{'user.dprotection', Buff#buff.value}]).
+	unit:reduce_state(Buff#buff.unit, [{'user.dprotection', Buff#buff.value}]),
+	{ok, Buff}.
 
 
 %% ====================================================================

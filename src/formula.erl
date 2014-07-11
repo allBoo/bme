@@ -107,7 +107,8 @@ is_crit(Weapon, Attacker, Defendant) ->
 						_ -> 0.8
 					 end,
 	%% шанс крита = (Крит * 2 - Антикрит) / Крит * 2) в пределах от 1% до MaxCritChance
-	CritChance = math:limit(math:perc(Weapon#u_weapon.crit * 2, DefendantMf#u_mf.ucrit), 0.01, MaxCritChance),
+	CritMf = Weapon#u_weapon.crit + AttackerMf#u_mf.crit,
+	CritChance = math:limit(math:perc(CritMf * 2, DefendantMf#u_mf.ucrit), 0.01, MaxCritChance),
 
 	%% абсолютный крит
 	AbsCritChance = math:limit(AttackerMf#u_mf.acrit / 100, 0.0, 1.0),
@@ -194,15 +195,17 @@ get_base_damage(DamageType, Crit, CritBreak, Attacker, AttackerWeapon, Defendant
 	%% коэффициент увеличения удара за счет уровня персонажа
 	AttackerLevel = ?level(Attacker),
 
+	%% базовый интервал урона
+	{BaseMinimum, BaseMaximum} = get_d_interval((Attacker#user.damage)#u_damage.base),
 	%% интервал урона оружия
 	{WeaponMinimum, WeaponMaximum} = get_d_interval(AttackerWeapon#u_weapon.damage),
 	%?DBG("~p~n", [{WeaponMinimum, WeaponMaximum, AttackerWeapon#u_weapon.damage}]),
 
 	%% итоговый минимальный урон
-	Minimum = trunc((((5 + AttackerLevel + StrengthFactor + WeaponMinimum * SkillFactor)) *
+	Minimum = trunc((((BaseMinimum + AttackerLevel + StrengthFactor + WeaponMinimum * SkillFactor)) *
 				  DamagePower * CritPower) / CritReduce),
 	%% итоговый максимальный урон
-	Maximum = trunc((((9 + AttackerLevel + StrengthFactor + WeaponMaximum * SkillFactor)) *
+	Maximum = trunc((((BaseMaximum + AttackerLevel + StrengthFactor + WeaponMaximum * SkillFactor)) *
 				  DamagePower * CritPower) / CritReduce),
 
 	%% берем случайное значение урона в полученном интервале от минимального до максимального

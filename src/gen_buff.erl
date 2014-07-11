@@ -19,6 +19,7 @@
 
 -define(default(X1, X2), case X1 of undefined -> X2; _ -> X1 end).
 -define(callback(M, F, State), case is_callable(F, State) of true  -> M:F(State#state.buff); false -> {ok, State#state.buff} end).
+-define(callback(M, F, Args, State), case is_callable(F, State) of true  -> M:F(Args, State#state.buff); false -> {ok, State#state.buff} end).
 
 %% ====================================================================
 %% API functions
@@ -55,8 +56,8 @@ start_link(Ev, Module, Unit, Options) ->
 
 	Id = {Buff#buff.unit, Buff#buff.owner},
 	case proplists:get_value(exists, Options) of
-		true  -> gen_event:add_handler(Ev, {?MODULE, Id}, [exists, Module, Buff]);
-		_     -> gen_event:add_handler(Ev, {?MODULE, Id}, [Module, Buff])
+		true  -> gen_event:add_handler(Ev, {?MODULE, Id}, {exists, Module, Buff});
+		_     -> gen_event:add_handler(Ev, {?MODULE, Id}, {Module, Buff})
 	end.
 
 
@@ -85,7 +86,7 @@ calc_charges(_) -> 0.
 	State :: term().
 %% ====================================================================
 
-init([exists, Module, Buff]) ->
+init({exists, Module, Buff}) ->
 	case Module:new(Buff) of
 		{ok, DefBuff} when is_record(DefBuff, buff) ->
 			%% получаем определенные коллбеки в модуле
@@ -97,7 +98,7 @@ init([exists, Module, Buff]) ->
 			{error, no_config}
 	end;
 
-init([Module, Buff]) ->
+init({Module, Buff}) ->
 	case Module:new(Buff) of
 		{ok, DefBuff} when is_record(DefBuff, buff) ->
 			case Module:on_start(DefBuff) of
@@ -134,8 +135,6 @@ init(_) ->
 
 %% обработка конца хода
 handle_event(swap_done, #state{mod = Module, buff = Buff} = State) ->
-	?DBG("EVENT HitDone when state ~p~n", [State]),
-
 	Buff0 = decrease_charges(Buff),
 	case ?callback(Module, on_swap_done, State#state{buff = Buff0}) of
 		{ok, Buff1} ->
@@ -143,6 +142,17 @@ handle_event(swap_done, #state{mod = Module, buff = Buff} = State) ->
 				0 -> remove_handler;
 				_ -> {ok, State#state{buff = Buff1}}
 			end;
+		_ ->
+			remove_handler
+	end;
+
+%% изменение параметров юнита
+handle_event({change_state, Change}, #state{mod = Module} = State) ->
+	case ?callback(Module, on_unit_state_change, Change, State) of
+		{ok, Buff1} ->
+			{ok, State#state{buff = Buff1}};
+		{swap, Module1, Buff1} ->
+			{swap_handler, swap, State#state{buff = Buff1}, gen_buff, Module1};	%% eg init({Module, Buff})
 		_ ->
 			remove_handler
 	end;
@@ -199,12 +209,18 @@ handle_info(_Info, State) ->
 %% ====================================================================
 
 %% завершение действия баффа
-terminate(remove_handler, #state{mod = Module, buff = Buff}) ->
-	?DBG("Terminate buff ~p with state ~p~n", [Module]),
+terminate(remove_handler, #state{mod = Module, buff = Buff} = _State) ->
+	?DBG("Terminate buff ~p~n", [Module]),
 	Module:on_end(Buff),
 	ok;
 
-terminate(_Arg, _State) ->
+terminate(swap, #state{mod = Module, buff = Buff} = _State) ->
+	?DBG("Swap buff ~p~n", [Module]),
+	{ok, Buff1} = Module:on_end(Buff),
+	Buff1;
+
+terminate(_Arg, State) ->
+	?DBG("Terminate buff ~p~n", [State]),
 	ok.
 
 %% code_change/3

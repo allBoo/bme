@@ -13,6 +13,7 @@
 -define(BUFF_MGR(Unit), {?GSI("buff_mgr_", Unit#b_unit.id), {buff_mgr, start_mgr, [Unit]}, transient, 5000, worker, [buff_mgr]}).
 
 -record(buff, {id :: term(),                      %% идентификатор
+               type :: pot | bonus,               %% тип баффа
                name = <<""/utf8>> :: bitstring(), %% текстовое название
                value :: any(),                    %% величина баффа
                uniq = false :: boolean(),         %% уникальное владение
