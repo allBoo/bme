@@ -170,7 +170,7 @@ handle_sync_event(_Event, _From, StateName, StateData) ->
 %% ====================================================================
 
 %% юнит выбрал противника
-handle_info({new_opponent, Opponent}, StateName, StateData) ->
+handle_info({unit, {new_opponent, Opponent}}, StateName, StateData) ->
 	%% получаем инфу по оппоненту
 	case Opponent of
 		undefined -> {next_state, StateName, StateData};
@@ -187,7 +187,7 @@ handle_info({new_opponent, Opponent}, StateName, StateData) ->
 
 
 %% уведомление о убитом юните
-handle_info({unit_killed, UnitPid}, _, StateData) when StateData#state.unit_pid == UnitPid ->
+handle_info({unit, {killed, UnitPid}}, _, StateData) when StateData#state.unit_pid == UnitPid ->
 	{stop, normal, StateData};
 
 

@@ -20,7 +20,7 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([name/1, find/1, bind/1, unbind/1, binded/1, send/2, broadcast/2,
+-export([name/1, find/1, bind/1, unbind/1, binded/1, send/2, broadcast/3,
 		 set/2, get/1]).
 
 
@@ -53,8 +53,8 @@ binded(Name) ->
 send(Name, Message) ->
 	gproc:send({n, l, Name}, Message).
 
-broadcast(Name, Message) ->
-	gproc:send({p, l, Name}, Message).
+broadcast(Name, From, Message) ->
+	gproc:send({p, l, Name}, {From, Message}).
 
 set(Name, Value) ->
 	?TRY(gproc:add_local_property(Name, Value)).

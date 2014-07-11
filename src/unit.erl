@@ -34,6 +34,7 @@
 %% API functions
 %% ====================================================================
 -export([start_link/1,
+		 notify/2,
 		 get_state/1,
 		 create_opponent_info/1,
 		 set_opponents/2,
@@ -43,7 +44,7 @@
 		 hit_damage/4,
 		 avoid_damage/4,
 		 damage/2,
-		 hit_done/2,
+		 swap_done/2,
 		 kill/1,
 		 timeout_alarm/2,
 		 increase_state/2,
@@ -58,7 +59,17 @@ start_link(Unit) when is_record(Unit, b_unit) ->
 	gen_server:start_link(?MODULE, Unit, []).
 
 
-%% get/1
+%% notify/2
+%% ====================================================================
+%% уведомление через эвент-менеджер юнита
+notify(Unit, Message) when is_record(Unit, b_unit) ->
+	notify(Unit#b_unit.id, Message);
+
+notify(UnitId, Message) when is_integer(UnitId) ->
+	reg:broadcast({unit, UnitId}, unit, Message).
+
+
+%% get_state/1
 %% ====================================================================
 %% возвращает текущий State (информацию о юните)
 get_state(UserId) ->
@@ -121,11 +132,11 @@ avoid_damage(UserId, Attacker, HitResult, From) ->
 	?CALL(UserId, {avoid_damage, Attacker, HitResult, From}).
 
 
-%% hit_done/2
+%% swap_done/2
 %% ====================================================================
 %% уведомление о завершении размена
-hit_done(UserId, HitFrom) ->
-	?CAST(UserId, {hit_done, HitFrom}).
+swap_done(UserId, HitFrom) ->
+	?CAST(UserId, {swap_done, HitFrom}).
 
 
 %% kill/1
@@ -450,18 +461,18 @@ handle_cast({hited, {From, Hit}}, Unit) ->
 
 %% обработка конца хода
 %% уведомление о прошедшем размене, который выставили мы
-handle_cast({hit_done, {sended, OpponentPid}}, Unit) ->
+handle_cast({swap_done, {sended, OpponentPid}}, Unit) ->
 	?DBG("Sended hit is done ~p", [{hit, OpponentPid}]),
 	%% удаляем размен из списка выставленных разменов
 	Hits = lists:keydelete(OpponentPid, 1, Unit#b_unit.hits),
-	{noreply, do_hit_done(OpponentPid, Unit#b_unit{hits = Hits})};
+	{noreply, do_swap_done(OpponentPid, Unit#b_unit{hits = Hits})};
 
 %% уведомление о прошедшем размене, который выставили нам
-handle_cast({hit_done, {obtained, OpponentPid}}, Unit) ->
+handle_cast({swap_done, {obtained, OpponentPid}}, Unit) ->
 	?DBG("Obtained hit is done ~p", [{hit, OpponentPid}]),
 	%% удаляем размен из списка полученных разменов
 	Obtained = lists:keydelete(OpponentPid, 1, Unit#b_unit.obtained),
-	{noreply, do_hit_done(OpponentPid, Unit#b_unit{obtained = Obtained})};
+	{noreply, do_swap_done(OpponentPid, Unit#b_unit{obtained = Obtained})};
 
 
 %% приближение пропуска хода по тайму
@@ -495,12 +506,12 @@ handle_cast(_Msg, State) ->
 %% ====================================================================
 
 %% уведомление о запуске тимы
-handle_info({team_start, TeamPid}, Unit) ->
+handle_info({team, {start, TeamPid}}, Unit) ->
 	{noreply, Unit#b_unit{team_pid = TeamPid}};
 
 
 %% уведомление о запуске боя
-handle_info({battle_start, BattlePid}, Unit) ->
+handle_info({battle, {start, BattlePid}}, Unit) ->
 	%% формируем начальное состояние юнита
 	BattleUnit = set_initial_unit_data(Unit),
 	%% поиск подходящего оппонента
@@ -511,12 +522,12 @@ handle_info({battle_start, BattlePid}, Unit) ->
 
 
 %% уведомление о убитом юните
-handle_info({unit_killed, UnitPid}, Unit) when is_pid(UnitPid), UnitPid /= self() ->
+handle_info({unit, {killed, UnitPid}}, Unit) when is_pid(UnitPid), UnitPid /= self() ->
 	{noreply, unit_killed(UnitPid, Unit)};
 
 
 %% уведомление о завершении поединка
-handle_info({battle_finish, Result}, Unit) ->
+handle_info({battle, {finish, Result}}, Unit) ->
 	?DBG("Unit ~p got battle_finish message", [self()]),
 	%% считаем кол-во полученной экспы
 	IsWinner = Result#b_result.winner == Unit#b_unit.team_pid,
@@ -715,10 +726,10 @@ add_tactics(Unit, Delta) when is_record(Unit, b_unit),
                       spirit  = math:limit(math:precision(Current#b_tactics.spirit + Delta#b_tactics.spirit, 2), Current#b_tactics.spirit)}.
 
 
-%% do_hit_done/2
+%% do_swap_done/2
 %% ====================================================================
-%% обработка конца хода
-do_hit_done(OpponentPid, Unit) ->
+%% обработка конца размена
+do_swap_done(OpponentPid, Unit) ->
 	%% если у противника стоит флаг таймаута - сбросим его
 	Opponents = list_helper:keymap(OpponentPid,
 								   2,
@@ -760,7 +771,7 @@ killed(Unit) ->
 				{battle, Unit#b_unit.battle_id}]),
 
 	%% уведомляем всех юнитов и подписчиков, что юнит убит
-	Message = {unit_killed, self()},
+	Message = {killed, self()},
 	broadcast(Unit, Message),
 	notify(Unit, Message),
 	%% удаляем все выставленные и назначенные размены
@@ -803,18 +814,12 @@ unit_killed(UnitPid, Unit) ->
 %% 	end.
 
 
-%% notify/2
-%% ====================================================================
-%% уведомление подписчиков
-notify(Unit, Message) ->
-	reg:broadcast({unit, Unit#b_unit.id}, Message).
-
 
 %% broadcast/2
 %% ====================================================================
-%% уведомление подписчиков
+%% уведомление всех участников боя
 broadcast(Unit, Message) ->
-	reg:broadcast({battle, Unit#b_unit.battle_id}, Message).
+	reg:broadcast({battle, Unit#b_unit.battle_id}, unit, Message).
 
 
 %% change_state/3
@@ -829,7 +834,7 @@ change_state(increase, Unit, [HParam | TParams]) ->
 
 change_state(reduce, Unit, [{State, Delta} | TParams]) ->
 	Unit0 = change_state(Unit, {State, -Delta}),
-	change_state(increase, Unit0, TParams).
+	change_state(reduce, Unit0, TParams).
 
 
 change_state(Unit, {State, Delta}) when is_atom(State),
@@ -896,6 +901,7 @@ change_state(Stats, {"str", Delta}) when is_record(Stats, u_stats) ->
 	Stats#u_stats{str = change_state(Stats#u_stats.str, Delta)};
 change_state(Stats, {"agil", Delta}) when is_record(Stats, u_stats) ->
 	%% @todo дополнительное изменение мф уворота и антиуворота
+	%% @todo проверка бонуса статов
 	Stats#u_stats{agil = change_state(Stats#u_stats.agil, Delta)};
 change_state(Stats, {"int", Delta}) when is_record(Stats, u_stats) ->
 	%% @todo дополнительное изменение мф крита и антикрита
@@ -907,8 +913,10 @@ change_state(Stats, {"intel", Delta}) when is_record(Stats, u_stats) ->
 	%% @todo дополнительное изменение мф мощности магии
 	Stats#u_stats{intel = change_state(Stats#u_stats.intel, Delta)};
 change_state(Stats, {"wisd", Delta}) when is_record(Stats, u_stats) ->
+	%% @todo изменить уровень маны
 	Stats#u_stats{wisd = change_state(Stats#u_stats.wisd, Delta)};
 change_state(Stats, {"spir", Delta}) when is_record(Stats, u_stats) ->
+	%% @todo изменить уровень духа
 	Stats#u_stats{spir = change_state(Stats#u_stats.spir, Delta)};
 
 

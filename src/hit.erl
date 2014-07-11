@@ -156,10 +156,10 @@ handle_cast({reply, BattleId, ReplyHit}, Hit) when ReplyHit#b_hit.sender == Hit#
 	%{AttackerDamage, DefendantDamage} =
 	hit_process(BattleId, Hit#b_hit.sender, Hit, Hit#b_hit.recipient, ReplyHit),
 
-	%% отправляем выжившим юнитам сообщение о завершении хода
+	%% отправляем выжившим юнитам сообщение о завершении размена
 	%% тип размена и с кем
-	send_hit_done(Hit#b_hit.recipient, {obtained, Hit#b_hit.sender}),
-	send_hit_done(Hit#b_hit.sender,    {sended,   Hit#b_hit.recipient}),
+	send_swap_done(Hit#b_hit.recipient, {obtained, Hit#b_hit.sender}),
+	send_swap_done(Hit#b_hit.sender,    {sended,   Hit#b_hit.recipient}),
 
 	%% завершаем процесс
 	{stop, normal, Hit};
@@ -253,12 +253,12 @@ get_alert_timeout() ->
 	10000.
 
 
-%% send_hit_done/1
+%% send_swap_done/1
 %% ====================================================================
 %% отпраляем юнитам сообщение о завершении размена
 %% сообщение отправляется только живому юниту
-send_hit_done(UnitPid, Message) ->
-	unit:hit_done(UnitPid, Message).
+send_swap_done(UnitPid, Message) ->
+	unit:swap_done(UnitPid, Message).
 
 
 test() ->

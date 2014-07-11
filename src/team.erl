@@ -69,7 +69,7 @@ init(Team) when is_record(Team, b_team) ->
 	StartedUnits = reg:binded({team_unit, Team#b_team.battle_id, Team#b_team.id}),
 
 	%% уведомляем их о пиде тимы
-	reg:broadcast({team_unit, Team#b_team.battle_id, Team#b_team.id}, {team_start, self()}),
+	reg:broadcast({team_unit, Team#b_team.battle_id, Team#b_team.id}, team, {start, self()}),
 
 	{ok, Team#b_team{alive_units = StartedUnits, alive_count = length(StartedUnits), units = StartedUnits}}.
 
@@ -129,12 +129,12 @@ handle_cast(_Msg, State) ->
 %% ====================================================================
 
 %% уведомление о запуске боя
-handle_info({battle_start, BattlePid}, Team) ->
+handle_info({battle, {start, BattlePid}}, Team) ->
 	{noreply, Team#b_team{battle_pid = BattlePid}};
 
 
 %% уведомление о убитом юните
-handle_info({unit_killed, UnitPid}, Team) when Team#b_team.alive_count > 0 ->
+handle_info({unit, {killed, UnitPid}}, Team) when Team#b_team.alive_count > 0 ->
 	case lists:member(UnitPid, Team#b_team.alive_units) of
 		true  -> {noreply, unit_killed(UnitPid, Team)};
 		false -> {noreply, Team}
@@ -142,10 +142,10 @@ handle_info({unit_killed, UnitPid}, Team) when Team#b_team.alive_count > 0 ->
 
 
 %% уведомление о завершении поединка
-handle_info({battle_finish, Result}, Team) ->
+handle_info({battle, {finish, Result}} = Msg, Team) ->
 	?DBG("Team ~p got battle_finish message", [self()]),
 	%% перенаправляем всем своим юнитам это сообщение
-	[UnitPid ! {battle_finish, Result} || UnitPid <- Team#b_team.units],
+	[UnitPid ! Msg || UnitPid <- Team#b_team.units],
 	{noreply, Team};
 
 

@@ -31,7 +31,7 @@
 
 %% ф-я вызывается по окончании хода пользователя
 %% но после пересчета оставшихся зарядов
-%-callback on_hit_done(Buff0 :: #buff{}) -> Buff ::#buff{}.
+%-callback on_swap_done(Buff0 :: #buff{}) -> Buff ::#buff{}.
 
 %% ф-я вызывается при начале действия эффекта
 -callback on_start(Buff0 :: #buff{}) -> Buff ::#buff{}.
@@ -133,11 +133,11 @@ init(_) ->
 %% ====================================================================
 
 %% обработка конца хода
-handle_event(hit_done, #state{mod = Module, buff = Buff} = State) ->
+handle_event(swap_done, #state{mod = Module, buff = Buff} = State) ->
 	?DBG("EVENT HitDone when state ~p~n", [State]),
 
 	Buff0 = decrease_charges(Buff),
-	case ?callback(Module, on_hit_done, State#state{buff = Buff0}) of
+	case ?callback(Module, on_swap_done, State#state{buff = Buff0}) of
 		{ok, Buff1} ->
 			case check_charges(Buff1) of
 				0 -> remove_handler;
@@ -199,11 +199,13 @@ handle_info(_Info, State) ->
 %% ====================================================================
 
 %% завершение действия баффа
-terminate(_Arg, #state{mod = Module, buff = Buff} = State) ->
-	?DBG("Terminate buff ~p~n", [State]),
+terminate(remove_handler, #state{mod = Module, buff = Buff}) ->
+	?DBG("Terminate buff ~p with state ~p~n", [Module]),
 	Module:on_end(Buff),
-	ok.
+	ok;
 
+terminate(_Arg, _State) ->
+	ok.
 
 %% code_change/3
 %% ====================================================================

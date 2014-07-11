@@ -96,7 +96,7 @@ init(Battle) when is_record(Battle, battle) ->
 	create_opponents_list(StartedTeams),
 
 	%% отправляем всем сообщение о начале боя
-	reg:broadcast({battle, Battle#battle.id}, {battle_start, self()}),
+	reg:broadcast({battle, Battle#battle.id}, battle, {start, self()}),
 
 	{ok, Battle#battle{alive_teams = StartedTeams}}.
 
@@ -281,7 +281,7 @@ finish(Battle, Result) when is_record(Battle, battle),
 
 	%% сохраняем статистику поединка
 	%% отправляем всем тимам сообщение о завершении поединка
-	reg:broadcast({team, Battle#battle.id}, {battle_finish, Result0}),
+	reg:broadcast({team, Battle#battle.id}, battle, {finish, Result0}),
 
 	%% завершаем все процессы поединка
 	bme:finish_battle(Battle),

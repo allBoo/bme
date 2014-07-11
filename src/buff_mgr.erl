@@ -83,6 +83,7 @@ init(Unit) ->
 				undefined -> {stop, buff_event_mgr_not_found};
 				BuffEv    ->
 					ok = reg:name({buff_mgr, Unit#b_unit.id}),
+					reg:bind({unit, Unit#b_unit.id}),
 
 					%% запускаем уже наложенные баффы
 					lists:foreach(fun(Buff) -> apply_exists(BuffEv, UnitPid, Buff) end, ?user(Unit)#user.buffs),
