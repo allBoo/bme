@@ -219,8 +219,7 @@ terminate(swap, #state{mod = Module, buff = Buff} = _State) ->
 	{ok, Buff1} = Module:on_end(Buff),
 	Buff1;
 
-terminate(_Arg, State) ->
-	?DBG("Terminate buff ~p~n", [State]),
+terminate(_Arg, _State) ->
 	ok.
 
 %% code_change/3

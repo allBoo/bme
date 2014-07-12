@@ -9,6 +9,8 @@
 -define(maxhp(User), (User#user.vitality)#u_vitality.maxhp).
 -define(mana(User), (User#user.vitality)#u_vitality.mana).
 -define(maxmana(User), (User#user.vitality)#u_vitality.maxmana).
+-define(dprotection(User), User#user.dprotection).
+-define(wprotection(User), User#user.wprotection).
 -define(level(User), (User#user.info)#u_info.level).
 -define(sex(User), (User#user.info)#u_info.sex).
 -define(mfs(User), User#user.mfs).

@@ -909,13 +909,71 @@ change_state(ZoneDProtection, {"crush", Delta}) when is_record(ZoneDProtection, 
 change_state(ZoneDProtection, {"cut", Delta}) when is_record(ZoneDProtection, u_dprotection_zone) ->
 	ZoneDProtection#u_dprotection_zone{cut = change_state(ZoneDProtection#u_dprotection_zone.cut, Delta)};
 
+%% изменение защиты от магии
+change_state(User, {"wprotection", Delta}) when is_record(User, user) ->
+	Types = ["general", "air", "fire", "water", "earth", "light", "dark", "gray"],
+	lists:foldl(
+		fun(Type, UserAcc0) ->
+			change_state(UserAcc0, {"wprotection." ++ Type, Delta})
+		end,
+		User, Types);
+
+change_state(User, {"wprotection." ++ Part, Delta}) when is_record(User, user) ->
+	User#user{wprotection = change_state(User#user.wprotection, {Part, Delta})};
+
+change_state(TypeWProtection, {"general", Delta}) when is_record(TypeWProtection, u_wprotection) ->
+	TypeWProtection#u_wprotection{general = change_state(TypeWProtection#u_wprotection.general, Delta)};
+change_state(TypeWProtection, {"air", Delta}) when is_record(TypeWProtection, u_wprotection) ->
+	TypeWProtection#u_wprotection{air = change_state(TypeWProtection#u_wprotection.air, Delta)};
+change_state(TypeWProtection, {"fire", Delta}) when is_record(TypeWProtection, u_wprotection) ->
+	TypeWProtection#u_wprotection{fire = change_state(TypeWProtection#u_wprotection.fire, Delta)};
+change_state(TypeWProtection, {"water", Delta}) when is_record(TypeWProtection, u_wprotection) ->
+	TypeWProtection#u_wprotection{water = change_state(TypeWProtection#u_wprotection.water, Delta)};
+change_state(TypeWProtection, {"earth", Delta}) when is_record(TypeWProtection, u_wprotection) ->
+	TypeWProtection#u_wprotection{earth = change_state(TypeWProtection#u_wprotection.earth, Delta)};
+change_state(TypeWProtection, {"light", Delta}) when is_record(TypeWProtection, u_wprotection) ->
+	TypeWProtection#u_wprotection{light = change_state(TypeWProtection#u_wprotection.light, Delta)};
+change_state(TypeWProtection, {"dark", Delta}) when is_record(TypeWProtection, u_wprotection) ->
+	TypeWProtection#u_wprotection{dark = change_state(TypeWProtection#u_wprotection.dark, Delta)};
+change_state(TypeWProtection, {"gray", Delta}) when is_record(TypeWProtection, u_wprotection) ->
+	TypeWProtection#u_wprotection{gray = change_state(TypeWProtection#u_wprotection.gray, Delta)};
+
+%% изменение мощности магии
+change_state(User, {"wpower", Delta}) when is_record(User, user) ->
+	Types = ["general", "air", "fire", "water", "earth", "light", "dark", "gray"],
+	lists:foldl(
+		fun(Type, UserAcc0) ->
+			change_state(UserAcc0, {"wpower." ++ Type, Delta})
+		end,
+		User, Types);
+
+change_state(User, {"wpower." ++ Part, Delta}) when is_record(User, user) ->
+	User#user{wpower = change_state(User#user.wpower, {Part, Delta})};
+
+change_state(TypeWPower, {"general", Delta}) when is_record(TypeWPower, u_wpower) ->
+	TypeWPower#u_wpower{general = change_state(TypeWPower#u_wpower.general, Delta)};
+change_state(TypeWPower, {"air", Delta}) when is_record(TypeWPower, u_wpower) ->
+	TypeWPower#u_wpower{air = change_state(TypeWPower#u_wpower.air, Delta)};
+change_state(TypeWPower, {"fire", Delta}) when is_record(TypeWPower, u_wpower) ->
+	TypeWPower#u_wpower{fire = change_state(TypeWPower#u_wpower.fire, Delta)};
+change_state(TypeWPower, {"water", Delta}) when is_record(TypeWPower, u_wpower) ->
+	TypeWPower#u_wpower{water = change_state(TypeWPower#u_wpower.water, Delta)};
+change_state(TypeWPower, {"earth", Delta}) when is_record(TypeWPower, u_wpower) ->
+	TypeWPower#u_wpower{earth = change_state(TypeWPower#u_wpower.earth, Delta)};
+change_state(TypeWPower, {"light", Delta}) when is_record(TypeWPower, u_wpower) ->
+	TypeWPower#u_wpower{light = change_state(TypeWPower#u_wpower.light, Delta)};
+change_state(TypeWPower, {"dark", Delta}) when is_record(TypeWPower, u_wpower) ->
+	TypeWPower#u_wpower{dark = change_state(TypeWPower#u_wpower.dark, Delta)};
+change_state(TypeWPower, {"gray", Delta}) when is_record(TypeWPower, u_wpower) ->
+	TypeWPower#u_wpower{gray = change_state(TypeWPower#u_wpower.gray, Delta)};
+
 %% изменение живучести
 change_state(User, {"vitality." ++ Part, Delta}) when is_record(User, user) ->
 	User#user{vitality = change_state(User#user.vitality, {Part, Delta})};
 change_state(Vitality, {"hp", Delta}) when is_record(Vitality, u_vitality) ->
 	Vitality#u_vitality{hp = change_state(Vitality#u_vitality.hp, Delta)};
 change_state(Vitality, {"maxhp", Delta}) when is_record(Vitality, u_vitality) ->
-	MaxHP = change_state(Vitality#u_vitality.maxhp, Delta),
+	MaxHP = max(change_state(Vitality#u_vitality.maxhp, Delta), 0),
 	case Vitality#u_vitality.hp > MaxHP of
 		true  ->  change_state(Vitality#u_vitality{maxhp = MaxHP}, {"hp", MaxHP - Vitality#u_vitality.hp});
 		false -> Vitality#u_vitality{maxhp = MaxHP}
@@ -923,7 +981,7 @@ change_state(Vitality, {"maxhp", Delta}) when is_record(Vitality, u_vitality) ->
 change_state(Vitality, {"mana", Delta}) when is_record(Vitality, u_vitality) ->
 	Vitality#u_vitality{mana = change_state(Vitality#u_vitality.mana, Delta)};
 change_state(Vitality, {"maxmana", Delta}) when is_record(Vitality, u_vitality) ->
-	MaxMana = change_state(Vitality#u_vitality.maxmana, Delta),
+	MaxMana = max(change_state(Vitality#u_vitality.maxmana, Delta), 0),
 	case Vitality#u_vitality.mana > MaxMana of
 		true  ->  change_state(Vitality#u_vitality{maxmana = MaxMana}, {"mana", MaxMana - Vitality#u_vitality.mana});
 		false -> Vitality#u_vitality{maxmana = MaxMana}
@@ -931,7 +989,8 @@ change_state(Vitality, {"maxmana", Delta}) when is_record(Vitality, u_vitality) 
 
 %% изменение статов
 change_state(User, {"stats." ++ Part, Delta}) when is_record(User, user) ->
-	User#user{stats = change_state(User#user.stats, {Part, Delta})};
+	User0 = User#user{stats = change_state(User#user.stats, {Part, Delta})},
+	on_stats_changed(User0, {Part, Delta});
 change_state(Stats, {"str", Delta}) when is_record(Stats, u_stats) ->
 	Stats#u_stats{str = change_state(Stats#u_stats.str, Delta)};
 change_state(Stats, {"agil", Delta}) when is_record(Stats, u_stats) ->
@@ -957,29 +1016,30 @@ change_state(Stats, {"spir", Delta}) when is_record(Stats, u_stats) ->
 change_state(User, {"mfs." ++ Part, Delta}) when is_record(User, user) ->
 	User#user{mfs = change_state(User#user.mfs, {Part, Delta})};
 change_state(Mfs, {"crit", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{crit = change_state(Mfs#u_mf.crit, Delta)};
+	Mfs#u_mf{crit = max(change_state(Mfs#u_mf.crit, Delta), 0)};
 change_state(Mfs, {"ucrit", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{ucrit = change_state(Mfs#u_mf.ucrit, Delta)};
+	Mfs#u_mf{ucrit = max(change_state(Mfs#u_mf.ucrit, Delta), 0)};
 change_state(Mfs, {"aucrit", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{aucrit = change_state(Mfs#u_mf.aucrit, Delta)};
+	Mfs#u_mf{aucrit = max(change_state(Mfs#u_mf.aucrit, Delta), 0)};
 change_state(Mfs, {"acrit", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{acrit = change_state(Mfs#u_mf.acrit, Delta)};
+	Mfs#u_mf{acrit = max(change_state(Mfs#u_mf.acrit, Delta), 0)};
 change_state(Mfs, {"dodge", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{dodge = change_state(Mfs#u_mf.dodge, Delta)};
+	Mfs#u_mf{dodge = max(change_state(Mfs#u_mf.dodge, Delta), 0)};
 change_state(Mfs, {"udodge", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{udodge = change_state(Mfs#u_mf.udodge, Delta)};
+	Mfs#u_mf{udodge = max(change_state(Mfs#u_mf.udodge, Delta), 0)};
 change_state(Mfs, {"audodge", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{audodge = change_state(Mfs#u_mf.audodge, Delta)};
+	Mfs#u_mf{audodge = max(change_state(Mfs#u_mf.audodge, Delta), 0)};
 change_state(Mfs, {"adodge", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{adodge = change_state(Mfs#u_mf.adodge, Delta)};
+	Mfs#u_mf{adodge = max(change_state(Mfs#u_mf.adodge, Delta), 0)};
 change_state(Mfs, {"counter", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{counter = change_state(Mfs#u_mf.counter, Delta)};
+	Mfs#u_mf{counter = max(change_state(Mfs#u_mf.counter, Delta), 0)};
 change_state(Mfs, {"parry", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{parry = change_state(Mfs#u_mf.parry, Delta)};
+	Mfs#u_mf{parry = max(change_state(Mfs#u_mf.parry, Delta), 0)};
 change_state(Mfs, {"block", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{block = change_state(Mfs#u_mf.block, Delta)};
+	Mfs#u_mf{block = max(change_state(Mfs#u_mf.block, Delta), 0)};
 change_state(Mfs, {"luck", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{luck = change_state(Mfs#u_mf.luck, Delta)};
+	Mfs#u_mf{luck = max(change_state(Mfs#u_mf.luck, Delta), 0)};
+
 
 %% изменение d-value
 change_state(DValue, {"n", Delta}) when is_record(DValue, d_value) ->
@@ -991,3 +1051,43 @@ change_state(DValue, {"k", Delta}) when is_record(DValue, d_value) ->
 change_state(Param, Delta) when is_number(Param),
 								is_number(Delta) ->
 	Param + Delta.
+
+%% вызывается при изменении статов юзера
+%% пересчитывает различные МФ, зависящие от статов
+
+%% пересчет уворота и антиуворота от изменения ловкости
+on_stats_changed(User, {"agil", Delta}) when is_record(User, user) ->
+	Mfs = (User#user.mfs)#u_mf{
+		dodge  = max(change_state((User#user.mfs)#u_mf.dodge, formula:get_dodge_by_agile(Delta)), 0),
+		udodge = max(change_state((User#user.mfs)#u_mf.udodge, formula:get_udodge_by_agile(Delta)), 0)
+	},
+	User#user{mfs = Mfs};
+%% пересчет крита и антикрита от изменения интуиции
+on_stats_changed(User, {"int", Delta}) when is_record(User, user) ->
+	Mfs = (User#user.mfs)#u_mf{
+		crit  = max(change_state((User#user.mfs)#u_mf.crit, formula:get_crit_by_intuition(Delta)), 0),
+		ucrit = max(change_state((User#user.mfs)#u_mf.ucrit, formula:get_ucrit_by_intuition(Delta)), 0)
+	},
+	User#user{mfs = Mfs};
+%% пересчет ХП и защиты от изменения выноса
+on_stats_changed(User, {"dex", Delta}) when is_record(User, user) ->
+	Vitality = change_state(?vitality(User), {"maxhp", formula:get_hp_by_dex(Delta)}),
+	Dprotection = change_state(User, {"dprotection", formula:get_dprotection_by_dex(Delta)}),
+	Wprotection = change_state(User, {"wprotection", formula:get_wprotection_by_dex(Delta)}),
+	User#user{vitality = Vitality,
+			  dprotection = ?dprotection(Dprotection),
+			  wprotection =?wprotection(Wprotection)};
+%% пересчет мощности магии от интеллекта
+on_stats_changed(User, {"intel", Delta}) when is_record(User, user) ->
+	change_state(User, {"wpower", formula:get_wpower_by_intellect(Delta)});
+%% пересчет кол-ва маны от мудрости
+on_stats_changed(User, {"wisd", Delta}) when is_record(User, user) ->
+	change_state(User, {"vitality.maxmana", formula:get_mana_by_wisd(Delta)});
+%% пересчет кол-ва духа от духовности
+%% @todo а нужно ли оно?
+%on_stats_changed(User, {"spir", Delta}) ->
+%	change_state(User, {"vitality.maxmana", formula:get_mana_by_wisd(Delta)});
+
+on_stats_changed(User, {_, _}) ->
+	User.
+
