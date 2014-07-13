@@ -966,6 +966,10 @@ change_state(TypeWPower, {"dark", Delta}) when is_record(TypeWPower, u_wpower) -
 	TypeWPower#u_wpower{dark = change_state(TypeWPower#u_wpower.dark, Delta)};
 change_state(TypeWPower, {"gray", Delta}) when is_record(TypeWPower, u_wpower) ->
 	TypeWPower#u_wpower{gray = change_state(TypeWPower#u_wpower.gray, Delta)};
+change_state(TypeWPower, {"reduction", Delta}) when is_record(TypeWPower, u_wpower) ->
+	TypeWPower#u_wpower{reduction = change_state(TypeWPower#u_wpower.reduction, Delta)};
+change_state(TypeWPower, {"manaconsumption", Delta}) when is_record(TypeWPower, u_wpower) ->
+	TypeWPower#u_wpower{manaconsumption = change_state(TypeWPower#u_wpower.manaconsumption, Delta)};
 
 %% изменение живучести
 change_state(User, {"vitality." ++ Part, Delta}) when is_record(User, user) ->

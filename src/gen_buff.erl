@@ -20,7 +20,7 @@
 -define(default(X1, X2), case X1 of undefined -> X2; _ -> X1 end).
 -define(callback(M, F, State), case is_callable(F, State) of true  -> M:F(State#state.buff); false -> {ok, State#state.buff} end).
 -define(callback(M, F, Args, State), case is_callable(F, State) of true  -> M:F(Args, State#state.buff); false -> {ok, State#state.buff} end).
--define(result(R), case R of {ok, Buff0} -> {ok, #state{buff = Buff0}}; {error, Error} -> {error, Error}; _ -> {error, undef} end).
+-define(result(R), case R of {ok, Buff0} -> {ok, State#state{buff = Buff0}}; {error, Error} -> {error, Error}; _ -> {error, undef} end).
 
 
 %% ====================================================================
@@ -212,8 +212,8 @@ terminate(remove_handler, State) ->
 
 terminate(swap, State) ->
 	?DBG("Swap buff ~p~n", [State#state.mod]),
-	{ok, Buff1} = call_on_end(State),
-	Buff1;
+	{ok, State1} = call_on_end(State),
+	State1#state.buff;
 
 terminate(_Arg, _State) ->
 	ok.
