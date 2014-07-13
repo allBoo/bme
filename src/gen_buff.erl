@@ -56,7 +56,7 @@ start_link(Ev, Module, Unit, Options) ->
 		charges = proplists:get_value(charges, Options)
 	},
 
-	Id = {Buff#buff.unit, Buff#buff.owner},
+	Id = {Module, Buff#buff.unit, Buff#buff.owner},
 	case proplists:get_value(exists, Options) of
 		true  -> gen_event:add_handler(Ev, {?MODULE, Id}, {exists, Module, Buff});
 		_     -> gen_event:add_handler(Ev, {?MODULE, Id}, {Module, Buff})
@@ -171,6 +171,40 @@ handle_event(_Event, State) ->
 	Handler2 :: Module2 | {Module2, Id :: term()},
 	Module2 :: atom().
 %% ====================================================================
+
+%% обработка баффов на получение урона юнитом
+handle_call({on_got_damage, HitResult}, #state{mod = Module} = State) ->
+	case ?callback(Module, on_unit_got_damage, HitResult, State) of
+		{ok, HitResult1, Buff1} ->
+			{ok, HitResult1, State#state{buff = Buff1}};
+		{ok, Buff1} ->
+			{ok, HitResult, State#state{buff = Buff1}};
+		{swap, HitResult1, Module1, Buff1} ->
+			{swap_handler, HitResult1, swap, State#state{buff = Buff1}, gen_buff, Module1};
+		{remove_handler, HitResult1} ->
+			{remove_handler, HitResult1};
+		_ ->
+			{remove_handler, HitResult}
+	end;
+
+
+%% обработка баффов на нанесение урона юнитом
+handle_call({on_hit_damage, HitResult}, #state{mod = Module} = State) ->
+	case ?callback(Module, on_unit_hit_damage, HitResult, State) of
+		{ok, HitResult1, Buff1} ->
+			{ok, HitResult1, State#state{buff = Buff1}};
+		{ok, Buff1} ->
+			{ok, HitResult, State#state{buff = Buff1}};
+		{swap, HitResult1, Module1, Buff1} ->
+			{swap_handler, HitResult1, swap, State#state{buff = Buff1}, gen_buff, Module1};
+		{remove_handler, HitResult1} ->
+			{remove_handler, HitResult1};
+		_ ->
+			{remove_handler, HitResult}
+	end;
+
+
+%% unknown request
 handle_call(_Request, State) ->
 	{ok, ok, State}.
 

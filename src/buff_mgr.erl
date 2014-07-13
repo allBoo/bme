@@ -34,7 +34,12 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_ev/1, start_mgr/1, notify/2]).
+-export([start_ev/1,
+		 start_mgr/1,
+		 notify/2,
+		 list/1,
+		 on_got_damage/2,
+		 on_hit_damage/2]).
 
 
 %% start_mgr/1
@@ -53,8 +58,27 @@ start_mgr(Unit) when is_record(Unit, b_unit) ->
 	gen_server:start_link(?MODULE, Unit, []).
 
 
+%% notify/2
+%% ====================================================================
+%% асинхронное уведомление баффов
 notify(Unit, Event) ->
 	?CAST(Unit, {notify, Event}).
+
+
+%% list/1
+%% ====================================================================
+%% возвращает список запущенных баффов
+list(Unit) ->
+	?CALL(Unit, list).
+
+
+on_got_damage(Unit, HitResult) ->
+	?CALL(Unit, {on_got_damage, HitResult}).
+
+
+on_hit_damage(Unit, HitResult) ->
+	?CALL(Unit, {on_hit_damage, HitResult}).
+
 
 %% ====================================================================
 %% Behavioural functions
@@ -109,6 +133,32 @@ init(Unit) ->
 	Timeout :: non_neg_integer() | infinity,
 	Reason :: term().
 %% ====================================================================
+
+%% возвращает список активных баффов юнита
+handle_call(list, _From, State) ->
+	List = gen_event:which_handlers(State#state.event_mgr),
+	{reply, List, State};
+
+
+% обработка получения урона юнитом
+handle_call({on_got_damage, HitResult}, _From, State) ->
+	Buffs = gen_event:which_handlers(State#state.event_mgr),
+	HitResult0 = lists:foldl(fun(Buff, HitResult0) ->
+						gen_event:call(State#state.event_mgr, Buff, {on_got_damage, HitResult0})
+				end, HitResult, Buffs),
+	{reply, HitResult0, State};
+
+
+% обработка нанесения урона юнитом
+handle_call({on_hit_damage, HitResult}, _From, State) ->
+	Buffs = gen_event:which_handlers(State#state.event_mgr),
+	HitResult0 = lists:foldl(fun(Buff) ->
+						gen_event:call(State#state.event_mgr, Buff, {on_hit_damage, HitResult})
+				end, HitResult, Buffs),
+	{reply, HitResult0, State};
+
+
+%% unknown request
 handle_call(_Request, _From, State) ->
 	{reply, ok, State}.
 

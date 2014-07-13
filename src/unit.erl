@@ -298,8 +298,9 @@ handle_call({hit, HitsList, Block}, _, Unit) ->
 handle_call({got_damage, Attacker, HitResult, From}, _, Unit) ->
 	?DBG("Got Damage ~p~n", [HitResult]),
 	%% считаем что получилось
-	%% @todo обработка приемов на снижение урона (призрачки, щиты и тд)
-	Damage   = HitResult#b_hit_result.damage,
+	HitResult0 = buff_mgr:on_got_damage(Unit, HitResult),
+	?DBG("Got real Damage ~p~n", [HitResult0]),
+	Damage   = HitResult0#b_hit_result.damage,
 
 	User     = ?user(Unit),
 	Vitality = ?vitality(User),
@@ -324,6 +325,7 @@ handle_call({got_damage, Attacker, HitResult, From}, _, Unit) ->
 handle_call({hit_damage, Defendant, HitResult, _From}, _, Unit) ->
 	?DBG("Hit Damage ~p~n", [HitResult]),
 
+	buff_mgr:on_hit_damage(Unit, HitResult),
 	Damage = HitResult#b_hit_result.damage,
 
 	%% считаем полученные тактики

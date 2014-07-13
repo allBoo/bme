@@ -145,7 +145,8 @@ get1() ->
 				 #u_buff{id = bonus_dex_25},
 				 #u_buff{id = bonus_intel_125},
 				 #u_buff{id = bonus_wisd_75},
-				 #u_buff{id = bonus_spir_50}]
+				 #u_buff{id = bonus_spir_50},
+				 #u_buff{id = block_fullshield}]
 	}.
 
 
