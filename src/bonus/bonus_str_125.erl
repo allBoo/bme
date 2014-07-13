@@ -17,16 +17,22 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([new/1, on_unit_state_change/2, on_start/1, on_end/1]).
+-export([new/1, on_unit_state_change/2]).
 
 
 new(Buff) ->
 	?DBG("Start bonus_str_125 module~n", []),
 	{ok, Buff#buff{
 			id   = bonus_str_125,
+			name = <<"Чудовищная Сила"/utf8>>,
 			type = bonus,
 			time = infinity,
-			charges = undefined
+			charges = undefined,
+			value = [{'user.damage.base.n', 10},
+					 {'user.dpower.general', 25},
+					 {'user.vitality.maxhp', 50},
+					 {'user.mfs.ucrit', 75},
+					 {'user.mfs.udodge', 75}]
 		}}.
 
 
@@ -46,25 +52,6 @@ on_unit_state_change({'user.stats.str', _}, Buff) ->
 on_unit_state_change(_, Buff) ->
 	{ok, Buff}.
 
-
-on_start(Buff) ->
-	%Мф. против критического удара (%): +75
-	%Мф. против увертывания (%): +75
-	unit:increase_state(Buff#buff.unit, [{'user.damage.base.n', 10},
-										 {'user.dpower.general', 25},
-										 {'user.vitality.maxhp', 50},
-										 {'user.mfs.ucrit', 75},
-										 {'user.mfs.udodge', 75}]),
-	{ok, Buff}.
-
-
-on_end(Buff) ->
-	unit:reduce_state(Buff#buff.unit, [{'user.damage.base.n', 10},
-										{'user.dpower.general', 25},
-										{'user.vitality.maxhp', 50},
-										{'user.mfs.ucrit', 75},
-										{'user.mfs.udodge', 75}]),
-	{ok, Buff}.
 
 
 %% ====================================================================

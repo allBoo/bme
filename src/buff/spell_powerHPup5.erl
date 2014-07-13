@@ -17,26 +17,17 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([new/1, on_start/1, on_end/1]).
+-export([new/1]).
 
 
 new(Buff) ->
+	HPValue = case Buff#buff.value of undefined -> get_value(Buff); Val -> Val end,
 	{ok, Buff#buff{
 			type = effect,
 			name = <<"Жажда жизни +5"/utf8>>,
 			charges = gen_buff:calc_charges(Buff#buff.time),
-			value = case Buff#buff.value of undefined -> get_value(Buff); Val -> Val end
+			value = [{'user.vitality.maxhp', HPValue}]
 		}}.
-
-
-on_start(Buff) ->
-	unit:increase_state(Buff#buff.unit, [{'user.vitality.maxhp', Buff#buff.value}]),
-	{ok, Buff}.
-
-
-on_end(Buff) ->
-	unit:reduce_state(Buff#buff.unit, [{'user.vitality.maxhp', Buff#buff.value}]),
-	{ok, Buff}.
 
 
 %% ====================================================================

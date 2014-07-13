@@ -17,16 +17,19 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([new/1, on_unit_state_change/2, on_start/1, on_end/1]).
+-export([new/1, on_unit_state_change/2]).
 
 
 new(Buff) ->
 	?DBG("Start bonus_str_75 module~n", []),
 	{ok, Buff#buff{
 			id   = bonus_str_75,
+			name = <<"Чудовищная Сила"/utf8>>,
 			type = bonus,
 			time = infinity,
-			charges = undefined
+			charges = undefined,
+			value = [{'user.dpower.general', 15},
+					 {'user.vitality.maxhp', 50}]
 		}}.
 
 
@@ -44,18 +47,6 @@ on_unit_state_change({'user.stats.str', _}, Buff) ->
 
 
 on_unit_state_change(_, Buff) ->
-	{ok, Buff}.
-
-
-on_start(Buff) ->
-	unit:increase_state(Buff#buff.unit, [{'user.dpower.general', 15},
-										 {'user.vitality.maxhp', 50}]),
-	{ok, Buff}.
-
-
-on_end(Buff) ->
-	unit:reduce_state(Buff#buff.unit, [{'user.dpower.general', 15},
-										{'user.vitality.maxhp', 50}]),
 	{ok, Buff}.
 
 

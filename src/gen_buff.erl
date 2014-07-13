@@ -20,6 +20,8 @@
 -define(default(X1, X2), case X1 of undefined -> X2; _ -> X1 end).
 -define(callback(M, F, State), case is_callable(F, State) of true  -> M:F(State#state.buff); false -> {ok, State#state.buff} end).
 -define(callback(M, F, Args, State), case is_callable(F, State) of true  -> M:F(Args, State#state.buff); false -> {ok, State#state.buff} end).
+-define(result(R), case R of {ok, Buff0} -> {ok, #state{buff = Buff0}}; {error, Error} -> {error, Error}; _ -> {error, undef} end).
+
 
 %% ====================================================================
 %% API functions
@@ -35,10 +37,10 @@
 %-callback on_swap_done(Buff0 :: #buff{}) -> Buff ::#buff{}.
 
 %% ф-я вызывается при начале действия эффекта
--callback on_start(Buff0 :: #buff{}) -> Buff ::#buff{}.
+%-callback on_start(Buff0 :: #buff{}) -> Buff ::#buff{}.
 
 %% ф-я вызывается при завершении действия эффекта
--callback on_end(Buff0 :: #buff{}) -> Buff ::#buff{}.
+%-callback on_end(Buff0 :: #buff{}) -> Buff ::#buff{}.
 
 
 %% start_link/4
@@ -101,15 +103,9 @@ init({exists, Module, Buff}) ->
 init({Module, Buff}) ->
 	case Module:new(Buff) of
 		{ok, DefBuff} when is_record(DefBuff, buff) ->
-			case Module:on_start(DefBuff) of
-				{ok, Buff0} ->
-					CallBacks = Module:module_info(exports),
-					{ok, #state{mod = Module, callbacks = CallBacks, buff = Buff0}};
-				{error, Error} ->
-					{error, Error};
-				_ ->
-					{error, undef}
-			end;
+			CallBacks = Module:module_info(exports),
+			State = #state{mod = Module, callbacks = CallBacks, buff = DefBuff},
+			call_on_start(State);
 		{error, Error} ->
 			{error, Error};
 		_ ->
@@ -209,14 +205,14 @@ handle_info(_Info, State) ->
 %% ====================================================================
 
 %% завершение действия баффа
-terminate(remove_handler, #state{mod = Module, buff = Buff} = _State) ->
-	?DBG("Terminate buff ~p~n", [Module]),
-	Module:on_end(Buff),
+terminate(remove_handler, State) ->
+	?DBG("Terminate buff ~p~n", [State#state.mod]),
+	call_on_end(State),
 	ok;
 
-terminate(swap, #state{mod = Module, buff = Buff} = _State) ->
-	?DBG("Swap buff ~p~n", [Module]),
-	{ok, Buff1} = Module:on_end(Buff),
+terminate(swap, State) ->
+	?DBG("Swap buff ~p~n", [State#state.mod]),
+	{ok, Buff1} = call_on_end(State),
 	Buff1;
 
 terminate(_Arg, _State) ->
@@ -236,6 +232,33 @@ code_change(_OldVsn, State, _Extra) ->
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
+
+call_on_start(#state{mod = Module, buff = Buff} = State) ->
+	R = case is_callable(on_start, State) of
+		true  -> Module:on_start(Buff);
+		false -> do_on_start(Buff)
+	end,
+	?result(R).
+
+call_on_end(#state{mod = Module, buff = Buff} = State) ->
+	R = case is_callable(on_end, State) of
+		true  -> Module:on_end(Buff);
+		false -> do_on_end(Buff)
+	end,
+	?result(R).
+
+do_on_start(Buff) when is_list(Buff#buff.value) ->
+	unit:increase_state(Buff#buff.unit, Buff#buff.value),
+	{ok, Buff};
+do_on_start(_) ->
+	{error, undef}.
+
+do_on_end(Buff) when is_list(Buff#buff.value) ->
+	unit:reduce_state(Buff#buff.unit, Buff#buff.value),
+	{ok, Buff};
+do_on_end(_) ->
+	{error, undef}.
+
 
 decrease_charges(Buff) ->
 	case Buff#buff.charges of
