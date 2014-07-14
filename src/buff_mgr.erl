@@ -219,6 +219,7 @@ handle_call(_Request, _From, State) ->
 %% ====================================================================
 
 handle_cast({notify, Event}, State) ->
+	?DBG("NOTYFY ~p~n", [Event]),
 	gen_event:notify(State#state.event_mgr, Event),
 	{noreply, State};
 

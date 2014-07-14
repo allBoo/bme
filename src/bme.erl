@@ -21,6 +21,7 @@
 %% API functions
 %% ====================================================================
 -export([start_haot/3,
+		 start_battle/4,
 		 character_attack/2,
 		 finish_battle/1]).
 
@@ -36,6 +37,10 @@ start_link() ->
 		  Result :: {ok, Id :: integer(), UsersIds :: [integer()]} | {error, Reason :: string()}.
 start_haot(UsersIds, City, Options) ->
 	call({haot, UsersIds, City, Options}).
+
+
+start_battle(LeftTeam, RightTeam, City, Options) ->
+	call({battle, LeftTeam, RightTeam, City, Options}).
 
 %% character_attack/2
 %% ====================================================================
@@ -138,6 +143,27 @@ handle_call({haot, UsersIds, City, Options}, _From, State) ->
 	end,
 	{reply, Res, State};
 
+
+%% запуск физического поединка
+handle_call({battle, LeftTeamIds, RightTeamIds, City, Options}, _From, State) ->
+	Properties = proplists:unfold(Options),
+	LeftTeamUsers  = user_helper:get(LeftTeamIds),
+	RightTeamUsers = user_helper:get(RightTeamIds),
+	Teams = battle_helper:create_teams([LeftTeamUsers, RightTeamUsers]),
+	FirstUser = lists:nth(1, LeftTeamUsers),
+	%% говорим супервайзеру запустить новый бой
+	Res = battles_sup:start_battle(#battle{id = 0,
+									 type = battle,
+									 blood = proplists:get_bool(blood, Properties),
+									 city = City,
+									 room = FirstUser#user.city,
+									 timeout = proplists:get_value(timeout, Properties, 5),
+									 teams = Teams
+									}),
+	{reply, Res, State};
+
+
+%% unknown request
 handle_call(_, _, State) ->
 	{reply, ?ERROR_WRONG_CALL, State}.
 
