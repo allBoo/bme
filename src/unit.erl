@@ -40,11 +40,11 @@
 		 set_opponents/2,
 		 hit/3,
 		 hited/2,
+		 magic_damage/2,
 		 magic_damage/3,
-		 magic_damage/4,
-		 got_damage/4,
-		 hit_damage/4,
-		 avoid_damage/4,
+		 got_damage/3,
+		 hit_damage/3,
+		 avoid_damage/3,
 		 damage/2,
 		 swap_done/2,
 		 kill/1,
@@ -113,35 +113,35 @@ damage(UserId, Damage) when is_record(Damage, b_damage) ->
 	?CALL(UserId, {damage, Damage}).
 
 
-%% magic_damage/3, magic_damage/4
+%% magic_damage/2, magic_damage/3
 %% ====================================================================
 %% получение урона магией
-magic_damage(UserId, Attacker, MagicAttack) ->
-	magic_damage(UserId, Attacker, MagicAttack, undefined).
+magic_damage(UserId, MagicAttack) ->
+	magic_damage(UserId, MagicAttack, undefined).
 
-magic_damage(UserId, Attacker, MagicAttack, From) ->
-	?CAST(UserId, {magic_damage, Attacker, MagicAttack, From}).
+magic_damage(UserId, MagicAttack, From) ->
+	?CAST(UserId, {magic_damage, MagicAttack, From}).
 
 
-%% got_damage/4
+%% got_damage/3
 %% ====================================================================
 %% получение урона
-got_damage(UserId, Attacker, HitResult, From) ->
-	?CALL(UserId, {got_damage, Attacker, HitResult, From}).
+got_damage(UserId, HitResult, From) ->
+	?CALL(UserId, {got_damage, HitResult, From}).
 
 
-%% hit_damage/4
+%% hit_damage/3
 %% ====================================================================
 %% нанесение урона
-hit_damage(UserId, Defendant, HitResult, From) ->
-	?CALL(UserId, {hit_damage, Defendant, HitResult, From}).
+hit_damage(UserId, HitResult, From) ->
+	?CALL(UserId, {hit_damage, HitResult, From}).
 
 
-%% avoid_damage/4
+%% avoid_damage/3
 %% ====================================================================
 %% избегание урона
-avoid_damage(UserId, Attacker, HitResult, From) ->
-	?CALL(UserId, {avoid_damage, Attacker, HitResult, From}).
+avoid_damage(UserId, HitResult, From) ->
+	?CALL(UserId, {avoid_damage, HitResult, From}).
 
 
 %% swap_done/2
@@ -183,7 +183,11 @@ reduce_state(UserId, Params) ->
 %% ====================================================================
 %% тестирование падения юнита
 crash(UserId) ->
-	?CALL(UserId, crash).
+	U1 = unit:get_state(1),
+	U2 = unit:get_state(2),
+	Hit = #b_hit_result{hit = head, blocks=[head, torso], attacker=U2, defendant = U1, damage=1000, damage_type=crush, weapon_type=staff},
+	unit:got_damage(1, Hit, undefined).
+	%?CALL(UserId, crash).
 
 
 %% ====================================================================
@@ -307,11 +311,11 @@ handle_call({hit, HitsList, Block}, _, Unit) ->
 
 
 %% получение урона
-handle_call({got_damage, Attacker, HitResult0, From}, _, Unit) ->
-	?DBG("Got Damage ~p~n", [HitResult0]),
+handle_call({got_damage, HitResult0, From}, _, Unit) ->
+	?DBG("Got Damage ~p~n", [HitResult0#b_hit_result.damage]),
 	%% считаем что получилось
-	HitResult = buff_mgr:on_got_damage(?userid(Unit), HitResult0),
-	?DBG("Got real Damage ~p~n", [HitResult]),
+	HitResult = buff_mgr:on_before_got_damage(?userid(Unit), HitResult0),
+	?DBG("Got real Damage ~p~n", [HitResult#b_hit_result.damage]),
 	Damage = case HitResult of
 		H when is_record(H, b_hit_result)   -> H#b_hit_result.damage;
 		M when is_record(M, b_magic_attack) -> M#b_magic_attack.damage
@@ -327,22 +331,24 @@ handle_call({got_damage, Attacker, HitResult0, From}, _, Unit) ->
 	%% пишем в лог получение урона
 	case HitResult of
 		H0 when is_record(H0, b_hit_result) ->
-			Log = #log_hit{attacker = ?log_unit(Attacker), defendant = ?log_unit(DamagedUnit),
+			Log = #log_hit{attacker = ?log_unit(HitResult#b_hit_result.attacker), defendant = ?log_unit(DamagedUnit),
 				   hit_result = H0},
 			battle_log:hit(Unit#b_unit.battle_id, From, Log);
 		M0 when is_record(M0, b_magic_attack) ->
-			Log = #log_magic{attacker = ?log_unit(Attacker), defendant = ?log_unit(DamagedUnit),
+			Log = #log_magic{attacker = ?log_unit(HitResult#b_hit_result.attacker), defendant = ?log_unit(DamagedUnit),
 				   attack_result = M0},
 			battle_log:magic(Unit#b_unit.battle_id, From, Log)
 	end,
-	%battle_log:damage(DamagedUnit#b_unit.battle_id, ?log_unit(DamagedUnit)),
+
+	%% ответный урон
+	buff_mgr:on_after_got_damage(?userid(Unit), HitResult),
 
 	{reply, {ok, Damage},  DamagedUnit};
 
 
 %% нанесение урона
-handle_call({hit_damage, Defendant, HitResult, _From}, _, Unit) ->
-	?DBG("Hit Damage ~p~n", [HitResult]),
+handle_call({hit_damage, HitResult, _From}, _, Unit) ->
+	?DBG("Hit Damage ~p~n", [HitResult#b_hit_result.damage]),
 
 	buff_mgr:on_hit_damage(?userid(Unit), HitResult),
 	Damage = HitResult#b_hit_result.damage,
@@ -351,11 +357,11 @@ handle_call({hit_damage, Defendant, HitResult, _From}, _, Unit) ->
 	Tactics = add_tactics(Unit, #b_tactics{
 			attack  = ?TACTIC(HitResult#b_hit_result.hited and not(HitResult#b_hit_result.crit), HitResult#b_hit_result.weapon_twain, 3),
 			crit    = ?TACTIC(HitResult#b_hit_result.crit, HitResult#b_hit_result.weapon_twain or not(HitResult#b_hit_result.crit_break), 2),
-			hearts  = formula:get_hearts(Damage, ?user(Unit), ?user(Defendant))
+			hearts  = formula:get_hearts(Damage, ?user(Unit), ?user(HitResult#b_hit_result.defendant))
 		}),
 
 	%% кол-во экспы за удар
-	Exp = formula:get_exp_by_damage(Damage, ?user(Unit), ?user(Defendant)),
+	Exp = formula:get_exp_by_damage(Damage, ?user(Unit), ?user(HitResult#b_hit_result.defendant)),
 
 	DamagedUnit = Unit#b_unit{total_damaged = Unit#b_unit.total_damaged + Damage,
 							  exp = Unit#b_unit.exp + Exp,
@@ -365,8 +371,8 @@ handle_call({hit_damage, Defendant, HitResult, _From}, _, Unit) ->
 
 
 %% избегание урона
-handle_call({avoid_damage, Attacker, HitResult, From}, _, Unit) ->
-	?DBG("Avoid Damage ~p~n", [HitResult]),
+handle_call({avoid_damage, HitResult, From}, _, Unit) ->
+	?DBG("Avoid Damage ~p~n", [HitResult#b_hit_result.damage]),
 
 	%% считаем полученные тактики
 	Tactics = add_tactics(Unit, #b_tactics{
@@ -379,7 +385,7 @@ handle_call({avoid_damage, Attacker, HitResult, From}, _, Unit) ->
 	DamagedUnit = Unit#b_unit{tactics = Tactics},
 
 	%% пишем в лог избегание урона
-	Log = #log_miss{attacker = ?log_unit(Attacker), defendant = ?log_unit(DamagedUnit),
+	Log = #log_miss{attacker = ?log_unit(HitResult#b_hit_result.attacker), defendant = ?log_unit(DamagedUnit),
 				    hit_result = HitResult},
 	battle_log:hit(Unit#b_unit.battle_id, From, Log),
 
@@ -510,11 +516,11 @@ handle_cast({timeout_alarm, OpponentPid}, Unit) ->
 
 
 %% получение урона магией
-handle_cast({magic_damage, Attacker, MagicAttack0, From}, Unit) ->
-	?DBG("Got Magic Damage ~p~n", [MagicAttack0]),
+handle_cast({magic_damage, MagicAttack0, From}, Unit) ->
+	?DBG("Got Magic Damage ~p~n", [MagicAttack0#b_magic_attack.damage]),
 	%% считаем что получилось
-	MagicAttack = buff_mgr:on_got_damage(?userid(Unit), MagicAttack0),
-	?DBG("Got real Magic Damage ~p~n", [MagicAttack]),
+	MagicAttack = buff_mgr:on_before_got_damage(?userid(Unit), MagicAttack0),
+	?DBG("Got real Magic Damage ~p~n", [MagicAttack#b_magic_attack.damage]),
 	Damage = MagicAttack#b_magic_attack.damage,
 
 	User     = ?user(Unit),
@@ -525,9 +531,12 @@ handle_cast({magic_damage, Attacker, MagicAttack0, From}, Unit) ->
 							  total_lost = Unit#b_unit.total_lost + Damage},
 
 	%% пишем в лог получение урона
-	%Log = #log_magic{attacker = ?log_unit(Attacker), defendant = ?log_unit(DamagedUnit),
-	%	   attack_result = MagicAttack},
-	%battle_log:magic(Unit#b_unit.battle_id, From, Log),
+	%% @todo оверхед. в attack_result уже есть и аттакер и защитник
+	Log = #log_magic{attacker = ?log_unit(MagicAttack#b_magic_attack.attacker), defendant = ?log_unit(DamagedUnit),
+		   attack_result = MagicAttack},
+	battle_log:magic(Unit#b_unit.battle_id, From, Log),
+
+	buff_mgr:on_after_got_damage(?userid(Unit), MagicAttack),
 
 	%% @todo отложенная проверка на убийство
 	{noreply, DamagedUnit};
@@ -775,6 +784,8 @@ add_tactics(Unit, Delta) when is_record(Unit, b_unit),
 %% ====================================================================
 %% обработка конца размена
 do_swap_done(OpponentPid, Unit) ->
+	buff_mgr:notify(?userid(Unit), swap_done),
+
 	%% если у противника стоит флаг таймаута - сбросим его
 	Opponents = list_helper:keymap(OpponentPid,
 								   2,

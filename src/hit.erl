@@ -397,7 +397,8 @@ hits_queue(BattleId, [{AttackerPid, HitZone, AttackerBlock, DefendantPid, Defend
 	HitResult = #b_hit_result{
 		hit         = Hit,
 		blocks      = DefendantBlock,
-		attacker    = ?unitpid(Attacker),
+		attacker    = AttackerUnit,
+		defendant   = DefendantUnit,
 		damage_type = DamageType,
 		weapon_type = AttackerWeapon#u_weapon.type,
 		weapon_twain = AttackerWeapon#u_weapon.twain == true,
@@ -421,14 +422,14 @@ hits_queue(BattleId, [{AttackerPid, HitZone, AttackerBlock, DefendantPid, Defend
 			%% считаем урон для данного удара
 			Damage = formula:get_damage(Hit, DamageType, Crit, CritBreak, Attacker, AttackerWeapon, Defendant),
 
-			{ok, AttackerDamage} = unit:got_damage(DefendantPid, AttackerUnit, HitResult#b_hit_result{damage = Damage}, self()),
+			{ok, AttackerDamage} = unit:got_damage(DefendantPid, HitResult#b_hit_result{damage = Damage}, self()),
 
 			%% полученный результат сообщаем атакующему, сколько он реально нанес и кому
-			unit:hit_damage(AttackerPid, DefendantUnit, HitResult#b_hit_result{damage = AttackerDamage}, self());
+			unit:hit_damage(AttackerPid, HitResult#b_hit_result{damage = AttackerDamage}, self());
 
 		%% если удара не произошло, уведомляем об этом защищающегося
 		false ->
-			unit:avoid_damage(DefendantPid, AttackerUnit, HitResult, self())
+			unit:avoid_damage(DefendantPid, HitResult, self())
 	end,
 
 	%% если сработала контра, добавляем удар от защищающегося

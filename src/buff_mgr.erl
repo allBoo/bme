@@ -36,9 +36,14 @@
 %% ====================================================================
 -export([start_ev/1,
 		 start_mgr/1,
+		 apply/3,
+		 apply/2,
 		 notify/2,
-		 list/1,
-		 on_got_damage/2,
+		 list/1]).
+
+%% callbacks
+-export([on_before_got_damage/2,
+		 on_after_got_damage/2,
 		 on_hit_damage/2]).
 
 
@@ -58,22 +63,39 @@ start_mgr(Unit) when is_record(Unit, b_unit) ->
 	gen_server:start_link(?MODULE, Unit, []).
 
 
+%% apply/3
+%% ====================================================================
+%% применение баффа на юнита
+apply(BuffMgr, Unit, Buff) when (is_record(Buff, u_buff) or is_record(Buff, buff)) ->
+	?CALL(BuffMgr, {apply, Unit, Buff}).
+
+
+apply(UnitId, Buff) when is_integer(UnitId),
+						 (is_record(Buff, u_buff) or is_record(Buff, buff)) ->
+	?CALL(UnitId, {apply, UnitId, Buff}).
+
+
 %% notify/2
 %% ====================================================================
 %% асинхронное уведомление баффов
-notify(Unit, Event) ->
-	?CAST(Unit, {notify, Event}).
+notify(BuffMgr, Event) ->
+	?CAST(BuffMgr, {notify, Event}).
 
 
 %% list/1
 %% ====================================================================
 %% возвращает список запущенных баффов
-list(Unit) ->
-	?CALL(Unit, list).
+list(BuffMgr) ->
+	?CALL(BuffMgr, list).
 
 
-on_got_damage(Unit, HitResult) ->
-	?CALL(Unit, {on_got_damage, HitResult}).
+%% callbacks
+on_before_got_damage(Unit, HitResult) ->
+	?CALL(Unit, {on_before_got_damage, HitResult}).
+
+
+on_after_got_damage(Unit, HitResult) ->
+	?CALL(Unit, {on_after_got_damage, HitResult}).
 
 
 on_hit_damage(Unit, HitResult) ->
@@ -134,17 +156,38 @@ init(Unit) ->
 	Reason :: term().
 %% ====================================================================
 
+%% наложение баффа на юнита
+handle_call({apply, UnitId, Buff}, From, State) when is_integer(UnitId) ->
+	case reg:find({unit, UnitId}) of
+		undefined -> {reply, ?ERROR_NOT_IN_BATTLE, State};
+		UnitPid   -> handle_call({apply, UnitPid, Buff}, From, State)
+	end;
+
+handle_call({apply, UnitPid, Buff}, _From, State) when is_pid(UnitPid) ->
+	R = apply_buff(State#state.event_mgr, UnitPid, Buff),
+	{reply, R, State};
+
+
 %% возвращает список активных баффов юнита
 handle_call(list, _From, State) ->
 	List = gen_event:which_handlers(State#state.event_mgr),
 	{reply, List, State};
 
 
-% обработка получения урона юнитом
-handle_call({on_got_damage, HitResult}, _From, State) ->
+% обработка перед получением урона юнитом
+handle_call({on_before_got_damage, HitResult}, _From, State) ->
 	Buffs = gen_event:which_handlers(State#state.event_mgr),
 	HitResult1 = lists:foldl(fun(Buff, HitResult0) ->
-						gen_event:call(State#state.event_mgr, Buff, {on_got_damage, HitResult0})
+						gen_event:call(State#state.event_mgr, Buff, {on_before_got_damage, HitResult0})
+				end, HitResult, Buffs),
+	{reply, HitResult1, State};
+
+
+% обработка после получения урона юнитом
+handle_call({on_after_got_damage, HitResult}, _From, State) ->
+	Buffs = gen_event:which_handlers(State#state.event_mgr),
+	HitResult1 = lists:foldl(fun(Buff, HitResult0) ->
+						gen_event:call(State#state.event_mgr, Buff, {on_after_got_damage, HitResult0})
 				end, HitResult, Buffs),
 	{reply, HitResult1, State};
 
@@ -239,11 +282,25 @@ code_change(_OldVsn, State, _Extra) ->
 
 %% apply_exists/3
 %% ====================================================================
-%% запуск процесса существующего баффа
+%% запуск существующего баффа
 apply_exists(Ev, UnitPid, Buff) when is_pid(Ev),
 									 is_record(Buff, u_buff) ->
+	apply_buff(Ev, UnitPid, Buff#u_buff{exists = true}).
+
+
+%% запуск нового баффа
+apply_buff(Ev, UnitPid, Buff) when is_pid(Ev),
+								   is_record(Buff, u_buff) ->
 	?DBG("Start buff ~p~n", [{Ev, UnitPid, Buff}]),
 	gen_buff:start_link(Ev, Buff#u_buff.id, UnitPid, [{time, Buff#u_buff.time},
 													  {value, Buff#u_buff.value},
 													  {level, Buff#u_buff.level},
-													  exists]).
+													  {exists, Buff#u_buff.exists}]);
+
+apply_buff(Ev, UnitPid, Buff) when is_pid(Ev),
+								   is_record(Buff, buff) ->
+	?DBG("Start buff ~p~n", [{Ev, UnitPid, Buff}]),
+	gen_buff:start_link(Ev, Buff#u_buff.id, UnitPid, [{time, Buff#buff.time},
+													  {value, Buff#buff.value},
+													  {level, Buff#buff.level}]).
+

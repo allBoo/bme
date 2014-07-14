@@ -19,7 +19,7 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([new/1, on_unit_got_damage/2]).
+-export([new/1, on_unit_before_damage/2]).
 
 
 new(Buff) ->
@@ -34,11 +34,11 @@ new(Buff) ->
 		}}.
 
 
-on_unit_got_damage(HitResult, Buff) when is_record(HitResult, b_hit_result) ->
+on_unit_before_damage(HitResult, Buff) when is_record(HitResult, b_hit_result) ->
 	Damage = round(HitResult#b_hit_result.damage / 4),
 	{ok, HitResult#b_hit_result{damage = Damage}, Buff};
 
-on_unit_got_damage(HitResult, Buff) when is_record(HitResult, b_magic_attack) ->
+on_unit_before_damage(HitResult, Buff) when is_record(HitResult, b_magic_attack) ->
 	Damage = round(HitResult#b_magic_attack.damage / 4),
 	{ok, HitResult#b_magic_attack{damage = Damage}, Buff}.
 

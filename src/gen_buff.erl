@@ -174,35 +174,18 @@ handle_event(_Event, State) ->
 %% ====================================================================
 
 %% обработка баффов на получение урона юнитом
-handle_call({on_got_damage, HitResult}, #state{mod = Module} = State) ->
-	case ?callback(Module, on_unit_got_damage, HitResult, State) of
-		{ok, HitResult1, Buff1} ->
-			{ok, HitResult1, State#state{buff = Buff1}};
-		{ok, Buff1} ->
-			{ok, HitResult, State#state{buff = Buff1}};
-		{swap, HitResult1, Module1, Buff1} ->
-			{swap_handler, HitResult1, swap, State#state{buff = Buff1}, gen_buff, Module1};
-		{remove_handler, HitResult1} ->
-			{remove_handler, HitResult1};
-		_ ->
-			{remove_handler, HitResult}
-	end;
+handle_call({on_before_got_damage, HitResult}, State) ->
+	apply_hit_callback(on_unit_before_damage, HitResult, State);
+
+
+%% обработка баффов на получение урона юнитом
+handle_call({on_after_got_damage, HitResult}, State) ->
+	apply_hit_callback(on_unit_after_damage, HitResult, State);
 
 
 %% обработка баффов на нанесение урона юнитом
-handle_call({on_hit_damage, HitResult}, #state{mod = Module} = State) ->
-	case ?callback(Module, on_unit_hit_damage, HitResult, State) of
-		{ok, HitResult1, Buff1} ->
-			{ok, HitResult1, State#state{buff = Buff1}};
-		{ok, Buff1} ->
-			{ok, HitResult, State#state{buff = Buff1}};
-		{swap, HitResult1, Module1, Buff1} ->
-			{swap_handler, HitResult1, swap, State#state{buff = Buff1}, gen_buff, Module1};
-		{remove_handler, HitResult1} ->
-			{remove_handler, HitResult1};
-		_ ->
-			{remove_handler, HitResult}
-	end;
+handle_call({on_hit_damage, HitResult}, State) ->
+	apply_hit_callback(on_unit_hit_damage, HitResult, State);
 
 
 %% unknown request
@@ -312,4 +295,19 @@ is_callable(Fn, State) ->
 	case lists:keyfind(Fn, 1, State#state.callbacks) of
 		false -> false;
 		_     -> true
+	end.
+
+
+apply_hit_callback(Callback, HitResult, #state{mod = Module} = State) ->
+	case ?callback(Module, Callback, HitResult, State) of
+		{ok, HitResult1, Buff1} ->
+			{ok, HitResult1, State#state{buff = Buff1}};
+		{ok, Buff1} ->
+			{ok, HitResult, State#state{buff = Buff1}};
+		{swap, HitResult1, Module1, Buff1} ->
+			{swap_handler, HitResult1, swap, State#state{buff = Buff1}, gen_buff, Module1};
+		{remove_handler, HitResult1} ->
+			{remove_handler, HitResult1};
+		_ ->
+			{remove_handler, HitResult}
 	end.

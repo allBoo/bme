@@ -41,6 +41,7 @@
 -record(b_hit_result, {hit,
                        blocks,
                        attacker,
+                       defendant,
                        damage,
                        damage_type,
                        weapon_type,
@@ -60,7 +61,10 @@
 %% результат удара
 -record(b_magic_attack, {damage,
                          damage_type,
-                         buff
+                         buff,
+                         attacker,
+                         defendant,
+                         transaction
         }).
 
 

@@ -18,7 +18,7 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([new/1, on_unit_got_damage/2]).
+-export([new/1, on_unit_before_damage/2]).
 
 
 new(Buff) ->
@@ -33,15 +33,15 @@ new(Buff) ->
 		}}.
 
 
-on_unit_got_damage(HitResult, _Buff) when is_record(HitResult, b_hit_result) ->
+on_unit_before_damage(HitResult, _Buff) when is_record(HitResult, b_hit_result) ->
 	Damage = min(HitResult#b_hit_result.damage, 1),
 	{remove_handler, HitResult#b_hit_result{damage = Damage}};
 
-on_unit_got_damage(HitResult, _Buff) when is_record(HitResult, b_magic_attack) ->
+on_unit_before_damage(HitResult, _Buff) when is_record(HitResult, b_magic_attack) ->
 	Damage = min(HitResult#b_magic_attack.damage, 1),
 	{remove_handler, HitResult#b_magic_attack{damage = Damage}};
 
-on_unit_got_damage(HitResult, _Buff) ->
+on_unit_before_damage(HitResult, _Buff) ->
 	{remove_handler, HitResult}.
 
 %% ====================================================================

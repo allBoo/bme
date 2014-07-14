@@ -64,6 +64,9 @@
 %% X1 убит!
 -define(log_killed_tpl, ?log_start ++ ?log_date ++ ?log_unit1 ++ " ~ts!" ++ ?log_end).
 
+%% X утратил здоровье от "Иней: Обморожение". -13 [1280/3122]
+-define(log_magic1, ?log_start ++ ?log_date ++ ?log_unit ++ " утратил здоровье от <b>\"~ts\"</b> " ++ ?log_damage ++ ?log_end).
+
 
 -record(log_hit_p1, {
 	male = [<<"не контролировал ситуацию"/utf8>>, <<"обманулся"/utf8>>, <<"старался провести удар"/utf8>>, <<"думал о <вырезано цензурой>"/utf8>>,

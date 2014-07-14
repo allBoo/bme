@@ -194,7 +194,8 @@
 -record(u_buff, {id :: atom(),
                  value :: any(),
                  time :: non_neg_integer() | infinity,
-                 level :: non_neg_integer()
+                 level :: non_neg_integer(),
+                 exists = false :: boolean()
         }).
 
 %% информация о персонаже

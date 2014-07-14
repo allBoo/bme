@@ -210,6 +210,17 @@ handle_call({hit, HitLog}, {FromPid, _}, State) ->
 	{reply, R, State};
 
 
+%% запись строки каста в лог
+handle_call({magic, MagicLog}, {FromPid, _}, State) ->
+	TransactionId = {log_transaction, FromPid},
+	R = case gproc:lookup_local_name(TransactionId) of
+			%% если транзакция не запущена, пишем локально
+			undefined -> write(MagicLog, State#state.file);
+			_ -> write(MagicLog, TransactionId, State#state.file)
+		end,
+	{reply, R, State};
+
+
 %% запись об убийстве юнита
 handle_call({killed, Unit}, _From, State) ->
 	write({killed, Unit}, State#state.file),
@@ -247,6 +258,17 @@ handle_cast({hit, FromPid, HitLog}, State) ->
 		%% если транзакция не запущена, пишем локально
 		undefined -> write(HitLog, State#state.file);
 		_ -> write(HitLog, TransactionId, State#state.file)
+	end,
+	{noreply, State};
+
+
+%% запись строки удара в лог
+handle_cast({magic, FromPid, MagicLog}, State) ->
+	TransactionId = {log_transaction, FromPid},
+	case gproc:lookup_local_name(TransactionId) of
+		%% если транзакция не запущена, пишем локально
+		undefined -> write(MagicLog, State#state.file);
+		_ -> write(MagicLog, TransactionId, State#state.file)
 	end,
 	{noreply, State};
 
@@ -600,6 +622,17 @@ write(HitLog, File) when is_record(HitLog, log_miss) ->
 						 [get_hit_p6(Log#b_hit_result.weapon_type), get_hit_p7(Log#b_hit_result.hit)]
 			 end,
 
+	io:fwrite(File, Template, Params),
+	ok;
+
+
+write(MagicLog, File) when is_record(MagicLog, log_magic) ->
+	A = (MagicLog#log_magic.attacker),
+	D = (MagicLog#log_magic.defendant),
+	M = (MagicLog#log_magic.attack_result),
+	B = (M#b_magic_attack.buff)#buff.name,
+	Template = ?log_magic1,
+	Params = [curtime(), D#log_unit.team, D#log_unit.name, B, A#log_unit.name, M#b_magic_attack.damage, D#log_unit.hp, D#log_unit.maxhp],
 	io:fwrite(File, Template, Params),
 	ok;
 

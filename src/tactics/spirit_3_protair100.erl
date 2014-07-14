@@ -18,7 +18,7 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([new/1, on_unit_got_damage/2]).
+-export([new/1, on_unit_before_damage/2]).
 
 
 new(Buff) ->
@@ -33,15 +33,15 @@ new(Buff) ->
 		}}.
 
 
-on_unit_got_damage(#b_hit_result{damage_type = air} = HitResult, Buff) ->
+on_unit_before_damage(#b_hit_result{damage_type = air} = HitResult, Buff) ->
 	Damage = round(HitResult#b_hit_result.damage / 2),
 	{ok, HitResult#b_hit_result{damage = Damage}, Buff};
 
-on_unit_got_damage(#b_magic_attack{damage_type = air} = HitResult, Buff) ->
+on_unit_before_damage(#b_magic_attack{damage_type = air} = HitResult, Buff) ->
 	Damage = round(HitResult#b_magic_attack.damage / 2),
 	{ok, HitResult#b_magic_attack{damage = Damage}, Buff};
 
-on_unit_got_damage(_, Buff) ->
+on_unit_before_damage(_, Buff) ->
 	{ok, Buff}.
 
 %% ====================================================================
