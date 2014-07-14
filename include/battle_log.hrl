@@ -23,6 +23,10 @@
 				  defendant  = #log_unit{},
 				  hit_result = #b_hit_result{}}).
 
+-record(log_magic, {attacker   = #log_unit{},
+				    defendant  = #log_unit{},
+				    attack_result = #b_magic_attack{}}).
+
 -record(log_miss, {attacker   = #log_unit{},
 				   defendant  = #log_unit{},
 				   hit_result = #b_hit_result{}}).

@@ -50,6 +50,7 @@ start_link(Ev, Module, Unit, Options) ->
 	Buff = #buff{
 		id      = Module,
 		unit    = Unit,
+		level   = proplists:get_value(level, Options),
 		owner   = proplists:get_value(owner, Options, Unit),
 		value   = proplists:get_value(value, Options),
 		time    = proplists:get_value(time, Options),

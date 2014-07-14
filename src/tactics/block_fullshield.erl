@@ -33,10 +33,16 @@ new(Buff) ->
 		}}.
 
 
-on_unit_got_damage(HitResult, _Buff) ->
+on_unit_got_damage(HitResult, _Buff) when is_record(HitResult, b_hit_result) ->
 	Damage = min(HitResult#b_hit_result.damage, 1),
-	{remove_handler, HitResult#b_hit_result{damage = Damage}}.
+	{remove_handler, HitResult#b_hit_result{damage = Damage}};
 
+on_unit_got_damage(HitResult, _Buff) when is_record(HitResult, b_magic_attack) ->
+	Damage = min(HitResult#b_magic_attack.damage, 1),
+	{remove_handler, HitResult#b_magic_attack{damage = Damage}};
+
+on_unit_got_damage(HitResult, _Buff) ->
+	{remove_handler, HitResult}.
 
 %% ====================================================================
 %% Internal functions

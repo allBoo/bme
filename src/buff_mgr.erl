@@ -143,19 +143,19 @@ handle_call(list, _From, State) ->
 % обработка получения урона юнитом
 handle_call({on_got_damage, HitResult}, _From, State) ->
 	Buffs = gen_event:which_handlers(State#state.event_mgr),
-	HitResult0 = lists:foldl(fun(Buff, HitResult0) ->
+	HitResult1 = lists:foldl(fun(Buff, HitResult0) ->
 						gen_event:call(State#state.event_mgr, Buff, {on_got_damage, HitResult0})
 				end, HitResult, Buffs),
-	{reply, HitResult0, State};
+	{reply, HitResult1, State};
 
 
 % обработка нанесения урона юнитом
 handle_call({on_hit_damage, HitResult}, _From, State) ->
 	Buffs = gen_event:which_handlers(State#state.event_mgr),
-	HitResult0 = lists:foldl(fun(Buff) ->
-						gen_event:call(State#state.event_mgr, Buff, {on_hit_damage, HitResult})
+	HitResult1 = lists:foldl(fun(Buff, HitResult0) ->
+						gen_event:call(State#state.event_mgr, Buff, {on_hit_damage, HitResult0})
 				end, HitResult, Buffs),
-	{reply, HitResult0, State};
+	{reply, HitResult1, State};
 
 
 %% unknown request
@@ -243,4 +243,7 @@ code_change(_OldVsn, State, _Extra) ->
 apply_exists(Ev, UnitPid, Buff) when is_pid(Ev),
 									 is_record(Buff, u_buff) ->
 	?DBG("Start buff ~p~n", [{Ev, UnitPid, Buff}]),
-	gen_buff:start_link(Ev, Buff#u_buff.id, UnitPid, [{time, Buff#u_buff.time}, {value, Buff#u_buff.value}, exists]).
+	gen_buff:start_link(Ev, Buff#u_buff.id, UnitPid, [{time, Buff#u_buff.time},
+													  {value, Buff#u_buff.value},
+													  {level, Buff#u_buff.level},
+													  exists]).

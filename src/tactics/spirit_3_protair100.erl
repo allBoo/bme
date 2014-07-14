@@ -37,6 +37,10 @@ on_unit_got_damage(#b_hit_result{damage_type = air} = HitResult, Buff) ->
 	Damage = round(HitResult#b_hit_result.damage / 2),
 	{ok, HitResult#b_hit_result{damage = Damage}, Buff};
 
+on_unit_got_damage(#b_magic_attack{damage_type = air} = HitResult, Buff) ->
+	Damage = round(HitResult#b_magic_attack.damage / 2),
+	{ok, HitResult#b_magic_attack{damage = Damage}, Buff};
+
 on_unit_got_damage(_, Buff) ->
 	{ok, Buff}.
 

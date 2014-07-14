@@ -397,6 +397,7 @@ hits_queue(BattleId, [{AttackerPid, HitZone, AttackerBlock, DefendantPid, Defend
 	HitResult = #b_hit_result{
 		hit         = Hit,
 		blocks      = DefendantBlock,
+		attacker    = ?unitpid(Attacker),
 		damage_type = DamageType,
 		weapon_type = AttackerWeapon#u_weapon.type,
 		weapon_twain = AttackerWeapon#u_weapon.twain == true,
@@ -407,7 +408,8 @@ hits_queue(BattleId, [{AttackerPid, HitZone, AttackerBlock, DefendantPid, Defend
 		counter     = Counter,
 		parry       = Parry,
 		block       = Block,
-		shield      = Shield
+		shield      = Shield,
+		transaction = self()
 	},
 
 	case Hited of

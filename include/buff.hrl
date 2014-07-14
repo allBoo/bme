@@ -15,6 +15,7 @@
 -record(buff, {id :: term(),                      %% идентификатор
                type :: pot | bonus,               %% тип баффа
                name = <<""/utf8>> :: bitstring(), %% текстовое название
+               level :: non_neg_integer(),        %% уровень баффа
                value :: any(),                    %% величина баффа
                uniq = false :: boolean(),         %% уникальное владение
                unit  :: pid(),                    %% юнит, на которого наложен бафф

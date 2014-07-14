@@ -41,6 +41,8 @@
 		 rollback/1,
 		 hit/2,
 		 hit/3,
+		 magic/2,
+		 magic/3,
 		 killed/2,
 		 damage/2,
 		 test/0]).
@@ -86,6 +88,20 @@ hit(BattleId, HitLog) ->
 %% запись удара в лог
 hit(BattleId, TransactionId, HitLog) ->
 	?CAST(BattleId, {hit, TransactionId, HitLog}).
+
+
+%% magic/2
+%% ====================================================================
+%% запись магического каста в лог
+magic(BattleId, MagicLog) ->
+	?CALL(BattleId, {magic, MagicLog}).
+
+
+%% magic/3
+%% ====================================================================
+%% запись магического каста в лог
+magic(BattleId, TransactionId, MagicLog) ->
+	?CAST(BattleId, {magic, TransactionId, MagicLog}).
 
 
 %% killed/2

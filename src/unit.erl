@@ -40,6 +40,8 @@
 		 set_opponents/2,
 		 hit/3,
 		 hited/2,
+		 magic_damage/3,
+		 magic_damage/4,
 		 got_damage/4,
 		 hit_damage/4,
 		 avoid_damage/4,
@@ -109,6 +111,16 @@ hited(UnitPid, {From, Hit}) when is_pid(UnitPid), is_pid(From), is_pid(Hit) ->
 %% нанесение урона юниту
 damage(UserId, Damage) when is_record(Damage, b_damage) ->
 	?CALL(UserId, {damage, Damage}).
+
+
+%% magic_damage/3, magic_damage/4
+%% ====================================================================
+%% получение урона магией
+magic_damage(UserId, Attacker, MagicAttack) ->
+	magic_damage(UserId, Attacker, MagicAttack, undefined).
+
+magic_damage(UserId, Attacker, MagicAttack, From) ->
+	?CAST(UserId, {magic_damage, Attacker, MagicAttack, From}).
 
 
 %% got_damage/4
@@ -205,7 +217,7 @@ init(Unit) when is_record(Unit, b_unit) ->
 				   {battle_unit, Unit#b_unit.battle_id},
 				   {battle, Unit#b_unit.battle_id}]),
 
-	{ok, Unit}.
+	{ok, Unit#b_unit{pid = self()}}.
 
 
 %% handle_call/3
@@ -295,27 +307,34 @@ handle_call({hit, HitsList, Block}, _, Unit) ->
 
 
 %% получение урона
-handle_call({got_damage, Attacker, HitResult, From}, _, Unit) ->
-	?DBG("Got Damage ~p~n", [HitResult]),
+handle_call({got_damage, Attacker, HitResult0, From}, _, Unit) ->
+	?DBG("Got Damage ~p~n", [HitResult0]),
 	%% считаем что получилось
-	HitResult0 = buff_mgr:on_got_damage(Unit, HitResult),
-	?DBG("Got real Damage ~p~n", [HitResult0]),
-	Damage   = HitResult0#b_hit_result.damage,
+	HitResult = buff_mgr:on_got_damage(?userid(Unit), HitResult0),
+	?DBG("Got real Damage ~p~n", [HitResult]),
+	Damage = case HitResult of
+		H when is_record(H, b_hit_result)   -> H#b_hit_result.damage;
+		M when is_record(M, b_magic_attack) -> M#b_magic_attack.damage
+	end,
 
 	User     = ?user(Unit),
 	Vitality = ?vitality(User),
-	Hp       = math:limit(?hp(User) - Damage, ?maxhp(User)),
-	Mana     = math:limit(?mana(User) - 0, ?maxmana(User)),
+	Hp       = math:limit(?hp(User) - Damage, 0, ?maxhp(User)),
 
-	DamagedUnit = Unit#b_unit{user = User#user{vitality = Vitality#u_vitality{hp = Hp, mana = Mana}},
-							  %total_damaged = Unit#b_unit.total_damaged + Damage#b_damage.damaged,
-							  %total_healed  = Unit#b_unit.total_healed  + Damage#b_damage.healed,
-							  total_lost    = Unit#b_unit.total_lost    + Damage},
+	DamagedUnit = Unit#b_unit{user = User#user{vitality = Vitality#u_vitality{hp = Hp}},
+							  total_lost = Unit#b_unit.total_lost + Damage},
 
 	%% пишем в лог получение урона
-	Log = #log_hit{attacker = ?log_unit(Attacker), defendant = ?log_unit(DamagedUnit),
-				   hit_result = HitResult},
-	battle_log:hit(Unit#b_unit.battle_id, From, Log),
+	case HitResult of
+		H0 when is_record(H0, b_hit_result) ->
+			Log = #log_hit{attacker = ?log_unit(Attacker), defendant = ?log_unit(DamagedUnit),
+				   hit_result = H0},
+			battle_log:hit(Unit#b_unit.battle_id, From, Log);
+		M0 when is_record(M0, b_magic_attack) ->
+			Log = #log_magic{attacker = ?log_unit(Attacker), defendant = ?log_unit(DamagedUnit),
+				   attack_result = M0},
+			battle_log:magic(Unit#b_unit.battle_id, From, Log)
+	end,
 	%battle_log:damage(DamagedUnit#b_unit.battle_id, ?log_unit(DamagedUnit)),
 
 	{reply, {ok, Damage},  DamagedUnit};
@@ -325,7 +344,7 @@ handle_call({got_damage, Attacker, HitResult, From}, _, Unit) ->
 handle_call({hit_damage, Defendant, HitResult, _From}, _, Unit) ->
 	?DBG("Hit Damage ~p~n", [HitResult]),
 
-	buff_mgr:on_hit_damage(Unit, HitResult),
+	buff_mgr:on_hit_damage(?userid(Unit), HitResult),
 	Damage = HitResult#b_hit_result.damage,
 
 	%% считаем полученные тактики
@@ -488,6 +507,30 @@ handle_cast({timeout_alarm, OpponentPid}, Unit) ->
 								   end),
 	?DBG("Timeout alert from ~p~n", [OpponentPid]),
 	{noreply, Unit#b_unit{opponents = Opponents}};
+
+
+%% получение урона магией
+handle_cast({magic_damage, Attacker, MagicAttack0, From}, Unit) ->
+	?DBG("Got Magic Damage ~p~n", [MagicAttack0]),
+	%% считаем что получилось
+	MagicAttack = buff_mgr:on_got_damage(?userid(Unit), MagicAttack0),
+	?DBG("Got real Magic Damage ~p~n", [MagicAttack]),
+	Damage = MagicAttack#b_magic_attack.damage,
+
+	User     = ?user(Unit),
+	Vitality = ?vitality(User),
+	Hp       = math:limit(?hp(User) - Damage, 0, ?maxhp(User)),
+
+	DamagedUnit = Unit#b_unit{user = User#user{vitality = Vitality#u_vitality{hp = Hp}},
+							  total_lost = Unit#b_unit.total_lost + Damage},
+
+	%% пишем в лог получение урона
+	%Log = #log_magic{attacker = ?log_unit(Attacker), defendant = ?log_unit(DamagedUnit),
+	%	   attack_result = MagicAttack},
+	%battle_log:magic(Unit#b_unit.battle_id, From, Log),
+
+	%% @todo отложенная проверка на убийство
+	{noreply, DamagedUnit};
 
 
 %% unknown request

@@ -193,7 +193,8 @@
 %% инфа о наложенных баффах
 -record(u_buff, {id :: atom(),
                  value :: any(),
-                 time :: non_neg_integer() | infinity
+                 time :: non_neg_integer() | infinity,
+                 level :: non_neg_integer()
         }).
 
 %% информация о персонаже

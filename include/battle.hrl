@@ -1,8 +1,9 @@
 %% -*- coding: utf-8 -*-
 
 -include_lib("user.hrl").
--define(user(User), (User#b_unit.user)).
--define(userid(User), (User#b_unit.user)#user.id).
+-define(user(Unit), (Unit#b_unit.user)).
+-define(userid(Unit), Unit#b_unit.id).
+-define(unitpid(Unit), Unit#b_unit.pid).
 
 -define(TACTIC(Cond), case Cond of true -> 1; false -> 0 end).
 -define(TACTIC(Cond1, Cond2, Val), case Cond1 of true -> (case Cond2 of true -> Val; false -> 1 end); false -> 0 end).
@@ -39,6 +40,7 @@
 %% результат удара
 -record(b_hit_result, {hit,
                        blocks,
+                       attacker,
                        damage,
                        damage_type,
                        weapon_type,
@@ -50,7 +52,17 @@
                        counter = false,
                        parry = false,
                        block = false,
-                       shield = false}).
+                       shield = false,
+                       transaction
+        }).
+
+
+%% результат удара
+-record(b_magic_attack, {damage,
+                         damage_type,
+                         buff
+        }).
+
 
 %% краткое представление оппонента в бою
 -record(b_opponent, {pid :: pid(),
@@ -68,6 +80,7 @@
 
 %% участник боя
 -record(b_unit, {id,
+                 pid,
                  name,
                  ai = false,
                  battle_id = 0,
