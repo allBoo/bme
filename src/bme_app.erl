@@ -20,7 +20,8 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-    bme_sup:start_link().
+	timer:start(),
+	bme_sup:start_link().
 
 stop(_State) ->
-    ok.
+	ok.
