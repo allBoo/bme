@@ -188,6 +188,11 @@ handle_call({on_hit_damage, HitResult}, State) ->
 	apply_hit_callback(on_unit_hit_damage, HitResult, State);
 
 
+%% обработка баффов на хилл юнита
+handle_call({on_before_got_heal, Heal}, State) ->
+	apply_hit_callback(on_unit_before_heal, Heal, State);
+
+
 %% unknown request
 handle_call(_Request, State) ->
 	{ok, ok, State}.

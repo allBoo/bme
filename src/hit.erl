@@ -422,10 +422,7 @@ hits_queue(BattleId, [{AttackerPid, HitZone, AttackerBlock, DefendantPid, Defend
 			%% считаем урон для данного удара
 			Damage = formula:get_damage(Hit, DamageType, Crit, CritBreak, Attacker, AttackerWeapon, Defendant),
 
-			{ok, AttackerDamage} = unit:got_damage(DefendantPid, HitResult#b_hit_result{damage = Damage}, self()),
-
-			%% полученный результат сообщаем атакующему, сколько он реально нанес и кому
-			unit:hit_damage(AttackerPid, HitResult#b_hit_result{damage = AttackerDamage}, self());
+			unit:got_damage(DefendantPid, HitResult#b_hit_result{damage = Damage}, self());
 
 		%% если удара не произошло, уведомляем об этом защищающегося
 		false ->

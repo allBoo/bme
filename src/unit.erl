@@ -197,9 +197,10 @@ reduce_state(UserId, Params) ->
 %% ====================================================================
 %% тестирование падения юнита
 crash(_UserId) ->
+	buff_mgr:apply(2, #u_buff{id=krit_blooddrink}),
 	U1 = unit:get_state(1),
 	U2 = unit:get_state(2),
-	Hit = #b_hit_result{hit = head, blocks=[head, torso], attacker=U2, defendant = U1, damage=1000, damage_type=crush, weapon_type=staff},
+	Hit = #b_hit_result{hit = head, blocks=[head, torso], attacker=U2, defendant = U1, damage=500, damage_type=crush, weapon_type=staff, crit = true},
 	unit:got_damage(1, Hit, undefined).
 	%?CALL(UserId, crash).
 
@@ -329,11 +330,11 @@ handle_call({got_damage, HitResult0, From}, _, Unit) ->
 	?DBG("Got Damage ~p~n", [HitResult0#b_hit_result.damage]),
 	%% считаем что получилось
 	HitResult = buff_mgr:on_before_got_damage(?userid(Unit), HitResult0),
-	?DBG("Got real Damage ~p~n", [HitResult#b_hit_result.damage]),
 	Damage = case HitResult of
 		H when is_record(H, b_hit_result)   -> H#b_hit_result.damage;
 		M when is_record(M, b_magic_attack) -> M#b_magic_attack.damage
 	end,
+	?DBG("Got real Damage ~p~n", [Damage]),
 
 	User     = ?user(Unit),
 	Vitality = ?vitality(User),
@@ -349,10 +350,17 @@ handle_call({got_damage, HitResult0, From}, _, Unit) ->
 				   hit_result = H0},
 			battle_log:hit(Unit#b_unit.battle_id, From, Log);
 		M0 when is_record(M0, b_magic_attack) ->
-			Log = #log_magic{attacker = ?log_unit(HitResult#b_hit_result.attacker), defendant = ?log_unit(DamagedUnit),
+			Log = #log_magic{attacker = ?log_unit(HitResult#b_magic_attack.attacker), defendant = ?log_unit(DamagedUnit),
 				   attack_result = M0},
 			battle_log:magic(Unit#b_unit.battle_id, From, Log)
 	end,
+
+	%% полученный результат сообщаем атакующему, сколько он реально нанес и кому
+	Attacker = case is_record(HitResult, b_hit_result) of
+					true  -> HitResult#b_hit_result.attacker;
+					false -> HitResult#b_magic_attack.attacker
+			   end,
+	unit:hit_damage(?unitpid(Attacker), HitResult, self()),
 
 	%% ответный урон
 	buff_mgr:on_after_got_damage(?userid(Unit), HitResult),
@@ -560,13 +568,15 @@ handle_cast({magic_damage, MagicAttack0, From}, Unit) ->
 handle_cast({got_heal, Heal0, TransactionId}, Unit) when ?spirit(Unit) > 0 ->
 	?DBG("Got Heal ~p~n", [Heal0#b_heal.value]),
 
+	?DBG("HEAL ~p~n", [erlang:get_stacktrace()]),
+
 	%% считаем что получилось
 	Heal = buff_mgr:on_before_got_heal(?userid(Unit), Heal0),
 	?DBG("Got real Heal ~p~n", [Heal#b_heal.value]),
 
 	User     = ?user(Unit),
 	Vitality = ?vitality(User),
-	Tactics  = ?tactics(User),
+	Tactics  = ?tactics(Unit),
 	Hp       = math:limit(?hp(User) + Heal#b_heal.value, 0, ?maxhp(User)),
 	Healed   = min(Hp - ?hp(User), Heal#b_heal.value),	%% реально отхиленное
 

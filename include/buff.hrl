@@ -21,5 +21,7 @@
                unit  :: pid(),                    %% юнит, на которого наложен бафф
                owner :: pid(),                    %% юнит, который наложил бафф
                time = infinity :: non_neg_integer() | infinity,  %% время действия
-               charges :: non_neg_integer()}).    %% кол-во зарядов
+               charges :: non_neg_integer(),      %% кол-во зарядов
+               state :: any()
+       }).
 
