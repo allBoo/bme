@@ -43,6 +43,8 @@
 		 hit/3,
 		 magic/2,
 		 magic/3,
+		 heal/2,
+		 heal/3,
 		 killed/2,
 		 damage/2,
 		 test/0]).
@@ -102,6 +104,20 @@ magic(BattleId, MagicLog) ->
 %% запись магического каста в лог
 magic(BattleId, TransactionId, MagicLog) ->
 	?CAST(BattleId, {magic, TransactionId, MagicLog}).
+
+
+%% heal/2
+%% ====================================================================
+%% запись хилла в лог
+heal(BattleId, HealLog) ->
+	?CALL(BattleId, {magic, HealLog}).
+
+
+%% heal/3
+%% ====================================================================
+%% запись хилла в лог
+heal(BattleId, TransactionId, HealLog) ->
+	?CAST(BattleId, {magic, TransactionId, HealLog}).
 
 
 %% killed/2
@@ -221,6 +237,17 @@ handle_call({magic, MagicLog}, {FromPid, _}, State) ->
 	{reply, R, State};
 
 
+%% запись строки хилла в лог
+handle_call({heal, HealLog}, {FromPid, _}, State) ->
+	TransactionId = {log_transaction, FromPid},
+	R = case gproc:lookup_local_name(TransactionId) of
+			%% если транзакция не запущена, пишем локально
+			undefined -> write(HealLog, State#state.file);
+			_ -> write(HealLog, TransactionId, State#state.file)
+		end,
+	{reply, R, State};
+
+
 %% запись об убийстве юнита
 handle_call({killed, Unit}, _From, State) ->
 	write({killed, Unit}, State#state.file),
@@ -269,6 +296,17 @@ handle_cast({magic, FromPid, MagicLog}, State) ->
 		%% если транзакция не запущена, пишем локально
 		undefined -> write(MagicLog, State#state.file);
 		_ -> write(MagicLog, TransactionId, State#state.file)
+	end,
+	{noreply, State};
+
+
+%% запись строки удара в лог
+handle_cast({heal, FromPid, HealLog}, State) ->
+	TransactionId = {log_transaction, FromPid},
+	case gproc:lookup_local_name(TransactionId) of
+		%% если транзакция не запущена, пишем локально
+		undefined -> write(HealLog, State#state.file);
+		_ -> write(HealLog, TransactionId, State#state.file)
 	end,
 	{noreply, State};
 
@@ -633,6 +671,35 @@ write(MagicLog, File) when is_record(MagicLog, log_magic) ->
 	B = (M#b_magic_attack.buff)#buff.name,
 	Template = ?log_magic1,
 	Params = [curtime(), D#log_unit.team, D#log_unit.name, B, A#log_unit.name, M#b_magic_attack.damage, D#log_unit.hp, D#log_unit.maxhp],
+	io:fwrite(File, Template, Params),
+	ok;
+
+
+write(HealLog, File) when is_record(HealLog, log_heal),
+						  is_record(HealLog#log_heal.buff, buff) ->
+	R = (HealLog#log_heal.recipient),
+	S = (HealLog#log_heal.sender),
+	V = (HealLog#log_heal.value),
+	B = (HealLog#log_heal.buff)#buff.name,
+	case HealLog#log_heal.empty_spirit of
+		true ->
+			Template = ?log_heal2,
+			Params = [curtime(), R#log_unit.team, R#log_unit.name, B, ?log_heal_empty_spirit, R#log_unit.hp, R#log_unit.maxhp];
+		false ->
+			Template = ?log_heal1,
+			Params = [curtime(), R#log_unit.team, R#log_unit.name, B, S#log_unit.name, V, R#log_unit.hp, R#log_unit.maxhp]
+	end,
+	io:fwrite(File, Template, Params),
+	ok;
+
+write(HealLog, File) when is_record(HealLog, log_heal),
+						  is_record(HealLog#log_heal.buff, spell) ->
+	R = (HealLog#log_heal.recipient),
+	S = (HealLog#log_heal.sender),
+	V = (HealLog#log_heal.value),
+	B = (HealLog#log_heal.buff)#spell.name,
+	Template = ?log_heal1,
+	Params = [curtime(), R#log_unit.team, R#log_unit.name, B, S#log_unit.name, V, R#log_unit.hp, R#log_unit.maxhp],
 	io:fwrite(File, Template, Params),
 	ok;
 

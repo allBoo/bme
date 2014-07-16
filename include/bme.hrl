@@ -12,8 +12,8 @@
 -include_lib("error.hrl").
 -include_lib("user.hrl").
 -include_lib("battle.hrl").
--include_lib("battle_log.hrl").
 -include_lib("buff.hrl").
+-include_lib("battle_log.hrl").
 
 %%% ====================================================================
 %%% Helper macro for declaring children of supervisor

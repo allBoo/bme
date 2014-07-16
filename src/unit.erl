@@ -40,11 +40,7 @@
 		 set_opponents/2,
 		 hit/3,
 		 hited/2,
-		 magic_damage/2,
-		 magic_damage/3,
-		 got_damage/3,
-		 hit_damage/3,
-		 avoid_damage/3,
+
 		 damage/2,
 		 swap_done/2,
 		 kill/1,
@@ -53,6 +49,15 @@
 		 reduce_state/2,
 		 change_state/3,
 		 crash/1]).
+
+%% damage anf heal
+-export([magic_damage/2,
+		 magic_damage/3,
+		 got_damage/3,
+		 hit_damage/3,
+		 avoid_damage/3,
+		 got_heal/2,
+		 got_heal/3]).
 
 %% start_link/1
 %% ====================================================================
@@ -119,30 +124,39 @@ damage(UserId, Damage) when is_record(Damage, b_damage) ->
 magic_damage(UserId, MagicAttack) ->
 	magic_damage(UserId, MagicAttack, undefined).
 
-magic_damage(UserId, MagicAttack, From) ->
-	?CAST(UserId, {magic_damage, MagicAttack, From}).
+magic_damage(UserId, MagicAttack, TransactionId) ->
+	?CAST(UserId, {magic_damage, MagicAttack, TransactionId}).
 
 
 %% got_damage/3
 %% ====================================================================
 %% получение урона
-got_damage(UserId, HitResult, From) ->
-	?CALL(UserId, {got_damage, HitResult, From}).
+got_damage(UserId, HitResult, TransactionId) ->
+	?CALL(UserId, {got_damage, HitResult, TransactionId}).
 
 
 %% hit_damage/3
 %% ====================================================================
 %% нанесение урона
-hit_damage(UserId, HitResult, From) ->
-	?CALL(UserId, {hit_damage, HitResult, From}).
+hit_damage(UserId, HitResult, TransactionId) ->
+	?CALL(UserId, {hit_damage, HitResult, TransactionId}).
 
 
 %% avoid_damage/3
 %% ====================================================================
 %% избегание урона
-avoid_damage(UserId, HitResult, From) ->
-	?CALL(UserId, {avoid_damage, HitResult, From}).
+avoid_damage(UserId, HitResult, TransactionId) ->
+	?CALL(UserId, {avoid_damage, HitResult, TransactionId}).
 
+
+%% got_heal/3, got_heal/3
+%% ====================================================================
+%% хилл
+got_heal(UserId, Heal) when is_record(Heal, b_heal) ->
+	?CAST(UserId, {got_heal, Heal, undefined}).
+
+got_heal(UserId, Heal, TransactionId) when is_record(Heal, b_heal) ->
+	?CAST(UserId, {got_heal, Heal, TransactionId}).
 
 %% swap_done/2
 %% ====================================================================
@@ -182,7 +196,7 @@ reduce_state(UserId, Params) ->
 %% crash/1
 %% ====================================================================
 %% тестирование падения юнита
-crash(UserId) ->
+crash(_UserId) ->
 	U1 = unit:get_state(1),
 	U2 = unit:get_state(2),
 	Hit = #b_hit_result{hit = head, blocks=[head, torso], attacker=U2, defendant = U1, damage=1000, damage_type=crush, weapon_type=staff},
@@ -542,9 +556,54 @@ handle_cast({magic_damage, MagicAttack0, From}, Unit) ->
 	{noreply, DamagedUnit};
 
 
+%% получение хилла
+handle_cast({got_heal, Heal0, TransactionId}, Unit) when ?spirit(Unit) > 0 ->
+	?DBG("Got Heal ~p~n", [Heal0#b_heal.value]),
+
+	%% считаем что получилось
+	Heal = buff_mgr:on_before_got_heal(?userid(Unit), Heal0),
+	?DBG("Got real Heal ~p~n", [Heal#b_heal.value]),
+
+	User     = ?user(Unit),
+	Vitality = ?vitality(User),
+	Tactics  = ?tactics(User),
+	Hp       = math:limit(?hp(User) + Heal#b_heal.value, 0, ?maxhp(User)),
+	Healed   = min(Hp - ?hp(User), Heal#b_heal.value),	%% реально отхиленное
+
+	Spirit = case Heal0#b_heal.use_spirit of
+				 true  -> ?spirit(Unit) - math:precision((Healed / ?maxhp(User)) * 10, 2);
+				 false -> ?spirit(Unit)
+			 end,
+
+	HealedUnit = Unit#b_unit{user = User#user{vitality = Vitality#u_vitality{hp = Hp}},
+							 total_healed = Unit#b_unit.total_healed + Healed,
+							 tactics = Tactics#b_tactics{spirit = Spirit}},
+
+	%% пишем в лог получение хилла
+	Log = #log_heal{recipient = ?log_unit(HealedUnit), sender = ?log_unit(Heal#b_heal.sender),
+					value = Heal#b_heal.value, buff = Heal#b_heal.buff},
+	battle_log:heal(Unit#b_unit.battle_id, TransactionId, Log),
+
+	{noreply, HealedUnit};
+
+%% если духа нет, но хилл от баффа, пишем в лог отхилл в 0
+handle_cast({got_heal, Heal, TransactionId}, Unit) when is_record(Heal#b_heal.buff, buff),
+														?spirit(Unit) =< 0 ->
+	Log = #log_heal{recipient = ?log_unit(Unit), sender = ?log_unit(Heal#b_heal.sender),
+					value = 0, buff = Heal#b_heal.buff, empty_spirit = true},
+	battle_log:heal(Unit#b_unit.battle_id, TransactionId, Log),
+
+	{noreply, Unit};
+
+%% если нет духа и хилл получается от заклятья, то сразу возвращаем ошибку
+handle_cast({got_heal, Heal, _TransactionId}, Unit) when is_record(Heal#b_heal.buff, spell),
+														 ?spirit(Unit) =< 0 ->
+	{noreply, Unit};
+
+
 %% unknown request
 handle_cast(_Msg, State) ->
-    {noreply, State}.
+	{noreply, State}.
 
 
 %% handle_info/2

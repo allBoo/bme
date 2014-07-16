@@ -31,6 +31,12 @@
 				   defendant  = #log_unit{},
 				   hit_result = #b_hit_result{}}).
 
+-record(log_heal, {recipient = #log_unit{},
+				   sender   = #log_unit{},
+				   value    = 0,
+				   buff     :: #buff{} | #spell{},
+				   empty_spirit = false}).
+
 
 -define(log_start, "<div class=\"logs_php_line\">").
 -define(log_end, "</div>~n").
@@ -43,7 +49,10 @@
 
 %% попадание по противнику
 -define(log_damage, "<b onmouseout=\"ghideshow();\" onmouseover=\"gfastshow('<b>~ts</b><br>')\">-~b</b> [~b/~b]").
+-define(log_damage_plus, "<b onmouseout=\"ghideshow();\" onmouseover=\"gfastshow('<b>~ts</b><br>')\">+~b</b> [~b/~b]").
+-define(log_damage_empty, "<b onmouseout=\"ghideshow();\" onmouseover=\"gfastshow('<b>~ts</b><br>')\">--</b> [~b/~b]").
 -define(log_crit_damage, "<b style=\"color: red\" onmouseout=\"ghideshow();\" onmouseover=\"gfastshow('<b>~ts</b><br>')\">-~b</b> [~b/~b]").
+
 
 %% X1 не контролировал ситуацию, и за это обезумевший X2, случайно, ткнул ножом по затылку противника -100 [100/1000]
 -define(log_hit_tpl1, ?log_start ++ ?log_date ++ ?log_hits ++ ?log_unit ++ " ~ts, ~ts ~ts " ++ ?log_unit ++ ", ~ts, ~ts ~ts ~ts ~ts. " ++ ?log_damage ++ ?log_end).
@@ -66,6 +75,11 @@
 
 %% X утратил здоровье от "Иней: Обморожение". -13 [1280/3122]
 -define(log_magic1, ?log_start ++ ?log_date ++ ?log_unit ++ " утратил здоровье от <b>\"~ts\"</b> " ++ ?log_damage ++ ?log_end).
+
+%% X восстановил здоровье от эффекта "Иней: Обморожение". +13 [1280/3122]
+-define(log_heal1, ?log_start ++ ?log_date ++ ?log_unit ++ " восстановил здоровье от эффекта <b>\"~ts\"</b> " ++ ?log_damage_plus ++ ?log_end).
+-define(log_heal2, ?log_start ++ ?log_date ++ ?log_unit ++ " восстановил здоровье от эффекта <b>\"~ts\"</b> " ++ ?log_damage_empty ++ ?log_end).
+-define(log_heal_empty_spirit, <<"нет силы духа, нет эффекта"/utf8>>).
 
 
 -record(log_hit_p1, {

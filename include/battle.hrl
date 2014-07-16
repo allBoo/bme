@@ -4,6 +4,8 @@
 -define(user(Unit), (Unit#b_unit.user)).
 -define(userid(Unit), Unit#b_unit.id).
 -define(unitpid(Unit), Unit#b_unit.pid).
+-define(tactics(Unit), (Unit#b_unit.tactics)).
+-define(spirit(Unit), (Unit#b_unit.tactics)#b_tactics.spirit).
 
 -define(TACTIC(Cond), case Cond of true -> 1; false -> 0 end).
 -define(TACTIC(Cond1, Cond2, Val), case Cond1 of true -> (case Cond2 of true -> Val; false -> 1 end); false -> 0 end).
@@ -66,6 +68,20 @@
                          defendant,
                          transaction
         }).
+
+
+%% результат хилла
+-record(b_heal, {value = 0,
+                 buff,
+                 use_spirit = true,
+                 sender,
+                 recipient,
+                 transaction
+        }).
+
+
+%% заклинание
+-record(spell, {name}).
 
 
 %% краткое представление оппонента в бою
