@@ -45,7 +45,8 @@
 -export([on_before_got_damage/2,
 		 on_after_got_damage/2,
 		 on_hit_damage/2,
-		 on_before_got_heal/2]).
+		 on_before_got_heal/2,
+		 on_calc_damage/2]).
 
 
 %% start_mgr/1
@@ -105,6 +106,9 @@ on_hit_damage(Unit, HitResult) ->
 
 on_before_got_heal(Unit, Heal) ->
 	?CALL(Unit, {on_before_got_heal, Heal}).
+
+on_calc_damage(Unit, Damage) ->
+	?CALL(Unit, {on_calc_damage, Damage}).
 
 %% ====================================================================
 %% Behavioural functions
@@ -213,6 +217,16 @@ handle_call({on_before_got_heal, Heal}, _From, State) ->
 					gen_event:call(State#state.event_mgr, Buff, {on_before_got_heal, Heal0})
 			end, Heal, Buffs),
 	{reply, Heal1, State};
+
+
+% обработка при расчете наносимого урона
+handle_call({on_calc_damage, Damage}, _From, State) ->
+	Buffs = gen_event:which_handlers(State#state.event_mgr),
+	Damage1 = lists:foldl(fun(Buff, Damage0) ->
+					gen_event:call(State#state.event_mgr, Buff, {on_calc_damage, Damage0})
+			  end, Damage, Buffs),
+	{reply, Damage1, State};
+
 
 %% unknown request
 handle_call(_Request, _From, State) ->

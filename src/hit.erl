@@ -418,6 +418,7 @@ hits_queue(BattleId, [{AttackerPid, HitZone, AttackerBlock, DefendantPid, Defend
 		true ->
 			%% считаем урон для данного удара
 			Damage = formula:get_damage(Hit, DamageType, Crit, CritBreak, Attacker, AttackerWeapon, Defendant),
+			buff_mgr:on_calc_damage(Attacker#user.id, Damage),
 
 			unit:got_damage(DefendantPid, HitResult#b_hit_result{damage = Damage}, self());
 

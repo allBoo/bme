@@ -208,22 +208,27 @@ handle_call({renew, Buff}, #state{mod = Module} = State) ->
 
 %% обработка баффов на получение урона юнитом
 handle_call({on_before_got_damage, HitResult}, State) ->
-	apply_hit_callback(on_unit_before_damage, HitResult, State);
+	apply_data_callback(on_unit_before_damage, HitResult, State);
 
 
 %% обработка баффов на получение урона юнитом
 handle_call({on_after_got_damage, HitResult}, State) ->
-	apply_hit_callback(on_unit_after_damage, HitResult, State);
+	apply_data_callback(on_unit_after_damage, HitResult, State);
 
 
 %% обработка баффов на нанесение урона юнитом
 handle_call({on_hit_damage, HitResult}, State) ->
-	apply_hit_callback(on_unit_hit_damage, HitResult, State);
+	apply_data_callback(on_unit_hit_damage, HitResult, State);
 
 
 %% обработка баффов на хилл юнита
 handle_call({on_before_got_heal, Heal}, State) ->
-	apply_hit_callback(on_unit_before_heal, Heal, State);
+	apply_data_callback(on_unit_before_heal, Heal, State);
+
+
+%% обработка при расчете наносимого урона
+handle_call({on_calc_damage, Damage}, State) ->
+	apply_data_callback(on_unit_calc_damage, Damage, State);
 
 
 %% unknown request
@@ -336,18 +341,18 @@ is_callable(Fn, State) ->
 	end.
 
 
-apply_hit_callback(Callback, HitResult, #state{mod = Module} = State) ->
-	case ?callback(Module, Callback, HitResult, State) of
-		{ok, HitResult1, Buff1} ->
-			{ok, HitResult1, State#state{buff = Buff1}};
+apply_data_callback(Callback, Data, #state{mod = Module} = State) ->
+	case ?callback(Module, Callback, Data, State) of
+		{ok, Data1, Buff1} ->
+			{ok, Data1, State#state{buff = Buff1}};
 		{ok, Buff1} ->
-			{ok, HitResult, State#state{buff = Buff1}};
-		{swap, HitResult1, Module1, Buff1} ->
-			{swap_handler, HitResult1, swap, State#state{buff = Buff1}, gen_buff, Module1};
-		{remove_handler, HitResult1} ->
-			{remove_handler, HitResult1};
+			{ok, Data, State#state{buff = Buff1}};
+		{swap, Data1, Module1, Buff1} ->
+			{swap_handler, Data1, swap, State#state{buff = Buff1}, gen_buff, Module1};
+		{remove_handler, Data1} ->
+			{remove_handler, Data1};
 		_ ->
-			{remove_handler, HitResult}
+			{remove_handler, Data}
 	end.
 
 

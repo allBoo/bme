@@ -210,9 +210,12 @@ timeout_alarm(UnitPid, OpponentPid) ->
 crash(_UnitId) ->
 	buff_mgr:apply(2, #u_buff{id=krit_blooddrink}),
 	buff_mgr:apply(2, #u_buff{id=multi_agressiveshield}),
+	buff_mgr:apply(2, #u_buff{id=novice_hit}),
+
 	U1 = unit:get_pid(1),
 	U2 = unit:get_pid(2),
-	Hit = #b_hit_result{hit = head, blocks=[head, torso], attacker=U2, defendant = U1, damage=500, damage_type=crush, weapon_type=staff, crit = true},
+	Damage = buff_mgr:on_calc_damage(2, 500),
+	Hit = #b_hit_result{hit = head, blocks=[head, torso], attacker=U2, defendant = U1, damage=Damage, damage_type=crush, weapon_type=staff, crit = true},
 	unit:got_damage(1, Hit, undefined).
 	%?CALL(UserId, crash).
 
