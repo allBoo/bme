@@ -307,16 +307,19 @@ apply_exists(Ev, UnitPid, Buff) when is_pid(Ev),
 %% запуск нового баффа
 apply_buff(Ev, UnitPid, Buff) when is_pid(Ev),
 								   is_record(Buff, u_buff) ->
-	?DBG("Start buff ~p~n", [{Ev, UnitPid, Buff}]),
-	gen_buff:start_link(Ev, Buff#u_buff.id, UnitPid, [{time, Buff#u_buff.time},
-													  {value, Buff#u_buff.value},
-													  {level, Buff#u_buff.level},
-													  {exists, Buff#u_buff.exists}]);
+	Options = [{time, Buff#u_buff.time},
+			   {value, Buff#u_buff.value},
+			   {level, Buff#u_buff.level},
+			   {exists, Buff#u_buff.exists}],
+	start_buff(Ev, Buff#u_buff.id, UnitPid, Options);
 
 apply_buff(Ev, UnitPid, Buff) when is_pid(Ev),
 								   is_record(Buff, buff) ->
-	?DBG("Start buff ~p~n", [{Ev, UnitPid, Buff}]),
-	gen_buff:start_link(Ev, Buff#u_buff.id, UnitPid, [{time, Buff#buff.time},
-													  {value, Buff#buff.value},
-													  {level, Buff#buff.level}]).
+	Options = [{time, Buff#buff.time},
+			   {value, Buff#buff.value},
+			   {level, Buff#buff.level}],
+	start_buff(Ev, Buff#u_buff.id, UnitPid, Options).
 
+
+start_buff(Ev, BuffId, UnitPid, BuffOptions) ->
+	gen_buff:start_link(Ev, BuffId, UnitPid, BuffOptions).

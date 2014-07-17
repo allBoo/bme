@@ -32,6 +32,9 @@
 %% ф-я должна вернуть актуальный статус баффа
 -callback new(Buff0 :: #buff{}) -> Buff ::#buff{}.
 
+%% обновление баффа
+%-callback renew(Buff0 :: #buff{}, Buff :: #buff{}) -> BuffNew ::#buff{}.
+
 %% ф-я вызывается по окончании хода пользователя
 %% но после пересчета оставшихся зарядов
 %-callback on_swap_done(Buff0 :: #buff{}) -> Buff ::#buff{}.
@@ -58,9 +61,20 @@ start_link(Ev, Module, Unit, Options) ->
 	},
 
 	Id = {Module, Buff#buff.unit, Buff#buff.owner},
-	case proplists:get_value(exists, Options) of
-		true  -> gen_event:add_handler(Ev, {?MODULE, Id}, {exists, Module, Buff});
-		_     -> gen_event:add_handler(Ev, {?MODULE, Id}, {Module, Buff})
+	%% если бафф уникальный, ищем существующий
+	case Buff#buff.uniq andalso find_exists(Ev, Id) of
+		%% если нету, запускаем новый
+		false ->
+			?DBG("Start buff ~p~n", [{Ev, Buff#buff.unit, Buff}]),
+			case proplists:get_value(exists, Options) of
+				true  -> gen_event:add_handler(Ev, {?MODULE, Id}, {exists, Module, Buff});
+				_     -> gen_event:add_handler(Ev, {?MODULE, Id}, {Module, Buff})
+			end;
+		%% если есть и бафф поддерживает ф-ю renew, вызываем ее
+		%% иначе возвращаем ошибку
+		true ->
+			?DBG("Renew buff ~p~n", [Buff]),
+			gen_event:call(Ev, {?MODULE, Id}, {renew, Buff})
 	end.
 
 
@@ -172,6 +186,25 @@ handle_event(_Event, State) ->
 	Handler2 :: Module2 | {Module2, Id :: term()},
 	Module2 :: atom().
 %% ====================================================================
+
+%% обработка обновления эффекта
+handle_call({renew, Buff}, #state{mod = Module} = State) ->
+	%% если бафф поддерживает ф-ю обновления вызываем
+	%% иначе возвращаем ошибку
+	case is_callable(renew, State) of
+		true  ->
+			case Module:renew(Buff, State#state.buff) of
+				{ok, Buff1} ->
+					{ok, ok, State#state{buff = Buff1}};
+				{swap, Module1, Buff1} ->
+					{swap_handler, ok, swap, State#state{buff = Buff1}, gen_buff, Module1};
+				_ ->
+					{ok, ?ERROR_UNDEFINED, State}
+			end;
+		false ->
+			{ok, ?ERROR_BUFF_EXISTS, State}
+	end;
+
 
 %% обработка баффов на получение урона юнитом
 handle_call({on_before_got_damage, HitResult}, State) ->
@@ -316,3 +349,9 @@ apply_hit_callback(Callback, HitResult, #state{mod = Module} = State) ->
 		_ ->
 			{remove_handler, HitResult}
 	end.
+
+
+find_exists(Ev, BuffId) ->
+	Buffs = gen_event:which_handlers(Ev),
+	lists:keymember(BuffId, 2, Buffs).
+

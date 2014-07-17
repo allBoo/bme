@@ -163,6 +163,6 @@ get(Id) ->
 	Cost = random:uniform((User#user.dress)#u_dress.cost),
 	CloneIndex = integer_to_binary(Id),
 	User#user{id = Id,
-			  ai = true,
+			  ai = false,
 			  name = <<(User#user.name)/binary, <<" клон"/utf8>>/binary, CloneIndex/binary >>,
 			  dress = (User#user.dress)#u_dress{cost = Cost}}.

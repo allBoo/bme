@@ -23,7 +23,7 @@
                name = <<""/utf8>> :: bitstring(), %% текстовое название
                level :: non_neg_integer(),        %% уровень баффа
                value :: any(),                    %% величина баффа
-               uniq = false :: boolean(),         %% уникальное владение
+               uniq = true :: boolean(),          %% уникальное владение
                unit  :: pid(),                    %% юнит, на которого наложен бафф
                owner :: pid(),                    %% юнит, который наложил бафф
                time = infinity :: non_neg_integer() | infinity,  %% время действия
