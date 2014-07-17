@@ -208,6 +208,7 @@ timeout_alarm(UnitPid, OpponentPid) ->
 %% тестирование падения юнита
 crash(_UnitId) ->
 	buff_mgr:apply(2, #u_buff{id=krit_blooddrink}),
+	buff_mgr:apply(2, #u_buff{id=multi_agressiveshield}),
 	U1 = unit:get_pid(1),
 	U2 = unit:get_pid(2),
 	Hit = #b_hit_result{hit = head, blocks=[head, torso], attacker=U2, defendant = U1, damage=500, damage_type=crush, weapon_type=staff, crit = true},
@@ -368,12 +369,10 @@ handle_call({got_damage, HitResult0, From}, _, Unit) ->
 	%% пишем в лог получение урона
 	case HitResult of
 		H0 when is_record(H0, b_hit_result) ->
-			Log = #log_hit{attacker = battle_log:unit(HitResult#b_hit_result.attacker), defendant = battle_log:unit(DamagedUnit),
-				   hit_result = H0},
+			Log = #log_hit{attacker = HitResult#b_hit_result.attacker, defendant = DamagedUnit, hit_result = H0},
 			battle_log:hit(Unit#b_unit.battle_id, From, Log);
 		M0 when is_record(M0, b_magic_attack) ->
-			Log = #log_magic{attacker = battle_log:unit(HitResult#b_magic_attack.attacker), defendant = battle_log:unit(DamagedUnit),
-				   attack_result = M0},
+			Log = #log_magic{attacker = HitResult#b_magic_attack.attacker, defendant = DamagedUnit, attack_result = M0},
 			battle_log:magic(Unit#b_unit.battle_id, From, Log)
 	end,
 
@@ -431,8 +430,7 @@ handle_call({avoid_damage, HitResult, From}, _, Unit) ->
 	DamagedUnit = Unit#b_unit{tactics = Tactics},
 
 	%% пишем в лог избегание урона
-	Log = #log_miss{attacker = battle_log:unit(HitResult#b_hit_result.attacker), defendant = battle_log:unit(DamagedUnit),
-				    hit_result = HitResult},
+	Log = #log_miss{attacker = HitResult#b_hit_result.attacker, defendant = DamagedUnit, hit_result = HitResult},
 	battle_log:hit(Unit#b_unit.battle_id, From, Log),
 
 	{reply, ok,  DamagedUnit};
@@ -541,8 +539,7 @@ handle_cast({magic_damage, MagicAttack0, From}, Unit) ->
 	DamagedUnit = Unit#b_unit{total_lost = Unit#b_unit.total_lost + Damage},
 
 	%% пишем в лог получение урона
-	Log = #log_magic{attacker = battle_log:unit(MagicAttack#b_magic_attack.attacker), defendant = battle_log:unit(DamagedUnit),
-		   attack_result = MagicAttack},
+	Log = #log_magic{attacker = MagicAttack#b_magic_attack.attacker, defendant = DamagedUnit, attack_result = MagicAttack},
 	battle_log:magic(Unit#b_unit.battle_id, From, Log),
 
 	buff_mgr:on_after_got_damage(?unitid(Unit), MagicAttack),
@@ -574,8 +571,7 @@ handle_cast({got_heal, Heal0, TransactionId}, Unit) when ?spirit(Unit) > 0 ->
 							 tactics = Tactics#b_tactics{spirit = Spirit}},
 
 	%% пишем в лог получение хилла
-	Log = #log_heal{recipient = battle_log:unit(HealedUnit), sender = battle_log:unit(Heal#b_heal.sender),
-					value = Heal#b_heal.value, buff = Heal#b_heal.buff},
+	Log = #log_heal{recipient = HealedUnit, sender = Heal#b_heal.sender, value = Heal#b_heal.value, buff = Heal#b_heal.buff},
 	battle_log:heal(Unit#b_unit.battle_id, TransactionId, Log),
 
 	{noreply, HealedUnit};
@@ -583,8 +579,7 @@ handle_cast({got_heal, Heal0, TransactionId}, Unit) when ?spirit(Unit) > 0 ->
 %% если духа нет, но хилл от баффа, пишем в лог отхилл в 0
 handle_cast({got_heal, Heal, TransactionId}, Unit) when is_record(Heal#b_heal.buff, buff),
 														?spirit(Unit) =< 0 ->
-	Log = #log_heal{recipient = battle_log:unit(Unit), sender = battle_log:unit(Heal#b_heal.sender),
-					value = 0, buff = Heal#b_heal.buff, empty_spirit = true},
+	Log = #log_heal{recipient = Unit, sender = Heal#b_heal.sender, value = 0, buff = Heal#b_heal.buff, empty_spirit = true},
 	battle_log:heal(Unit#b_unit.battle_id, TransactionId, Log),
 
 	{noreply, Unit};

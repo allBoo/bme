@@ -61,6 +61,9 @@ start_link(BattleId) when is_integer(BattleId) ->
 %% unit/1
 %% ====================================================================
 %% формирует представление юнита для лога
+unit(Unit) when is_record(Unit, log_unit) ->
+	Unit;
+
 unit(Unit) when is_record(Unit, b_unit) ->
 	Sex      = user_state:get(?userpid(Unit), 'info.sex'),
 	Vitality = user_state:get(?userpid(Unit), 'vitality'),
@@ -605,8 +608,8 @@ write(LogsList, File) when is_list(LogsList) ->
 
 write(HitLog, File) when is_record(HitLog, log_hit) ->
 	Log = HitLog#log_hit.hit_result,
-	Attacker  = HitLog#log_hit.attacker,
-	Defendant = HitLog#log_hit.defendant,
+	Attacker  = unit(HitLog#log_hit.attacker),
+	Defendant = unit(HitLog#log_hit.defendant),
 	%% общая для всех видов лога часть параметров
 	HeadParams = [curtime(), get_hit_index(Log#b_hit_result.hit), get_hit_index(Log#b_hit_result.blocks), Defendant#log_unit.team, Attacker#log_unit.team,
 				  Defendant#log_unit.team, Defendant#log_unit.name, get_hit_p1(Defendant#log_unit.sex),
@@ -649,8 +652,8 @@ write(HitLog, File) when is_record(HitLog, log_hit) ->
 
 write(HitLog, File) when is_record(HitLog, log_miss) ->
 	Log = HitLog#log_miss.hit_result,
-	Attacker  = HitLog#log_miss.attacker,
-	Defendant = HitLog#log_miss.defendant,
+	Attacker  = unit(HitLog#log_miss.attacker),
+	Defendant = unit(HitLog#log_miss.defendant),
 	%% общая для всех видов лога часть параметров
 	HeadParams = [curtime(), get_hit_index(Log#b_hit_result.hit), get_hit_index(Log#b_hit_result.blocks), Defendant#log_unit.team, Attacker#log_unit.team,
 				  Attacker#log_unit.team, Attacker#log_unit.name, get_hit_p1(Attacker#log_unit.sex),
@@ -685,8 +688,8 @@ write(HitLog, File) when is_record(HitLog, log_miss) ->
 
 
 write(MagicLog, File) when is_record(MagicLog, log_magic) ->
-	A = (MagicLog#log_magic.attacker),
-	D = (MagicLog#log_magic.defendant),
+	A = unit(MagicLog#log_magic.attacker),
+	D = unit(MagicLog#log_magic.defendant),
 	M = (MagicLog#log_magic.attack_result),
 	B = (M#b_magic_attack.buff)#buff.name,
 	Template = ?log_magic1,
@@ -697,8 +700,8 @@ write(MagicLog, File) when is_record(MagicLog, log_magic) ->
 
 write(HealLog, File) when is_record(HealLog, log_heal),
 						  is_record(HealLog#log_heal.buff, buff) ->
-	R = (HealLog#log_heal.recipient),
-	S = (HealLog#log_heal.sender),
+	R = unit(HealLog#log_heal.recipient),
+	S = unit(HealLog#log_heal.sender),
 	V = (HealLog#log_heal.value),
 	B = (HealLog#log_heal.buff)#buff.name,
 	case HealLog#log_heal.empty_spirit of
@@ -714,8 +717,8 @@ write(HealLog, File) when is_record(HealLog, log_heal),
 
 write(HealLog, File) when is_record(HealLog, log_heal),
 						  is_record(HealLog#log_heal.buff, spell) ->
-	R = (HealLog#log_heal.recipient),
-	S = (HealLog#log_heal.sender),
+	R = unit(HealLog#log_heal.recipient),
+	S = unit(HealLog#log_heal.sender),
 	V = (HealLog#log_heal.value),
 	B = (HealLog#log_heal.buff)#spell.name,
 	Template = ?log_heal1,
