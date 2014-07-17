@@ -26,7 +26,7 @@ new(Buff) ->
 			type = pot,
 			name = <<"Снадобье разума"/utf8>>,
 			charges = gen_buff:calc_charges(Buff#buff.time),
-			value = [{'user.stats.intel', Buff#buff.value}]
+			value = [{'stats.intel', Buff#buff.value}]
 		}}.
 
 

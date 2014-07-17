@@ -136,7 +136,8 @@ init(Unit) ->
 					reg:bind({unit, Unit#b_unit.id}),
 
 					%% запускаем уже наложенные баффы
-					lists:foreach(fun(Buff) -> apply_exists(BuffEv, UnitPid, Buff) end, ?user(Unit)#user.buffs),
+					%% @attention используем b_unit.id т.к. сюда приходим из супервайзера, где нет unit pid
+					lists:foreach(fun(Buff) -> apply_exists(BuffEv, UnitPid, Buff) end, user_state:get(Unit#b_unit.id, 'buffs')),
 					{ok, #state{unit = UnitPid, event_mgr = BuffEv}}
 			end
 	end.

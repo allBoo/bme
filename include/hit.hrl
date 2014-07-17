@@ -24,8 +24,8 @@
 %% результат удара
 -record(b_hit_result, {hit :: head | torso | paunch | belt | legs | none,
                        blocks :: [head | torso | paunch | belt | legs | none],
-                       attacker :: #b_unit{},
-                       defendant :: #b_unit{},
+                       attacker :: pid(),
+                       defendant :: pid(),
                        damage :: integer(),
                        damage_type,
                        weapon_type,

@@ -1,8 +1,9 @@
 %% -*- coding: utf-8 -*-
 
 -include_lib("user.hrl").
--define(user(Unit), (Unit#b_unit.user)).
--define(userid(Unit), Unit#b_unit.id).
+-define(user(Unit), user_state:get(Unit#b_unit.user)).
+-define(userpid(Unit), (Unit#b_unit.user)).
+-define(unitid(Unit), Unit#b_unit.id).
 -define(unitpid(Unit), Unit#b_unit.pid).
 -define(tactics(Unit), (Unit#b_unit.tactics)).
 -define(spirit(Unit), (Unit#b_unit.tactics)#b_tactics.spirit).
@@ -51,7 +52,7 @@
                  battle_pid :: pid(),
                  team_id = 0,
                  team_pid :: pid(),
-                 user = #user{},
+                 user :: pid(),
                  alive = true,
                  leader = false,
                  opponents = [] :: [#b_opponent{}],	%% список с краткой информацией о всех оппонентах

@@ -32,9 +32,9 @@ new(Buff) ->
 		}}.
 
 
-on_unit_state_change({'user.stats.spir', _}, Buff) ->
-	Unit = unit:get_state(Buff#buff.unit),
-	Spir = ?stats(?user(Unit))#u_stats.spir,
+on_unit_state_change({'stats.spir', _}, Buff) ->
+	UserPid = unit:get_user_pid(Buff#buff.unit),
+	Spir = user_state:get(UserPid, 'stats.spir'),
 	case Spir of
 		_100 when _100 >= 100 -> {swap, bonus_spir_100, Buff};
 		_75  when _75  >= 75  -> {swap, bonus_spir_75, Buff};

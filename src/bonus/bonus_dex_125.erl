@@ -28,15 +28,15 @@ new(Buff) ->
 			type = bonus,
 			time = infinity,
 			charges = undefined,
-			value = [{'user.vitality.maxhp', 500},
-					 {'user.dprotection', 25},
-					 {'user.wprotection', 10}]
+			value = [{'vitality.maxhp', 500},
+					 {'dprotection', 25},
+					 {'wprotection', 10}]
 		}}.
 
 
-on_unit_state_change({'user.stats.dex', _}, Buff) ->
-	Unit = unit:get_state(Buff#buff.unit),
-	Dex = ?stats(?user(Unit))#u_stats.dex,
+on_unit_state_change({'stats.dex', _}, Buff) ->
+	UserPid = unit:get_user_pid(Buff#buff.unit),
+	Dex = user_state:get(UserPid, 'stats.dex'),
 	case Dex of
 		_125 when _125 >= 125 -> {ok, Buff};
 		_100 when _100 >= 100 -> {swap, bonus_dex_100, Buff};

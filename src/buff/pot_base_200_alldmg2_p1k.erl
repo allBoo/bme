@@ -26,7 +26,7 @@ new(Buff) ->
 			type = pot,
 			name = <<"Снадобье каменной стойкости"/utf8>>,
 			charges = gen_buff:calc_charges(Buff#buff.time),
-			value = [{'user.dprotection', Buff#buff.value}]
+			value = [{'dprotection', Buff#buff.value}]
 		}}.
 
 

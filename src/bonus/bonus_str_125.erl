@@ -28,17 +28,17 @@ new(Buff) ->
 			type = bonus,
 			time = infinity,
 			charges = undefined,
-			value = [{'user.damage.base.n', 10},
-					 {'user.dpower.general', 25},
-					 {'user.vitality.maxhp', 50},
-					 {'user.mfs.ucrit', 75},
-					 {'user.mfs.udodge', 75}]
+			value = [{'damage.base.n', 10},
+					 {'dpower.general', 25},
+					 {'vitality.maxhp', 50},
+					 {'mfs.ucrit', 75},
+					 {'mfs.udodge', 75}]
 		}}.
 
 
-on_unit_state_change({'user.stats.str', _}, Buff) ->
-	Unit = unit:get_state(Buff#buff.unit),
-	Str = ?stats(?user(Unit))#u_stats.str,
+on_unit_state_change({'stats.str', _}, Buff) ->
+	UserPid = unit:get_user_pid(Buff#buff.unit),
+	Str = user_state:get(UserPid, 'stats.str'),
 	case Str of
 		_125 when _125 >= 125 -> {ok, Buff};
 		_100 when _100 >= 100 -> {swap, bonus_str_100, Buff};

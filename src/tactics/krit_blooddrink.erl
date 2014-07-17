@@ -42,13 +42,13 @@ on_unit_hit_damage(HitResult, Buff) when is_record(HitResult, b_hit_result),
 										 (Buff#buff.state)#state.started == false,
 										 HitResult#b_hit_result.crit == true ->
 	%% увеличиваем кол-во силы
-	Value = [{'user.stats.str', get_str(HitResult#b_hit_result.damage, ?level(?user(HitResult#b_hit_result.defendant)))}],
+	Value = [{'user.stats.str', get_str(HitResult#b_hit_result.damage, ?plevel(HitResult#b_hit_result.defendant))}],
 	unit:increase_state(Buff#buff.unit, Value),
 	%% хиляем юнита на половину урона, но не больше лимита
 	do_heal(HitResult, Buff),
 
 	%% расчет кол-ва ударов для которых действует эффект = 2 * кол-во точек удара
-	Hits = 2 * (?user(HitResult#b_hit_result.attacker)#user.battle_spec)#u_battle_spec.hit_points,
+	Hits = 2 * user_state:get(?puserpid(HitResult#b_hit_result.attacker), 'battle_spec.hit_points'),
 	{ok, HitResult, Buff#buff{value = Value, state = #state{started = true, hits = Hits}}};
 
 %% следующие после критического
@@ -80,7 +80,7 @@ get_str(Damage, Level) ->
 
 do_heal(HitResult, Buff) ->
 	Damage = HitResult#b_hit_result.damage,
-	MaxHP  = get_max_hp(?level(?user(HitResult#b_hit_result.defendant))),
+	MaxHP  = get_max_hp(?plevel(HitResult#b_hit_result.defendant)),
 	HealValue = round(math:limit(Damage / 2, MaxHP)),
 	Heal = #b_heal{
 		value = HealValue,

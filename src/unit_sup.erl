@@ -51,7 +51,7 @@ init([Unit]) ->
 	true = gproc:add_local_name({unit_sup, Unit#b_unit.name}),
 
 	%% запускаем евент-сервер бойца, ген-сервер бойца команды, супервайзер баффов
-	Children = [?UNIT(Unit), ?BUFF_SUP(Unit)] ++
+	Children = [?USER(Unit#b_unit.user), ?UNIT(Unit), ?BUFF_SUP(Unit)] ++
 				   case Unit#b_unit.ai of
 					   true  -> [?AI0(Unit)];
 					   false -> []

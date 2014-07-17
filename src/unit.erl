@@ -17,16 +17,16 @@
 %% standart behaviourals
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
--define(CAST(UserId, Cmd), case is_pid(UserId) of
-								 true -> gen_server:cast(UserId, Cmd);
+-define(CAST(UnitId, Cmd), case is_pid(UnitId) of
+								 true -> gen_server:cast(UnitId, Cmd);
 								 false ->
-									 case reg:find({unit, UserId}) of
+									 case reg:find({unit, UnitId}) of
 										 undefined -> ?ERROR_NOT_IN_BATTLE;
 										 UnitPid -> gen_server:cast(UnitPid, Cmd) end end).
--define(CALL(UserId, Cmd), case is_pid(UserId) of
-								 true -> gen_server:call(UserId, Cmd);
+-define(CALL(UnitId, Cmd), case is_pid(UnitId) of
+								 true -> gen_server:call(UnitId, Cmd);
 								 false ->
-									 case reg:find({unit, UserId}) of
+									 case reg:find({unit, UnitId}) of
 										 undefined -> ?ERROR_NOT_IN_BATTLE;
 										 UnitPid -> gen_server:call(UnitPid, Cmd) end end).
 
@@ -34,8 +34,10 @@
 %% API functions
 %% ====================================================================
 -export([start_link/1,
+		 get_pid/1,
+		 get_user_pid/1,
+		 get_user/1,
 		 notify/2,
-		 get_state/1,
 		 create_opponent_info/1,
 		 set_opponents/2,
 		 hit/3,
@@ -45,9 +47,6 @@
 		 swap_done/2,
 		 kill/1,
 		 timeout_alarm/2,
-		 increase_state/2,
-		 reduce_state/2,
-		 change_state/3,
 		 crash/1]).
 
 %% damage anf heal
@@ -66,6 +65,28 @@ start_link(Unit) when is_record(Unit, b_unit) ->
 	gen_server:start_link(?MODULE, Unit, []).
 
 
+%% get_pid/1
+%% ====================================================================
+%% возвращает pid юнита по его ID
+get_pid(UnitId) when is_pid(UnitId) ->
+	UnitId;
+
+get_pid(UnitId) when is_integer(UnitId) ->
+	reg:find({unit, UnitId}).
+
+
+%% ====================================================================
+%% возвращает pid юзерстейта по ID юнита
+get_user_pid(UnitId) ->
+	reg:get({unit_user, UnitId}).
+
+
+%% ====================================================================
+%% возвращает юзерстейт по ID юнита
+get_user(UnitId) ->
+	user_state:get(get_user_pid(UnitId)).
+
+
 %% notify/2
 %% ====================================================================
 %% уведомление через эвент-менеджер юнита
@@ -76,32 +97,25 @@ notify(UnitId, Message) when is_integer(UnitId) ->
 	reg:broadcast({unit, UnitId}, unit, Message).
 
 
-%% get_state/1
-%% ====================================================================
-%% возвращает текущий State (информацию о юните)
-get_state(UserId) ->
-	?CALL(UserId, get_state).
-
-
 %% create_opponent_info/1
 %% ====================================================================
 %% возвращает краткую информацию о юните
-create_opponent_info(UserId) ->
-	?CALL(UserId, create_opponent_info).
+create_opponent_info(UnitId) ->
+	?CALL(UnitId, create_opponent_info).
 
 
 %% set_opponents/2
 %% ====================================================================
 %% устанавливает юниту список оппонентов
-set_opponents(UserId, OpponentsList) ->
-	?CAST(UserId, {set_opponents, OpponentsList}).
+set_opponents(UnitId, OpponentsList) ->
+	?CAST(UnitId, {set_opponents, OpponentsList}).
 
 
 %% hit/3
 %% ====================================================================
 %% выставление удара противнику
-hit(UserId, Hits, Block) ->
-	?CALL(UserId, {hit, Hits, Block}).
+hit(UnitId, Hits, Block) ->
+	?CALL(UnitId, {hit, Hits, Block}).
 
 
 %% hited/2
@@ -114,62 +128,62 @@ hited(UnitPid, {From, Hit}) when is_pid(UnitPid), is_pid(From), is_pid(Hit) ->
 %% damage/2
 %% ====================================================================
 %% нанесение урона юниту
-damage(UserId, Damage) when is_record(Damage, b_damage) ->
-	?CALL(UserId, {damage, Damage}).
+damage(UnitId, Damage) when is_record(Damage, b_damage) ->
+	?CALL(UnitId, {damage, Damage}).
 
 
 %% magic_damage/2, magic_damage/3
 %% ====================================================================
 %% получение урона магией
-magic_damage(UserId, MagicAttack) ->
-	magic_damage(UserId, MagicAttack, undefined).
+magic_damage(UnitId, MagicAttack) ->
+	magic_damage(UnitId, MagicAttack, undefined).
 
-magic_damage(UserId, MagicAttack, TransactionId) ->
-	?CAST(UserId, {magic_damage, MagicAttack, TransactionId}).
+magic_damage(UnitId, MagicAttack, TransactionId) ->
+	?CAST(UnitId, {magic_damage, MagicAttack, TransactionId}).
 
 
 %% got_damage/3
 %% ====================================================================
 %% получение урона
-got_damage(UserId, HitResult, TransactionId) ->
-	?CALL(UserId, {got_damage, HitResult, TransactionId}).
+got_damage(UnitId, HitResult, TransactionId) ->
+	?CALL(UnitId, {got_damage, HitResult, TransactionId}).
 
 
 %% hit_damage/3
 %% ====================================================================
 %% нанесение урона
-hit_damage(UserId, HitResult, TransactionId) ->
-	?CALL(UserId, {hit_damage, HitResult, TransactionId}).
+hit_damage(UnitId, HitResult, TransactionId) ->
+	?CALL(UnitId, {hit_damage, HitResult, TransactionId}).
 
 
 %% avoid_damage/3
 %% ====================================================================
 %% избегание урона
-avoid_damage(UserId, HitResult, TransactionId) ->
-	?CALL(UserId, {avoid_damage, HitResult, TransactionId}).
+avoid_damage(UnitId, HitResult, TransactionId) ->
+	?CALL(UnitId, {avoid_damage, HitResult, TransactionId}).
 
 
 %% got_heal/3, got_heal/3
 %% ====================================================================
 %% хилл
-got_heal(UserId, Heal) when is_record(Heal, b_heal) ->
-	?CAST(UserId, {got_heal, Heal, undefined}).
+got_heal(UnitId, Heal) when is_record(Heal, b_heal) ->
+	?CAST(UnitId, {got_heal, Heal, undefined}).
 
-got_heal(UserId, Heal, TransactionId) when is_record(Heal, b_heal) ->
-	?CAST(UserId, {got_heal, Heal, TransactionId}).
+got_heal(UnitId, Heal, TransactionId) when is_record(Heal, b_heal) ->
+	?CAST(UnitId, {got_heal, Heal, TransactionId}).
 
 %% swap_done/2
 %% ====================================================================
 %% уведомление о завершении размена
-swap_done(UserId, HitFrom) ->
-	?CAST(UserId, {swap_done, HitFrom}).
+swap_done(UnitId, HitFrom) ->
+	?CAST(UnitId, {swap_done, HitFrom}).
 
 
 %% kill/1
 %% ====================================================================
 %% мгновенное убийство юнита
-kill(UserId) ->
-	?CALL(UserId, kill).
+kill(UnitId) ->
+	?CALL(UnitId, kill).
 
 
 %% timeout_alarm/2
@@ -179,27 +193,13 @@ timeout_alarm(UnitPid, OpponentPid) ->
 	gen_server:cast(UnitPid, {timeout_alarm, OpponentPid}).
 
 
-%% increase_state/2
-%% ====================================================================
-%% увеличение параметров юнита
-increase_state(UserId, Params) ->
-	?CAST(UserId, {increase_state, Params}).
-
-
-%% reduce_state/2
-%% ====================================================================
-%% уменьшение параметров юнита
-reduce_state(UserId, Params) ->
-	?CAST(UserId, {reduce_state, Params}).
-
-
 %% crash/1
 %% ====================================================================
 %% тестирование падения юнита
-crash(_UserId) ->
+crash(_UnitId) ->
 	buff_mgr:apply(2, #u_buff{id=krit_blooddrink}),
-	U1 = unit:get_state(1),
-	U2 = unit:get_state(2),
+	U1 = unit:get_pid(1),
+	U2 = unit:get_pid(2),
 	Hit = #b_hit_result{hit = head, blocks=[head, torso], attacker=U2, defendant = U1, damage=500, damage_type=crush, weapon_type=staff, crit = true},
 	unit:got_damage(1, Hit, undefined).
 	%?CALL(UserId, crash).
@@ -236,7 +236,12 @@ init(Unit) when is_record(Unit, b_unit) ->
 				   {battle_unit, Unit#b_unit.battle_id},
 				   {battle, Unit#b_unit.battle_id}]),
 
-	{ok, Unit#b_unit{pid = self()}}.
+	%% регистрируем PID юзерстейта
+	UserPid = user_state:get_pid(Unit#b_unit.id),
+	reg:set({unit_user, Unit#b_unit.id}, UserPid),
+	reg:set({unit_user, self()}, UserPid),
+
+	{ok, Unit#b_unit{pid = self(), user = UserPid}}.
 
 
 %% handle_call/3
@@ -259,21 +264,27 @@ init(Unit) when is_record(Unit, b_unit) ->
 
 %% возвращает краткую информацию об юните
 handle_call(create_opponent_info, _, Unit) ->
+	UserInfo = user_state:get(?userpid(Unit), info),
 	{reply, #b_opponent{pid = self(),
                         team = Unit#b_unit.team_pid,
                         id   = Unit#b_unit.id,
                         name = Unit#b_unit.name,
                         ai   = Unit#b_unit.ai,
-                        level = ((Unit#b_unit.user)#user.info)#u_info.level,
-                        align = ((Unit#b_unit.user)#user.info)#u_info.align,
-                        klan  = ((Unit#b_unit.user)#user.info)#u_info.klan,
-                        cost  = ((Unit#b_unit.user)#user.dress)#u_dress.cost
+                        level = UserInfo#u_info.level,
+                        align = UserInfo#u_info.align,
+                        klan  = UserInfo#u_info.klan,
+                        cost  = user_state:get(?userpid(Unit), 'dress.cost')
                         }, Unit};
 
 
-%% возвращает текущее состояние юнита
-handle_call(get_state, _, Unit) ->
-	{reply, Unit, Unit};
+%% возвращает PID юзерстейта
+handle_call(get_user_pid, _, Unit) ->
+	{reply, ?userpid(Unit), Unit};
+
+
+%% возвращает PID юзерстейт
+handle_call(get_user, _, Unit) ->
+	{reply, ?user(Unit), Unit};
 
 
 %% блокируем все остальные вызовы к убитому юниту
@@ -329,19 +340,15 @@ handle_call({hit, HitsList, Block}, _, Unit) ->
 handle_call({got_damage, HitResult0, From}, _, Unit) ->
 	?DBG("Got Damage ~p~n", [HitResult0#b_hit_result.damage]),
 	%% считаем что получилось
-	HitResult = buff_mgr:on_before_got_damage(?userid(Unit), HitResult0),
+	HitResult = buff_mgr:on_before_got_damage(?unitid(Unit), HitResult0),
 	Damage = case HitResult of
 		H when is_record(H, b_hit_result)   -> H#b_hit_result.damage;
 		M when is_record(M, b_magic_attack) -> M#b_magic_attack.damage
 	end,
 	?DBG("Got real Damage ~p~n", [Damage]),
 
-	User     = ?user(Unit),
-	Vitality = ?vitality(User),
-	Hp       = math:limit(?hp(User) - Damage, 0, ?maxhp(User)),
-
-	DamagedUnit = Unit#b_unit{user = User#user{vitality = Vitality#u_vitality{hp = Hp}},
-							  total_lost = Unit#b_unit.total_lost + Damage},
+	user_state:reduce(?userpid(Unit), [{'vitality.hp', Damage}]),
+	DamagedUnit = Unit#b_unit{total_lost = Unit#b_unit.total_lost + Damage},
 
 	%% пишем в лог получение урона
 	case HitResult of
@@ -360,10 +367,10 @@ handle_call({got_damage, HitResult0, From}, _, Unit) ->
 					true  -> HitResult#b_hit_result.attacker;
 					false -> HitResult#b_magic_attack.attacker
 			   end,
-	unit:hit_damage(?unitpid(Attacker), HitResult, self()),
+	unit:hit_damage(Attacker, HitResult, self()),
 
 	%% ответный урон
-	buff_mgr:on_after_got_damage(?userid(Unit), HitResult),
+	buff_mgr:on_after_got_damage(?unitid(Unit), HitResult),
 
 	{reply, {ok, Damage},  DamagedUnit};
 
@@ -372,18 +379,20 @@ handle_call({got_damage, HitResult0, From}, _, Unit) ->
 handle_call({hit_damage, HitResult, _From}, _, Unit) ->
 	?DBG("Hit Damage ~p~n", [HitResult#b_hit_result.damage]),
 
-	buff_mgr:on_hit_damage(?userid(Unit), HitResult),
+	buff_mgr:on_hit_damage(?unitid(Unit), HitResult),
 	Damage = HitResult#b_hit_result.damage,
 
 	%% считаем полученные тактики
+	Attacker  = ?user(Unit),	%% получаем полный State юзера, он нужен для formula
+	Defendant = ?user(HitResult#b_hit_result.defendant),
 	Tactics = add_tactics(Unit, #b_tactics{
 			attack  = ?TACTIC(HitResult#b_hit_result.hited and not(HitResult#b_hit_result.crit), HitResult#b_hit_result.weapon_twain, 3),
 			crit    = ?TACTIC(HitResult#b_hit_result.crit, HitResult#b_hit_result.weapon_twain or not(HitResult#b_hit_result.crit_break), 2),
-			hearts  = formula:get_hearts(Damage, ?user(Unit), ?user(HitResult#b_hit_result.defendant))
+			hearts  = formula:get_hearts(Damage, Attacker, Defendant)
 		}),
 
 	%% кол-во экспы за удар
-	Exp = formula:get_exp_by_damage(Damage, ?user(Unit), ?user(HitResult#b_hit_result.defendant)),
+	Exp = formula:get_exp_by_damage(Damage, Attacker, Defendant),
 
 	DamagedUnit = Unit#b_unit{total_damaged = Unit#b_unit.total_damaged + Damage,
 							  exp = Unit#b_unit.exp + Exp,
@@ -414,38 +423,14 @@ handle_call({avoid_damage, HitResult, From}, _, Unit) ->
 	{reply, ok,  DamagedUnit};
 
 
-%% получение урона
-%% @deprecated
-handle_call({damage, Damage}, _, Unit) when is_record(Damage, b_damage) ->
-	?DBG("Damage omitted ~p~n", [Damage]),
-	%% считаем что получилось
-	User = Unit#b_unit.user,
-	Vitality = User#user.vitality,
-	Hp = math:limit(Vitality#u_vitality.hp - Damage#b_damage.lost, Vitality#u_vitality.maxhp),
-	Mana = math:limit(Vitality#u_vitality.mana - Damage#b_damage.lost_mana, Vitality#u_vitality.maxmana),
-	Tactics = add_tactics(Unit, Damage#b_damage.tactics),
-	DamagedUnit = Unit#b_unit{user = User#user{vitality = Vitality#u_vitality{hp = Hp, mana = Mana}},
-							  tactics = Tactics,
-							  total_damaged = Unit#b_unit.total_damaged + Damage#b_damage.damaged,
-							  total_healed  = Unit#b_unit.total_healed  + Damage#b_damage.healed,
-							  total_lost    = Unit#b_unit.total_lost    + Damage#b_damage.lost,
-							  exp = Unit#b_unit.exp + Damage#b_damage.exp},
-	?DBG("Damage result ~p~n", [{Hp, Mana, Tactics}]),
-	battle_log:damage(DamagedUnit#b_unit.battle_id, ?log_unit(DamagedUnit)),
-	%% если уровень ХП = 0, значит юнит помер
-	case Hp > 0 of
-		true  -> {reply, {ok, alive},  DamagedUnit};
-		false -> {reply, {ok, killed}, killed(DamagedUnit), hibernate}
-	end;
-
 
 %% мгновенное убийство юнита
 handle_call(kill, _, Unit) ->
 	?DBG("Kill unit ~p", [self()]),
-	User = Unit#b_unit.user,
-	Vitality = User#user.vitality,
-	KilledUnit = Unit#b_unit{user = User#user{vitality = Vitality#u_vitality{hp = 0}},
-							 total_lost = Unit#b_unit.total_lost + Vitality#u_vitality.hp},
+
+	Hp = user_state:get(?userpid(Unit), 'vitality.hp'),
+	user_state:reduce(?userpid(Unit), [{'vitality.hp', Hp}]),
+	KilledUnit = Unit#b_unit{total_lost = Unit#b_unit.total_lost + Hp},
 
 	{reply, {ok, killed}, killed(KilledUnit), hibernate};
 
@@ -472,15 +457,6 @@ handle_call(_, _, State) ->
 	Timeout :: non_neg_integer() | infinity.
 %% ====================================================================
 
-%% увеличение параметров юнита
-handle_cast({increase_state, Params}, Unit) ->
-	{noreply, change_state(increase, Unit, Params)};
-
-
-%% уменьшение параметров юнита
-handle_cast({reduce_state, Params}, Unit) ->
-	{noreply, change_state(reduce, Unit, Params)};
-
 
 %% блокируем все остальные вызовы к убитому юниту
 handle_cast(_, Unit) when is_record(Unit, b_unit),
@@ -491,8 +467,9 @@ handle_cast(_, Unit) when is_record(Unit, b_unit),
 %% устанавливает юниту список оппонентов
 handle_cast({set_opponents, OpponentsList}, Unit) ->
 	%% сравниваем стоимось комлектов и определяем серых в бою
+	MyCost = user_state:get(?userpid(Unit), 'dress.cost'),
 	CalculatedOpponentsList = lists:map(fun(Opponent) ->
-												Delta = Opponent#b_opponent.cost / ((Unit#b_unit.user)#user.dress)#u_dress.cost,
+												Delta = Opponent#b_opponent.cost / MyCost,
 												Opponent#b_opponent{gray = Delta < 0.6, timeout = false}
 										end, OpponentsList),
 	%%?DBG("Unit ~p set opponents ~p~n", [self(), CalculatedOpponentsList]),
@@ -502,7 +479,7 @@ handle_cast({set_opponents, OpponentsList}, Unit) ->
 %% противник выставил размен
 %% сохраняем его в списке и мониторим
 handle_cast({hited, {From, Hit}}, Unit) ->
-	?DBG("User ~p hited", [{From, Hit}]),
+	?DBG("Unit ~p hited", [{From, Hit}]),
 	%% добавляем в список выставленных нам разменов
 	Obtained = Unit#b_unit.obtained ++ [{From, Hit}],
 	{noreply, Unit#b_unit{obtained = Obtained}};
@@ -541,24 +518,19 @@ handle_cast({timeout_alarm, OpponentPid}, Unit) ->
 handle_cast({magic_damage, MagicAttack0, From}, Unit) ->
 	?DBG("Got Magic Damage ~p~n", [MagicAttack0#b_magic_attack.damage]),
 	%% считаем что получилось
-	MagicAttack = buff_mgr:on_before_got_damage(?userid(Unit), MagicAttack0),
+	MagicAttack = buff_mgr:on_before_got_damage(?unitid(Unit), MagicAttack0),
 	?DBG("Got real Magic Damage ~p~n", [MagicAttack#b_magic_attack.damage]),
 	Damage = MagicAttack#b_magic_attack.damage,
 
-	User     = ?user(Unit),
-	Vitality = ?vitality(User),
-	Hp       = math:limit(?hp(User) - Damage, 0, ?maxhp(User)),
-
-	DamagedUnit = Unit#b_unit{user = User#user{vitality = Vitality#u_vitality{hp = Hp}},
-							  total_lost = Unit#b_unit.total_lost + Damage},
+	user_state:reduce(?userpid(Unit), [{'vitality.hp', Damage}]),
+	DamagedUnit = Unit#b_unit{total_lost = Unit#b_unit.total_lost + Damage},
 
 	%% пишем в лог получение урона
-	%% @todo оверхед. в attack_result уже есть и аттакер и защитник
 	Log = #log_magic{attacker = ?log_unit(MagicAttack#b_magic_attack.attacker), defendant = ?log_unit(DamagedUnit),
 		   attack_result = MagicAttack},
 	battle_log:magic(Unit#b_unit.battle_id, From, Log),
 
-	buff_mgr:on_after_got_damage(?userid(Unit), MagicAttack),
+	buff_mgr:on_after_got_damage(?unitid(Unit), MagicAttack),
 
 	%% @todo отложенная проверка на убийство
 	{noreply, DamagedUnit};
@@ -568,25 +540,22 @@ handle_cast({magic_damage, MagicAttack0, From}, Unit) ->
 handle_cast({got_heal, Heal0, TransactionId}, Unit) when ?spirit(Unit) > 0 ->
 	?DBG("Got Heal ~p~n", [Heal0#b_heal.value]),
 
-	?DBG("HEAL ~p~n", [erlang:get_stacktrace()]),
-
 	%% считаем что получилось
-	Heal = buff_mgr:on_before_got_heal(?userid(Unit), Heal0),
+	Heal = buff_mgr:on_before_got_heal(?unitid(Unit), Heal0),
 	?DBG("Got real Heal ~p~n", [Heal#b_heal.value]),
 
-	User     = ?user(Unit),
-	Vitality = ?vitality(User),
-	Tactics  = ?tactics(Unit),
-	Hp       = math:limit(?hp(User) + Heal#b_heal.value, 0, ?maxhp(User)),
-	Healed   = min(Hp - ?hp(User), Heal#b_heal.value),	%% реально отхиленное
+	InitialHp = user_state:get(?userpid(Unit), 'vitality.hp'),
+	user_state:increase(?userpid(Unit), [{'vitality.hp', Heal#b_heal.value}]),
+	NewHp  = user_state:get(?userpid(Unit), 'vitality.hp'),
+	Healed = min(NewHp - InitialHp, Heal#b_heal.value),	%% реально отхиленное
 
 	Spirit = case Heal0#b_heal.use_spirit of
-				 true  -> ?spirit(Unit) - math:precision((Healed / ?maxhp(User)) * 10, 2);
+				 true  -> math:precision(?spirit(Unit) - (Healed / user_state:get(?userpid(Unit), 'vitality.maxhp')) * 10, 2);
 				 false -> ?spirit(Unit)
 			 end,
 
-	HealedUnit = Unit#b_unit{user = User#user{vitality = Vitality#u_vitality{hp = Hp}},
-							 total_healed = Unit#b_unit.total_healed + Healed,
+	Tactics  = ?tactics(Unit),
+	HealedUnit = Unit#b_unit{total_healed = Unit#b_unit.total_healed + Healed,
 							 tactics = Tactics#b_tactics{spirit = Spirit}},
 
 	%% пишем в лог получение хилла
@@ -697,7 +666,7 @@ terminate(Reason, _Unit) ->
 	Vsn :: term().
 %% ====================================================================
 code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.
+	{ok, State}.
 
 
 %% ====================================================================
@@ -741,9 +710,9 @@ select_next_opponent(Unit) ->
 %% ====================================================================
 %% расчет начальных параметров
 set_initial_unit_data(Unit) ->
-	User = Unit#b_unit.user,
-	Level = (User#user.info)#u_info.level,
-	Vitality = User#user.vitality,
+	Level    = user_state:get(?userpid(Unit), 'info.level'),
+	Vitality = user_state:get(?userpid(Unit), 'vitality'),
+	Stats    = user_state:get(?userpid(Unit), 'stats'),
 
 	%% расчет силы духа
 	MaxSpirit = case Level of
@@ -752,7 +721,7 @@ set_initial_unit_data(Unit) ->
 					8 -> 20;
 					9 -> 30;
 					_Hight when Level > 9 -> 40
-				end + (User#user.stats)#u_stats.spir,
+				end + Stats#u_stats.spir,
 	Spirit = math:precision((Vitality#u_vitality.hp / Vitality#u_vitality.maxhp) * MaxSpirit, 2),
 
 	Unit#b_unit{tactics  = #b_tactics{spirit = Spirit},
@@ -777,7 +746,7 @@ create_hit(HitsList, Block, Unit) ->
 
 create_blocks_list(Block, Unit) ->
 	%% кол-во зон блока
-	BlockPoints = ((Unit#b_unit.user)#user.battle_spec)#u_battle_spec.block_points,
+	BlockPoints = user_state:get(?userpid(Unit), 'battle_spec.block_points'),
 	list_helper:rsublist([head, torso, paunch, belt, legs], Block, BlockPoints).
 
 
@@ -801,7 +770,7 @@ validate_hit(Hit, Unit) when is_record(Hit, b_hit) ->
 	end.
 
 validate_hits_count(Hit, Unit) ->
-	ExpectedHitsResult = lists:duplicate(((Unit#b_unit.user)#user.battle_spec)#u_battle_spec.hit_points, true),
+	ExpectedHitsResult = lists:duplicate(user_state:get(?userpid(Unit), 'battle_spec.hit_points'), true),
 	case [is_hit_valid(H) || H <- Hit#b_hit.hits] of
 		ExpectedHitsResult ->
 			ok;
@@ -810,7 +779,7 @@ validate_hits_count(Hit, Unit) ->
 	end.
 
 validate_block_count(Hit, Unit) ->
-	ExpectedHitsResult = lists:duplicate(((Unit#b_unit.user)#user.battle_spec)#u_battle_spec.block_points, true),
+	ExpectedHitsResult = lists:duplicate(user_state:get(?userpid(Unit), 'battle_spec.block_points'), true),
 	case [is_hit_valid(H) || H <- Hit#b_hit.block] of
 		ExpectedHitsResult ->
 			ok;
@@ -853,7 +822,7 @@ add_tactics(Unit, Delta) when is_record(Unit, b_unit),
 %% ====================================================================
 %% обработка конца размена
 do_swap_done(OpponentPid, Unit) ->
-	buff_mgr:notify(?userid(Unit), swap_done),
+	buff_mgr:notify(?unitid(Unit), swap_done),
 
 	%% если у противника стоит флаг таймаута - сбросим его
 	Opponents = list_helper:keymap(OpponentPid,
@@ -879,7 +848,7 @@ do_swap_done(OpponentPid, Unit) ->
 	Unit0 = Unit#b_unit{opponent = NewOpponent, opponents = Opponents},
 
 	%% если уровень ХП = 0, значит юнит помер
-	case ?hp(?user(Unit0)) > 0 of
+	case user_state:get(?userpid(Unit), 'vitality.hp') > 0 of
 		true  -> Unit0;
 		false -> killed(Unit0)
 	end.
@@ -945,278 +914,4 @@ unit_killed(UnitPid, Unit) ->
 %% уведомление всех участников боя
 broadcast(Unit, Message) ->
 	reg:broadcast({battle, Unit#b_unit.battle_id}, unit, Message).
-
-
-%% change_state/3
-%% ====================================================================
-%% изменение параметров юнита
-change_state(_, Unit, []) ->
-	Unit;
-
-change_state(increase, Unit, [HParam | TParams]) ->
-	Unit0 = change_state(Unit, HParam),
-	change_state(increase, Unit0, TParams);
-
-change_state(reduce, Unit, [{State, Delta} | TParams]) ->
-	Unit0 = change_state(Unit, {State, -Delta}),
-	change_state(reduce, Unit0, TParams).
-
-
-change_state(Unit, {State, Delta}) when is_atom(State),
-										is_record(Unit, b_unit) ->
-	SState = erlang:atom_to_list(State),
-	Unit0 = change_state(Unit, {SState, Delta}),
-	notify(Unit0#b_unit.id, {change_state, {State, Delta}}),
-	Unit0;
-
-%% изменение внутреннего параметра User
-change_state(Unit, {"user." ++ Part, Delta}) when is_record(Unit, b_unit) ->
-	Unit#b_unit{user = change_state(Unit#b_unit.user, {Part, Delta})};
-
-%% изменение мощности урона
-change_state(User, {"dpower." ++ Part, Delta}) when is_record(User, user) ->
-	User#user{dpower = change_state(User#user.dpower, {Part, Delta})};
-change_state(DPower, {"general", Delta}) when is_record(DPower, u_dpower) ->
-	DPower#u_dpower{general = change_state(DPower#u_dpower.general, Delta)};
-change_state(DPower, {"prick", Delta}) when is_record(DPower, u_dpower) ->
-	DPower#u_dpower{prick = change_state(DPower#u_dpower.prick, Delta)};
-change_state(DPower, {"chop", Delta}) when is_record(DPower, u_dpower) ->
-	DPower#u_dpower{chop = change_state(DPower#u_dpower.chop, Delta)};
-change_state(DPower, {"crush", Delta}) when is_record(DPower, u_dpower) ->
-	DPower#u_dpower{crush = change_state(DPower#u_dpower.crush, Delta)};
-change_state(DPower, {"cut", Delta}) when is_record(DPower, u_dpower) ->
-	DPower#u_dpower{cut = change_state(DPower#u_dpower.cut, Delta)};
-change_state(DPower, {"crit", Delta}) when is_record(DPower, u_dpower) ->
-	DPower#u_dpower{crit = change_state(DPower#u_dpower.crit, Delta)};
-
-%% изменение базового урона
-change_state(User, {"damage." ++ Part, Delta}) when is_record(User, user) ->
-	User#user{damage = change_state(User#user.damage, {Part, Delta})};
-change_state(Damage, {"base." ++ Part, Delta}) when is_record(Damage, u_damage) ->
-	Damage#u_damage{base = change_state(Damage#u_damage.base, {Part, Delta})};
-
-
-%% изменение защиты от оружия
-change_state(User, {"dprotection", Delta}) when is_record(User, user) ->
-	Zones = ["head", "torso", "belt", "legs"],
-	Types = ["general", "prick", "chop", "crush", "cut"],
-
-	lists:foldl(
-		fun(Zone, UserAcc0) ->
-			lists:foldl(
-			  fun(Type, UserAcc1) ->
-					  change_state(UserAcc1, {"dprotection." ++ Zone ++ "." ++ Type, Delta})
-			  end,
-			  UserAcc0, Types)
-		end,
-		User, Zones);
-
-change_state(User, {"dprotection." ++ Part, Delta}) when is_record(User, user) ->
-	User#user{dprotection = change_state(User#user.dprotection, {Part, Delta})};
-
-change_state(DProtection, {"head." ++ Part, Delta}) when is_record(DProtection, u_dprotection) ->
-	DProtection#u_dprotection{head = change_state(DProtection#u_dprotection.head, {Part, Delta})};
-change_state(DProtection, {"torso." ++ Part, Delta}) when is_record(DProtection, u_dprotection) ->
-	DProtection#u_dprotection{torso = change_state(DProtection#u_dprotection.torso, {Part, Delta})};
-change_state(DProtection, {"belt." ++ Part, Delta}) when is_record(DProtection, u_dprotection) ->
-	DProtection#u_dprotection{belt = change_state(DProtection#u_dprotection.belt, {Part, Delta})};
-change_state(DProtection, {"legs." ++ Part, Delta}) when is_record(DProtection, u_dprotection) ->
-	DProtection#u_dprotection{legs = change_state(DProtection#u_dprotection.legs, {Part, Delta})};
-
-change_state(ZoneDProtection, {"general", Delta}) when is_record(ZoneDProtection, u_dprotection_zone) ->
-	ZoneDProtection#u_dprotection_zone{general = change_state(ZoneDProtection#u_dprotection_zone.general, Delta)};
-change_state(ZoneDProtection, {"prick", Delta}) when is_record(ZoneDProtection, u_dprotection_zone) ->
-	ZoneDProtection#u_dprotection_zone{prick = change_state(ZoneDProtection#u_dprotection_zone.prick, Delta)};
-change_state(ZoneDProtection, {"chop", Delta}) when is_record(ZoneDProtection, u_dprotection_zone) ->
-	ZoneDProtection#u_dprotection_zone{chop = change_state(ZoneDProtection#u_dprotection_zone.chop, Delta)};
-change_state(ZoneDProtection, {"crush", Delta}) when is_record(ZoneDProtection, u_dprotection_zone) ->
-	ZoneDProtection#u_dprotection_zone{crush = change_state(ZoneDProtection#u_dprotection_zone.crush, Delta)};
-change_state(ZoneDProtection, {"cut", Delta}) when is_record(ZoneDProtection, u_dprotection_zone) ->
-	ZoneDProtection#u_dprotection_zone{cut = change_state(ZoneDProtection#u_dprotection_zone.cut, Delta)};
-
-%% изменение защиты от магии
-change_state(User, {"wprotection", Delta}) when is_record(User, user) ->
-	Types = ["general", "air", "fire", "water", "earth", "light", "dark", "gray"],
-	lists:foldl(
-		fun(Type, UserAcc0) ->
-			change_state(UserAcc0, {"wprotection." ++ Type, Delta})
-		end,
-		User, Types);
-
-change_state(User, {"wprotection." ++ Part, Delta}) when is_record(User, user) ->
-	User#user{wprotection = change_state(User#user.wprotection, {Part, Delta})};
-
-change_state(TypeWProtection, {"general", Delta}) when is_record(TypeWProtection, u_wprotection) ->
-	TypeWProtection#u_wprotection{general = change_state(TypeWProtection#u_wprotection.general, Delta)};
-change_state(TypeWProtection, {"air", Delta}) when is_record(TypeWProtection, u_wprotection) ->
-	TypeWProtection#u_wprotection{air = change_state(TypeWProtection#u_wprotection.air, Delta)};
-change_state(TypeWProtection, {"fire", Delta}) when is_record(TypeWProtection, u_wprotection) ->
-	TypeWProtection#u_wprotection{fire = change_state(TypeWProtection#u_wprotection.fire, Delta)};
-change_state(TypeWProtection, {"water", Delta}) when is_record(TypeWProtection, u_wprotection) ->
-	TypeWProtection#u_wprotection{water = change_state(TypeWProtection#u_wprotection.water, Delta)};
-change_state(TypeWProtection, {"earth", Delta}) when is_record(TypeWProtection, u_wprotection) ->
-	TypeWProtection#u_wprotection{earth = change_state(TypeWProtection#u_wprotection.earth, Delta)};
-change_state(TypeWProtection, {"light", Delta}) when is_record(TypeWProtection, u_wprotection) ->
-	TypeWProtection#u_wprotection{light = change_state(TypeWProtection#u_wprotection.light, Delta)};
-change_state(TypeWProtection, {"dark", Delta}) when is_record(TypeWProtection, u_wprotection) ->
-	TypeWProtection#u_wprotection{dark = change_state(TypeWProtection#u_wprotection.dark, Delta)};
-change_state(TypeWProtection, {"gray", Delta}) when is_record(TypeWProtection, u_wprotection) ->
-	TypeWProtection#u_wprotection{gray = change_state(TypeWProtection#u_wprotection.gray, Delta)};
-
-%% изменение мощности магии
-change_state(User, {"wpower", Delta}) when is_record(User, user) ->
-	Types = ["general", "air", "fire", "water", "earth", "light", "dark", "gray"],
-	lists:foldl(
-		fun(Type, UserAcc0) ->
-			change_state(UserAcc0, {"wpower." ++ Type, Delta})
-		end,
-		User, Types);
-
-change_state(User, {"wpower." ++ Part, Delta}) when is_record(User, user) ->
-	User#user{wpower = change_state(User#user.wpower, {Part, Delta})};
-
-change_state(TypeWPower, {"general", Delta}) when is_record(TypeWPower, u_wpower) ->
-	TypeWPower#u_wpower{general = change_state(TypeWPower#u_wpower.general, Delta)};
-change_state(TypeWPower, {"air", Delta}) when is_record(TypeWPower, u_wpower) ->
-	TypeWPower#u_wpower{air = change_state(TypeWPower#u_wpower.air, Delta)};
-change_state(TypeWPower, {"fire", Delta}) when is_record(TypeWPower, u_wpower) ->
-	TypeWPower#u_wpower{fire = change_state(TypeWPower#u_wpower.fire, Delta)};
-change_state(TypeWPower, {"water", Delta}) when is_record(TypeWPower, u_wpower) ->
-	TypeWPower#u_wpower{water = change_state(TypeWPower#u_wpower.water, Delta)};
-change_state(TypeWPower, {"earth", Delta}) when is_record(TypeWPower, u_wpower) ->
-	TypeWPower#u_wpower{earth = change_state(TypeWPower#u_wpower.earth, Delta)};
-change_state(TypeWPower, {"light", Delta}) when is_record(TypeWPower, u_wpower) ->
-	TypeWPower#u_wpower{light = change_state(TypeWPower#u_wpower.light, Delta)};
-change_state(TypeWPower, {"dark", Delta}) when is_record(TypeWPower, u_wpower) ->
-	TypeWPower#u_wpower{dark = change_state(TypeWPower#u_wpower.dark, Delta)};
-change_state(TypeWPower, {"gray", Delta}) when is_record(TypeWPower, u_wpower) ->
-	TypeWPower#u_wpower{gray = change_state(TypeWPower#u_wpower.gray, Delta)};
-change_state(TypeWPower, {"reduction", Delta}) when is_record(TypeWPower, u_wpower) ->
-	TypeWPower#u_wpower{reduction = change_state(TypeWPower#u_wpower.reduction, Delta)};
-change_state(TypeWPower, {"manaconsumption", Delta}) when is_record(TypeWPower, u_wpower) ->
-	TypeWPower#u_wpower{manaconsumption = change_state(TypeWPower#u_wpower.manaconsumption, Delta)};
-
-%% изменение живучести
-change_state(User, {"vitality." ++ Part, Delta}) when is_record(User, user) ->
-	User#user{vitality = change_state(User#user.vitality, {Part, Delta})};
-change_state(Vitality, {"hp", Delta}) when is_record(Vitality, u_vitality) ->
-	Vitality#u_vitality{hp = change_state(Vitality#u_vitality.hp, Delta)};
-change_state(Vitality, {"maxhp", Delta}) when is_record(Vitality, u_vitality) ->
-	MaxHP = max(change_state(Vitality#u_vitality.maxhp, Delta), 0),
-	case Vitality#u_vitality.hp > MaxHP of
-		true  ->  change_state(Vitality#u_vitality{maxhp = MaxHP}, {"hp", MaxHP - Vitality#u_vitality.hp});
-		false -> Vitality#u_vitality{maxhp = MaxHP}
-	end;
-change_state(Vitality, {"mana", Delta}) when is_record(Vitality, u_vitality) ->
-	Vitality#u_vitality{mana = change_state(Vitality#u_vitality.mana, Delta)};
-change_state(Vitality, {"maxmana", Delta}) when is_record(Vitality, u_vitality) ->
-	MaxMana = max(change_state(Vitality#u_vitality.maxmana, Delta), 0),
-	case Vitality#u_vitality.mana > MaxMana of
-		true  ->  change_state(Vitality#u_vitality{maxmana = MaxMana}, {"mana", MaxMana - Vitality#u_vitality.mana});
-		false -> Vitality#u_vitality{maxmana = MaxMana}
-	end;
-
-%% изменение статов
-change_state(User, {"stats." ++ Part, Delta}) when is_record(User, user) ->
-	User0 = User#user{stats = change_state(User#user.stats, {Part, Delta})},
-	on_stats_changed(User0, {Part, Delta});
-change_state(Stats, {"str", Delta}) when is_record(Stats, u_stats) ->
-	Stats#u_stats{str = change_state(Stats#u_stats.str, Delta)};
-change_state(Stats, {"agil", Delta}) when is_record(Stats, u_stats) ->
-	%% @todo дополнительное изменение мф уворота и антиуворота
-	Stats#u_stats{agil = change_state(Stats#u_stats.agil, Delta)};
-change_state(Stats, {"int", Delta}) when is_record(Stats, u_stats) ->
-	%% @todo дополнительное изменение мф крита и антикрита
-	Stats#u_stats{int = change_state(Stats#u_stats.int, Delta)};
-change_state(Stats, {"dex", Delta}) when is_record(Stats, u_stats) ->
-	%% @todo дополнительное изменение защиты от урона и магии
-	Stats#u_stats{dex = change_state(Stats#u_stats.dex, Delta)};
-change_state(Stats, {"intel", Delta}) when is_record(Stats, u_stats) ->
-	%% @todo дополнительное изменение мф мощности магии
-	Stats#u_stats{intel = change_state(Stats#u_stats.intel, Delta)};
-change_state(Stats, {"wisd", Delta}) when is_record(Stats, u_stats) ->
-	%% @todo изменить уровень маны
-	Stats#u_stats{wisd = change_state(Stats#u_stats.wisd, Delta)};
-change_state(Stats, {"spir", Delta}) when is_record(Stats, u_stats) ->
-	%% @todo изменить уровень духа
-	Stats#u_stats{spir = change_state(Stats#u_stats.spir, Delta)};
-
-%% изменение МФ
-change_state(User, {"mfs." ++ Part, Delta}) when is_record(User, user) ->
-	User#user{mfs = change_state(User#user.mfs, {Part, Delta})};
-change_state(Mfs, {"crit", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{crit = max(change_state(Mfs#u_mf.crit, Delta), 0)};
-change_state(Mfs, {"ucrit", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{ucrit = max(change_state(Mfs#u_mf.ucrit, Delta), 0)};
-change_state(Mfs, {"aucrit", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{aucrit = max(change_state(Mfs#u_mf.aucrit, Delta), 0)};
-change_state(Mfs, {"acrit", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{acrit = max(change_state(Mfs#u_mf.acrit, Delta), 0)};
-change_state(Mfs, {"dodge", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{dodge = max(change_state(Mfs#u_mf.dodge, Delta), 0)};
-change_state(Mfs, {"udodge", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{udodge = max(change_state(Mfs#u_mf.udodge, Delta), 0)};
-change_state(Mfs, {"audodge", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{audodge = max(change_state(Mfs#u_mf.audodge, Delta), 0)};
-change_state(Mfs, {"adodge", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{adodge = max(change_state(Mfs#u_mf.adodge, Delta), 0)};
-change_state(Mfs, {"counter", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{counter = max(change_state(Mfs#u_mf.counter, Delta), 0)};
-change_state(Mfs, {"parry", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{parry = max(change_state(Mfs#u_mf.parry, Delta), 0)};
-change_state(Mfs, {"block", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{block = max(change_state(Mfs#u_mf.block, Delta), 0)};
-change_state(Mfs, {"luck", Delta}) when is_record(Mfs, u_mf) ->
-	Mfs#u_mf{luck = max(change_state(Mfs#u_mf.luck, Delta), 0)};
-
-
-%% изменение d-value
-change_state(DValue, {"n", Delta}) when is_record(DValue, d_value) ->
-	DValue#d_value{n = change_state(DValue#d_value.n, Delta)};
-change_state(DValue, {"k", Delta}) when is_record(DValue, d_value) ->
-	DValue#d_value{k = change_state(DValue#d_value.k, Delta)};
-
-%% изменение числового параметра
-change_state(Param, Delta) when is_number(Param),
-								is_number(Delta) ->
-	Param + Delta.
-
-%% вызывается при изменении статов юзера
-%% пересчитывает различные МФ, зависящие от статов
-
-%% пересчет уворота и антиуворота от изменения ловкости
-on_stats_changed(User, {"agil", Delta}) when is_record(User, user) ->
-	Mfs = (User#user.mfs)#u_mf{
-		dodge  = max(change_state((User#user.mfs)#u_mf.dodge, formula:get_dodge_by_agile(Delta)), 0),
-		udodge = max(change_state((User#user.mfs)#u_mf.udodge, formula:get_udodge_by_agile(Delta)), 0)
-	},
-	User#user{mfs = Mfs};
-%% пересчет крита и антикрита от изменения интуиции
-on_stats_changed(User, {"int", Delta}) when is_record(User, user) ->
-	Mfs = (User#user.mfs)#u_mf{
-		crit  = max(change_state((User#user.mfs)#u_mf.crit, formula:get_crit_by_intuition(Delta)), 0),
-		ucrit = max(change_state((User#user.mfs)#u_mf.ucrit, formula:get_ucrit_by_intuition(Delta)), 0)
-	},
-	User#user{mfs = Mfs};
-%% пересчет ХП и защиты от изменения выноса
-on_stats_changed(User, {"dex", Delta}) when is_record(User, user) ->
-	Vitality = change_state(?vitality(User), {"maxhp", formula:get_hp_by_dex(Delta)}),
-	Dprotection = change_state(User, {"dprotection", formula:get_dprotection_by_dex(Delta)}),
-	Wprotection = change_state(User, {"wprotection", formula:get_wprotection_by_dex(Delta)}),
-	User#user{vitality = Vitality,
-			  dprotection = ?dprotection(Dprotection),
-			  wprotection =?wprotection(Wprotection)};
-%% пересчет мощности магии от интеллекта
-on_stats_changed(User, {"intel", Delta}) when is_record(User, user) ->
-	change_state(User, {"wpower", formula:get_wpower_by_intellect(Delta)});
-%% пересчет кол-ва маны от мудрости
-on_stats_changed(User, {"wisd", Delta}) when is_record(User, user) ->
-	change_state(User, {"vitality.maxmana", formula:get_mana_by_wisd(Delta)});
-%% пересчет кол-ва духа от духовности
-%% @todo а нужно ли оно?
-%on_stats_changed(User, {"spir", Delta}) ->
-%	change_state(User, {"vitality.maxmana", formula:get_mana_by_wisd(Delta)});
-
-on_stats_changed(User, {_, _}) ->
-	User.
 

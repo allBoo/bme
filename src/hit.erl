@@ -332,11 +332,8 @@ hits_queue(_, []) ->
 hits_queue(BattleId, [{AttackerPid, HitZone, AttackerBlock, DefendantPid, DefendantBlock, Index} | TailHits]) ->
 	%?DBG("DO HIT, ~p~n", [{HitZone, Blocks, Attacker#user.id, Defendant#user.id}]),
 	%% получаем данные юнитов при каждом ударе, чтобы не потерять ничего при конкурентных запросах
-	AttackerUnit  = unit:get_state(AttackerPid),
-	DefendantUnit = unit:get_state(DefendantPid),
-
-	Attacker  = ?user(AttackerUnit),
-	Defendant = ?user(DefendantUnit),
+	Attacker  = unit:get_user(AttackerPid),
+	Defendant = unit:get_user(DefendantPid),
 
 	%% получаем оружие атакующего
 	AttackerWeapon = get_weapon(user_helper:get_weapons(Attacker), Index),
@@ -397,8 +394,8 @@ hits_queue(BattleId, [{AttackerPid, HitZone, AttackerBlock, DefendantPid, Defend
 	HitResult = #b_hit_result{
 		hit         = Hit,
 		blocks      = DefendantBlock,
-		attacker    = AttackerUnit,
-		defendant   = DefendantUnit,
+		attacker    = AttackerPid,
+		defendant   = DefendantPid,
 		damage_type = DamageType,
 		weapon_type = AttackerWeapon#u_weapon.type,
 		weapon_twain = AttackerWeapon#u_weapon.twain == true,

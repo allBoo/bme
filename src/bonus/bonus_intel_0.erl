@@ -32,9 +32,9 @@ new(Buff) ->
 		}}.
 
 
-on_unit_state_change({'user.stats.intel', _}, Buff) ->
-	Unit = unit:get_state(Buff#buff.unit),
-	Intel = ?stats(?user(Unit))#u_stats.intel,
+on_unit_state_change({'stats.intel', _}, Buff) ->
+	UserPid = unit:get_user_pid(Buff#buff.unit),
+	Intel = user_state:get(UserPid, 'stats.intel'),
 	case Intel of
 		_125 when _125 >= 125 -> {swap, bonus_intel_125, Buff};
 		_100 when _100 >= 100 -> {swap, bonus_intel_100, Buff};

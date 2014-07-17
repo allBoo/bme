@@ -25,9 +25,10 @@
 -define(BATTLE_LOG(Battle), {?GSI("battle_log_", Battle#battle.id), {battle_log, start_link, [Battle#battle.id]}, transient, 5000, worker, [battle_log]}).
 -define(HITS_SUP(Battle), {hits_sup, {hits_sup, start_link, [Battle]}, transient, infinity, supervisor, [hits_sup]}).
 -define(TEAM_SUP(Battle, Team), {?GSI("teamsup_", Team#b_team.id), {team_sup, start_link, [Team#b_team{battle_id=Battle#battle.id}]}, transient, infinity, supervisor, [team_sup]}).
--define(TEAM(Team), {?GSI("team_", Team#b_team.id), {team, start_link, [Team]}, transient, 1000, worker, [team]}).
+-define(TEAM(Team), {?GSI("team_", Team#b_team.id), {team, start_link, [Team]}, transient, 5000, worker, [team]}).
 -define(UNIT_SUP(Team, Unit), {?GSI("unitsup_", Unit#b_unit.id), {unit_sup, start_link, [Unit#b_unit{battle_id=Team#b_team.battle_id}]}, transient, infinity, supervisor, [unit_sup]}).
--define(UNIT(Unit), {?GSI("unit_", Unit#b_unit.id), {unit, start_link, [Unit]}, transient, 1000, worker, [unit]}).
+-define(USER(User), {?GSI("user_", User#user.id), {user_state, start_link, [User]}, transient, 1000, worker, [user_state]}).
+-define(UNIT(Unit), {?GSI("unit_", Unit#b_unit.id), {unit, start_link, [Unit]}, transient, 5000, worker, [unit]}).
 -define(BUFF_SUP(Unit), {?GSI("buffsup_", Unit#b_unit.id), {buff_sup, start_link, [Unit]}, transient, infinity, supervisor, [buff_sup]}).
 -define(AI0(Unit), {?GSI("ai0_", Unit#b_unit.id), {ai0, start_link, [Unit]}, transient, 1000, worker, [ai0]}).
 

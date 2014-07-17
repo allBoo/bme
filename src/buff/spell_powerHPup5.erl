@@ -26,7 +26,7 @@ new(Buff) ->
 			type = effect,
 			name = <<"Жажда жизни +5"/utf8>>,
 			charges = gen_buff:calc_charges(Buff#buff.time),
-			value = [{'user.vitality.maxhp', HPValue}]
+			value = [{'vitality.maxhp', HPValue}]
 		}}.
 
 
@@ -35,6 +35,4 @@ new(Buff) ->
 %% ====================================================================
 
 get_value(Buff) ->
-	Unit = unit:get_state(Buff#buff.unit),
-	?stats(?user(Unit))#u_stats.dex * 5.
-
+	user_state:get(unit:get_user_pid(Buff#buff.unit), 'stats.dex') * 5.

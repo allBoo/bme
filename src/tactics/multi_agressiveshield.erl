@@ -52,7 +52,7 @@ on_unit_before_damage(HitResult, Buff) ->
 
 %% реакция после полчения урона
 on_unit_after_damage(HitResult, Buff) when is_record(HitResult, b_hit_result) ->
-	Value = 3 * ?level(?user(HitResult#b_hit_result.attacker)),
+	Value = 3 * ?plevel(HitResult#b_hit_result.attacker),
 	Riposte = #b_magic_attack{
 		damage      = Value,
 		damage_type = general,
@@ -62,13 +62,13 @@ on_unit_after_damage(HitResult, Buff) when is_record(HitResult, b_hit_result) ->
 		defendant   = HitResult#b_hit_result.attacker,
 		transaction = HitResult#b_hit_result.transaction
 	},
-	unit:magic_damage(?unitpid(HitResult#b_hit_result.attacker), Riposte, HitResult#b_hit_result.transaction),
+	unit:magic_damage(HitResult#b_hit_result.attacker, Riposte, HitResult#b_hit_result.transaction),
 	{remove_handler, HitResult};
 
 
 %% реакция после полчения урона
 on_unit_after_damage(MagicAttack, Buff) when is_record(MagicAttack, b_magic_attack) ->
-	Value = 3 * ?level(?user(MagicAttack#b_magic_attack.attacker)),
+	Value = 3 * ?plevel(MagicAttack#b_magic_attack.attacker),
 	Riposte = #b_magic_attack{
 		damage      = Value,
 		damage_type = general,
@@ -78,7 +78,7 @@ on_unit_after_damage(MagicAttack, Buff) when is_record(MagicAttack, b_magic_atta
 		defendant   = MagicAttack#b_magic_attack.attacker,
 		transaction = MagicAttack#b_magic_attack.transaction
 	},
-	unit:magic_damage(?unitpid(MagicAttack#b_magic_attack.attacker), Riposte, MagicAttack#b_magic_attack.transaction),
+	unit:magic_damage(MagicAttack#b_magic_attack.attacker, Riposte, MagicAttack#b_magic_attack.transaction),
 	{remove_handler, MagicAttack}.
 
 

@@ -28,15 +28,15 @@ new(Buff) ->
 			type = bonus,
 			time = infinity,
 			charges = undefined,
-			value = [{'user.dpower.crit', 25},
-					 {'user.mfs.ucrit', 200},
-					 {'user.mfs.acrit', 5}]
+			value = [{'dpower.crit', 25},
+					 {'mfs.ucrit', 200},
+					 {'mfs.acrit', 5}]
 		}}.
 
 
-on_unit_state_change({'user.stats.int', _}, Buff) ->
-	Unit = unit:get_state(Buff#buff.unit),
-	Int  = ?stats(?user(Unit))#u_stats.int,
+on_unit_state_change({'stats.int', _}, Buff) ->
+	UserPid = unit:get_user_pid(Buff#buff.unit),
+	Int = user_state:get(UserPid, 'stats.int'),
 	case Int of
 		_125 when _125 >= 125 -> {ok, Buff};
 		_100 when _100 >= 100 -> {swap, bonus_int_100, Buff};

@@ -271,13 +271,13 @@ call_on_end(#state{mod = Module, buff = Buff} = State) ->
 	?result(R).
 
 do_on_start(Buff) when is_list(Buff#buff.value) ->
-	unit:increase_state(Buff#buff.unit, Buff#buff.value),
+	user_state:increase_state(Buff#buff.unit, Buff#buff.value),
 	{ok, Buff};
 do_on_start(_) ->
 	{error, undef}.
 
 do_on_end(Buff) when is_list(Buff#buff.value) ->
-	unit:reduce_state(Buff#buff.unit, Buff#buff.value),
+	user_state:reduce_state(Buff#buff.unit, Buff#buff.value),
 	{ok, Buff};
 do_on_end(_) ->
 	{error, undef}.

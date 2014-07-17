@@ -28,13 +28,13 @@ new(Buff) ->
 			type = bonus,
 			time = infinity,
 			charges = undefined,
-			value = [{'user.vitality.maxmana', 100}]
+			value = [{'vitality.maxmana', 100}]
 		}}.
 
 
-on_unit_state_change({'user.stats.wisd', _}, Buff) ->
-	Unit = unit:get_state(Buff#buff.unit),
-	Wisd = ?stats(?user(Unit))#u_stats.wisd,
+on_unit_state_change({'stats.wisd', _}, Buff) ->
+	UserPid = unit:get_user_pid(Buff#buff.unit),
+	Wisd = user_state:get(UserPid, 'stats.wisd'),
 	case Wisd of
 		_125 when _125 >= 125 -> {swap, bonus_wisd_125, Buff};
 		_100 when _100 >= 100 -> {swap, bonus_wisd_100, Buff};
