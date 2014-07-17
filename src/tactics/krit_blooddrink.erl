@@ -42,8 +42,8 @@ on_unit_hit_damage(HitResult, Buff) when is_record(HitResult, b_hit_result),
 										 (Buff#buff.state)#state.started == false,
 										 HitResult#b_hit_result.crit == true ->
 	%% увеличиваем кол-во силы
-	Value = [{'user.stats.str', get_str(HitResult#b_hit_result.damage, ?plevel(HitResult#b_hit_result.defendant))}],
-	unit:increase_state(Buff#buff.unit, Value),
+	Value = [{'stats.str', get_str(HitResult#b_hit_result.damage, ?plevel(HitResult#b_hit_result.defendant))}],
+	user_state:increase(?puserpid(Buff#buff.unit), Value),
 	%% хиляем юнита на половину урона, но не больше лимита
 	do_heal(HitResult, Buff),
 

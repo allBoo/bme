@@ -37,6 +37,7 @@
 -export([start_link/1]).
 
 -export([start_block/1,
+		 unit/1,
 		 commit/1,
 		 rollback/1,
 		 hit/2,
@@ -55,6 +56,25 @@
 %% регистрирует процесс нового логгера
 start_link(BattleId) when is_integer(BattleId) ->
 	gen_server:start_link(?MODULE, BattleId, []).
+
+
+%% unit/1
+%% ====================================================================
+%% формирует представление юнита для лога
+unit(Unit) when is_record(Unit, b_unit) ->
+	Sex      = user_state:get(?userpid(Unit), 'info.sex'),
+	Vitality = user_state:get(?userpid(Unit), 'vitality'),
+	#log_unit{name    = Unit#b_unit.name,
+			  sex     = Sex,
+			  hp      = Vitality#u_vitality.hp,
+			  maxhp   = Vitality#u_vitality.maxhp,
+			  mana    = Vitality#u_vitality.mana,
+			  maxmana = Vitality#u_vitality.maxmana,
+			  team    = Unit#b_unit.team_id};
+
+unit(UnitPid) when is_pid(UnitPid) ->
+	Unit = unit:get_state(UnitPid),
+	unit(Unit).
 
 
 %% start_block/1

@@ -116,5 +116,5 @@ riposte(Value, HitResult, Buff) ->
 		defendant   = HitResult#b_hit_result.attacker,
 		transaction = HitResult#b_hit_result.transaction
 	},
-	unit:magic_damage(?unitpid(HitResult#b_hit_result.attacker), Riposte, HitResult#b_hit_result.transaction).
+	unit:magic_damage(HitResult#b_hit_result.attacker, Riposte, HitResult#b_hit_result.transaction).
 
