@@ -102,12 +102,12 @@ waiting(_Event, StateData) ->
 alive(_Event, StateData) ->
 	?DBG("AI ~p start new hit~n", [StateData#state.unit_pid]),
 	%% получаем инфу по юниту
-	Unit = unit:get_state(StateData#state.unit_pid),
-	case Unit#b_unit.alive of
+	case unit:is_alive(StateData#state.unit_pid) of
 		%% если юнит жив, то выставляем рандомный удар
 		%% и уходим в ожидание следующего противника
 		true ->
-			unit:hit(StateData#state.unit_pid, get_hits(Unit), get_block(Unit)),
+			UserPid = unit:get_user_pid(StateData#state.unit_pid),
+			unit:hit(StateData#state.unit_pid, get_hits(UserPid), get_block(UserPid)),
 			{next_state, waiting, StateData};
 		%% если нет, то стопаем
 		false ->
@@ -175,7 +175,6 @@ handle_info({unit, {new_opponent, Opponent}}, StateName, StateData) ->
 	case Opponent of
 		undefined -> {next_state, StateName, StateData};
 		_ ->
-			%%_Opponent = unit:get_state(Opponent#b_opponent.pid),
 			%% определяем таймаут для выставления удара
 			%% @todo если оппонент - бот, то тайм 8-10 сек, иначе 1-2 сек
 			Timeout = case Opponent#b_opponent.ai of
@@ -236,8 +235,8 @@ subscribe(Unit) ->
 %% get_hits/1
 %% ====================================================================
 %% генерирует рандомный удар
-get_hits(Unit) ->
-	random_hits(((Unit#b_unit.user)#user.battle_spec)#u_battle_spec.hit_points).
+get_hits(UserPid) ->
+	random_hits(user_state:get(UserPid, 'battle_spec.hit_points')).
 
 random_hits(0) -> [];
 

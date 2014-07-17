@@ -38,13 +38,14 @@
 		 get_user_pid/1,
 		 get_user/1,
 		 get_state/1,
+		 is_alive/1,
+
 		 notify/2,
 		 create_opponent_info/1,
 		 set_opponents/2,
 		 hit/3,
 		 hited/2,
 
-		 damage/2,
 		 swap_done/2,
 		 kill/1,
 		 timeout_alarm/2,
@@ -97,6 +98,13 @@ get_state(Unit) ->
 	?CALL(Unit, get_state).
 
 
+%% is_alive/1
+%% ====================================================================
+%% возвращает текущий state юнита
+is_alive(Unit) ->
+	?CALL(Unit, is_alive).
+
+
 %% notify/2
 %% ====================================================================
 %% уведомление через эвент-менеджер юнита
@@ -133,13 +141,6 @@ hit(UnitId, Hits, Block) ->
 %% противник выставил размен
 hited(UnitPid, {From, Hit}) when is_pid(UnitPid), is_pid(From), is_pid(Hit) ->
 	gen_server:cast(UnitPid, {hited, {From, Hit}}).
-
-
-%% damage/2
-%% ====================================================================
-%% нанесение урона юниту
-damage(UnitId, Damage) when is_record(Damage, b_damage) ->
-	?CALL(UnitId, {damage, Damage}).
 
 
 %% magic_damage/2, magic_damage/3
@@ -301,6 +302,11 @@ handle_call(get_user, _, Unit) ->
 %% возвращает state юнита
 handle_call(get_state, _, Unit) ->
 	{reply, Unit, Unit};
+
+
+%% возвращает state юнита
+handle_call(is_alive, _, Unit) ->
+	{reply, Unit#b_unit.alive, Unit};
 
 
 %% блокируем все остальные вызовы к убитому юниту
