@@ -47,6 +47,7 @@
 		 hited/2,
 
 		 swap_done/2,
+		 hit_done/2,
 		 kill/1,
 		 timeout_alarm/2,
 		 crash/1]).
@@ -185,10 +186,16 @@ got_heal(UnitId, Heal, TransactionId) when is_record(Heal, b_heal) ->
 
 %% swap_done/2
 %% ====================================================================
-%% уведомление о завершении размена
+%% уведомление о завершении хода(размена)
 swap_done(UnitId, HitFrom) ->
 	?CAST(UnitId, {swap_done, HitFrom}).
 
+
+%% hit_done/2
+%% ====================================================================
+%% уведомление о завершении удара
+hit_done(UnitId, HitFrom) ->
+	?CAST(UnitId, {hit_done, HitFrom}).
 
 %% kill/1
 %% ====================================================================
@@ -399,10 +406,10 @@ handle_call({got_damage, HitResult0, From}, _, Unit) ->
 
 
 %% нанесение урона
-handle_call({hit_damage, HitResult, _From}, _, Unit) ->
-	?DBG("Hit Damage ~p~n", [HitResult#b_hit_result.damage]),
+handle_call({hit_damage, HitResult0, _From}, _, Unit) ->
+	?DBG("Hit Damage ~p~n", [HitResult0#b_hit_result.damage]),
 
-	buff_mgr:on_hit_damage(?unitid(Unit), HitResult),
+	HitResult = buff_mgr:on_hit_damage(?unitid(Unit), HitResult0),
 	Damage = HitResult#b_hit_result.damage,
 
 	%% считаем полученные тактики
@@ -425,8 +432,10 @@ handle_call({hit_damage, HitResult, _From}, _, Unit) ->
 
 
 %% избегание урона
-handle_call({avoid_damage, HitResult, From}, _, Unit) ->
-	?DBG("Avoid Damage ~p~n", [HitResult#b_hit_result.damage]),
+handle_call({avoid_damage, HitResult0, From}, _, Unit) ->
+	?DBG("Avoid Damage ~p~n", [HitResult0#b_hit_result.damage]),
+
+	HitResult = buff_mgr:on_avoid_damage(?unitid(Unit), HitResult0),
 
 	%% считаем полученные тактики
 	Tactics = add_tactics(Unit, #b_tactics{
@@ -841,7 +850,8 @@ add_tactics(Unit, Delta) when is_record(Unit, b_unit),
 %% ====================================================================
 %% обработка конца размена
 do_swap_done(OpponentPid, Unit) ->
-	buff_mgr:notify(?unitid(Unit), swap_done),
+	%buff_mgr:notify(?unitid(Unit), swap_done),
+	notify(Unit, swap_done),
 
 	%% если у противника стоит флаг таймаута - сбросим его
 	Opponents = list_helper:keymap(OpponentPid,

@@ -434,6 +434,8 @@ change_state(Mfs, {"adodge", Delta}) when is_record(Mfs, u_mf) ->
 	Mfs#u_mf{adodge = max(change_state(Mfs#u_mf.adodge, Delta), 0)};
 change_state(Mfs, {"counter", Delta}) when is_record(Mfs, u_mf) ->
 	Mfs#u_mf{counter = max(change_state(Mfs#u_mf.counter, Delta), 0)};
+change_state(Mfs, {"acounter", Delta}) when is_record(Mfs, u_mf) ->
+	Mfs#u_mf{acounter = max(change_state(Mfs#u_mf.acounter, Delta), 0)};
 change_state(Mfs, {"parry", Delta}) when is_record(Mfs, u_mf) ->
 	Mfs#u_mf{parry = max(change_state(Mfs#u_mf.parry, Delta), 0)};
 change_state(Mfs, {"block", Delta}) when is_record(Mfs, u_mf) ->

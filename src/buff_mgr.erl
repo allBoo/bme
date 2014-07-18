@@ -45,6 +45,7 @@
 -export([on_before_got_damage/2,
 		 on_after_got_damage/2,
 		 on_hit_damage/2,
+		 on_avoid_damage/2,
 		 on_before_got_heal/2,
 		 on_calc_damage/2]).
 
@@ -104,8 +105,13 @@ on_hit_damage(Unit, HitResult) ->
 	?CALL(Unit, {on_hit_damage, HitResult}).
 
 
+on_avoid_damage(Unit, HitResult) ->
+	?CALL(Unit, {on_avoid_damage, HitResult}).
+
+
 on_before_got_heal(Unit, Heal) ->
 	?CALL(Unit, {on_before_got_heal, Heal}).
+
 
 on_calc_damage(Unit, Damage) ->
 	?CALL(Unit, {on_calc_damage, Damage}).
@@ -210,6 +216,15 @@ handle_call({on_hit_damage, HitResult}, _From, State) ->
 	{reply, HitResult1, State};
 
 
+% обработка при избегании урона
+handle_call({on_avoid_damage, HitResult}, _From, State) ->
+	Buffs = gen_event:which_handlers(State#state.event_mgr),
+	HitResult1 = lists:foldl(fun(Buff, HitResult0) ->
+						gen_event:call(State#state.event_mgr, Buff, {on_avoid_damage, HitResult0})
+				end, HitResult, Buffs),
+	{reply, HitResult1, State};
+
+
 % обработка перед хиллом юнита
 handle_call({on_before_got_heal, Heal}, _From, State) ->
 	Buffs = gen_event:which_handlers(State#state.event_mgr),
@@ -270,9 +285,7 @@ handle_cast(_Msg, State) ->
 
 %% messages from unit
 handle_info({unit, Msg}, State) ->
-	?DBG("START NOTIFY ~p~n", [Msg]),
 	gen_event:notify(State#state.event_mgr, Msg),
-	?DBG("DONE NOTIFY ~p~n", [Msg]),
 	{noreply, State};
 
 

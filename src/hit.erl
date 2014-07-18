@@ -416,9 +416,14 @@ hits_queue(BattleId, [{AttackerPid, HitZone, AttackerBlock, DefendantPid, Defend
 		%% он в ответ должен сказать сколько он реально получил урона (за счет защитных приемов и тд)
 		%% при этом он может парралельно нанести ответный урон атакующему, но нам здесь это не важно
 		true ->
-			%% считаем урон для данного удара
-			Damage = formula:get_damage(Hit, DamageType, Crit, CritBreak, Attacker, AttackerWeapon, Defendant),
-			buff_mgr:on_calc_damage(Attacker#user.id, Damage),
+			%% считаем базовый урон данным типом атаки
+			%Damage = formula:get_damage(Hit, DamageType, Crit, CritBreak, Attacker, AttackerWeapon, Defendant),
+			BaseDamage0 = formula:get_base_damage(DamageType, Crit, CritBreak, Attacker, AttackerWeapon, Defendant),
+			%% приемы на увеличение урона
+			BaseDamage = buff_mgr:on_calc_damage(Attacker#user.id, BaseDamage0),
+
+			%% реально полученный урон
+			Damage = formula:get_reduced_damage(BaseDamage, Hit, DamageType, Attacker, AttackerWeapon, Defendant),
 
 			unit:got_damage(DefendantPid, HitResult#b_hit_result{damage = Damage}, self());
 

@@ -220,6 +220,9 @@ handle_call({on_after_got_damage, HitResult}, State) ->
 handle_call({on_hit_damage, HitResult}, State) ->
 	apply_data_callback(on_unit_hit_damage, HitResult, State);
 
+%% обработка баффов на избегание урона юнитом
+handle_call({on_avoid_damage, HitResult}, State) ->
+	apply_data_callback(on_unit_avoid_damage, HitResult, State);
 
 %% обработка баффов на хилл юнита
 handle_call({on_before_got_heal, Heal}, State) ->

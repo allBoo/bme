@@ -100,8 +100,11 @@ is_counter(_Attacker, Defendant) ->
 	%% минимальный мф контрудара 10%, максимальный - 80%
 	CounterChance = math:limit(DefendantMf#u_mf.counter / 100, 0.1, 0.8),
 
+	%% абсолютный контрудар
+	AbsCounter = math:limit(DefendantMf#u_mf.acounter / 100, 0.0, 1.0),
+
 	%% простая проверка на ГСЧ
-	is_happened(CounterChance).
+	is_happened(CounterChance) orelse is_happened(AbsCounter).
 
 
 %% is_crit/3
@@ -147,7 +150,10 @@ is_parry(Attacker, Defendant) ->
 	%% шанс парира = (Свой Парир - Парир Противника/2) в пределах от 0% до 50%
 	ParryChance = math:limit(DefendantMf#u_mf.parry - AttackerMf#u_mf.parry / 2, 0.0, 50.0) / Reduce,
 
-	is_happened(ParryChance).
+	%% абсолютный антиуворот
+	AbsADodgeChance = math:limit(AttackerMf#u_mf.audodge / 100, 0.0, 1.0),
+
+	is_happened(ParryChance) and not(is_happened(AbsADodgeChance)).
 
 
 %% is_shield_block/2
@@ -164,7 +170,10 @@ is_shield_block(Attacker, Defendant) ->
 	%% шанс блока = (Свой мф - мф Противника) в пределах от 0% до 50%
 	BlockChance = math:limit(DefendantMf#u_mf.block - AttackerMf#u_mf.block / 2, 0.0, 50.0) / Reduce,
 
-	is_happened(BlockChance).
+	%% абсолютный антиуворот
+	AbsADodgeChance = math:limit(AttackerMf#u_mf.audodge / 100, 0.0, 1.0),
+
+	is_happened(BlockChance) and not(is_happened(AbsADodgeChance)).
 
 
 %% get_damage/7
@@ -237,8 +246,8 @@ get_reduced_damage(BaseDamage, Hit, DamageType, Attacker, AttackerWeapon, Defend
 	%?DBG("Protection ~p~n", [ProtectionReduce]),
 	%% броня не может снизить урон более чем на треть
 	%% урон не может уйти в минус
-	max(max(BaseDamage - ArmorReduce, BaseDamage/3) *
-		(1 - ProtectionReduce/100), 0).
+	trunc(max(max(BaseDamage - ArmorReduce, BaseDamage/3) *
+		(1 - ProtectionReduce/100), 0)).
 
 
 %% get_damage_power/2
