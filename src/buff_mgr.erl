@@ -47,6 +47,7 @@
 		 on_hit_damage/2,
 		 on_avoid_damage/2,
 		 on_before_got_heal/2,
+		 on_before_calc_damage/2,
 		 on_calc_damage/2]).
 
 
@@ -111,6 +112,10 @@ on_avoid_damage(Unit, HitResult) ->
 
 on_before_got_heal(Unit, Heal) ->
 	?CALL(Unit, {on_before_got_heal, Heal}).
+
+
+on_before_calc_damage(Unit, HitData) ->
+	?CALL(Unit, {on_before_calc_damage, HitData}).
 
 
 on_calc_damage(Unit, Damage) ->
@@ -232,6 +237,15 @@ handle_call({on_before_got_heal, Heal}, _From, State) ->
 					gen_event:call(State#state.event_mgr, Buff, {on_before_got_heal, Heal0})
 			end, Heal, Buffs),
 	{reply, Heal1, State};
+
+
+% обработка перед расчетом наносимого урона
+handle_call({on_before_calc_damage, HitData}, _From, State) ->
+	Buffs = gen_event:which_handlers(State#state.event_mgr),
+	HitData1 = lists:foldl(fun(Buff, HitData0) ->
+						gen_event:call(State#state.event_mgr, Buff, {on_before_calc_damage, HitData0})
+				end, HitData, Buffs),
+	{reply, HitData1, State};
 
 
 % обработка при расчете наносимого урона

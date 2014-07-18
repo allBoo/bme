@@ -228,6 +228,9 @@ handle_call({on_avoid_damage, HitResult}, State) ->
 handle_call({on_before_got_heal, Heal}, State) ->
 	apply_data_callback(on_unit_before_heal, Heal, State);
 
+%% обработка баффов влияющих на базовый урон
+handle_call({on_before_calc_damage, HitData}, State) ->
+	apply_data_callback(on_unit_before_calc_damage, HitData, State);
 
 %% обработка при расчете наносимого урона
 handle_call({on_calc_damage, Damage}, State) ->

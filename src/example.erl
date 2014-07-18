@@ -146,7 +146,8 @@ get1() ->
 				 #u_buff{id = bonus_intel_125},
 				 #u_buff{id = bonus_wisd_75},
 				 #u_buff{id = bonus_spir_50},
-				 #u_buff{id = wis_water_shield, level = 10}]
+				 #u_buff{id = wis_water_shield, level = 10},
+				 #u_buff{id = multi_skiparmor}]
 	}.
 
 
@@ -163,6 +164,6 @@ get(Id) ->
 	Cost = random:uniform((User#user.dress)#u_dress.cost),
 	CloneIndex = integer_to_binary(Id),
 	User#user{id = Id,
-			  ai = false,
+			  ai = true,
 			  name = <<(User#user.name)/binary, <<" клон"/utf8>>/binary, CloneIndex/binary >>,
 			  dress = (User#user.dress)#u_dress{cost = Cost}}.

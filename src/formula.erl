@@ -530,9 +530,13 @@ is_happened(Value) when Value =< 100 ->
 get_from_interval(DValue, Luck) when is_record(DValue, d_value) ->
 	get_from_interval(get_d_interval(DValue), Luck);
 
-get_from_interval({Min, Max}, 0) ->
-	Min + (random:uniform((Max - Min) + 1) - 1);
-
-get_from_interval({Min, Max}, _Luck) ->
+get_from_interval({_Min, Max}, Luck) when Luck > 0 ->
 	%% @todo use gaussian
-	get_from_interval({Min, Max}, 0).
+	%% снижаем интервал до 5%
+	Min = Max - (Max * 0.05),
+	get_from_interval({trunc(Min), trunc(Max)}, 0);
+
+get_from_interval({0, 0}, _) -> 0;
+
+get_from_interval({Min, Max}, _) ->
+	Min + (random:uniform((Max - Min) + 1) - 1).
