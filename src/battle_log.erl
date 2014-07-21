@@ -65,8 +65,16 @@ unit(Unit) when is_record(Unit, log_unit) ->
 	Unit;
 
 unit(Unit) when is_record(Unit, b_unit) ->
-	Sex      = user_state:get(?userpid(Unit), 'info.sex'),
-	Vitality = user_state:get(?userpid(Unit), 'vitality'),
+	User     = Unit#b_unit.user,
+	case is_record(User, user) of
+		true ->
+			Sex      = (User#user.info)#u_info.sex,
+			Vitality = User#user.vitality;
+		false ->
+			Sex      = user_state:get(User, 'info.sex'),
+			Vitality = user_state:get(User, 'vitality')
+	end,
+
 	#log_unit{name    = Unit#b_unit.name,
 			  sex     = Sex,
 			  hp      = Vitality#u_vitality.hp,

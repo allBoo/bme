@@ -34,6 +34,7 @@
 %% API functions
 %% ====================================================================
 -export([start_link/1,
+		 get_id/1,
 		 get_pid/1,
 		 get_user_pid/1,
 		 get_user/1,
@@ -66,6 +67,13 @@
 %% регистрирует процесс нового участника боя
 start_link(Unit) when is_record(Unit, b_unit) ->
 	gen_server:start_link(?MODULE, Unit, []).
+
+
+%% get_id/1
+%% ====================================================================
+%% возвращает id юнита по его PID
+get_id(UnitPid) when is_pid(UnitPid) ->
+	reg:get({unit_id, UnitPid}).
 
 
 %% get_pid/1
@@ -215,15 +223,14 @@ timeout_alarm(UnitPid, OpponentPid) ->
 %% ====================================================================
 %% тестирование падения юнита
 crash(_UnitId) ->
-	buff_mgr:apply(2, #u_buff{id=krit_blooddrink}),
-	buff_mgr:apply(2, #u_buff{id=multi_agressiveshield}),
-	buff_mgr:apply(2, #u_buff{id=novice_hit}),
+	buff_mgr:apply(1, #u_buff{id=krit_blindluck}),
+	buff_mgr:apply(1, #u_buff{id=multi_doom}),
 
-	U1 = unit:get_pid(1),
-	U2 = unit:get_pid(2),
-	Damage = buff_mgr:on_calc_damage(2, 500),
-	Hit = #b_hit_result{hit = head, blocks=[head, torso], attacker=U2, defendant = U1, damage=Damage, damage_type=crush, weapon_type=staff, crit = true},
-	unit:got_damage(1, Hit, undefined).
+	buff_mgr:apply(2, #u_buff{id=multi_cowardshift}),
+
+	unit:hit(1, [head, legs], paunch),
+	unit:hit(2, [head, torso], torso),
+	ok.
 	%?CALL(UserId, crash).
 
 
@@ -262,6 +269,9 @@ init(Unit) when is_record(Unit, b_unit) ->
 	UserPid = user_state:get_pid(Unit#b_unit.id),
 	reg:set({unit_user, Unit#b_unit.id}, UserPid),
 	reg:set({unit_user, self()}, UserPid),
+
+	%% регистрируем ID юнита
+	reg:set({unit_id, self()}, Unit#b_unit.id),
 
 	{ok, Unit#b_unit{pid = self(), user = UserPid}}.
 
@@ -383,12 +393,13 @@ handle_call({got_damage, HitResult0, From}, _, Unit) ->
 	DamagedUnit = Unit#b_unit{total_lost = Unit#b_unit.total_lost + Damage},
 
 	%% пишем в лог получение урона
+	DamagedUser = user_state:get(DamagedUnit#b_unit.user),
 	case HitResult of
 		H0 when is_record(H0, b_hit_result) ->
-			Log = #log_hit{attacker = HitResult#b_hit_result.attacker, defendant = DamagedUnit, hit_result = H0},
+			Log = #log_hit{attacker = HitResult#b_hit_result.attacker, defendant = DamagedUnit#b_unit{user = DamagedUser}, hit_result = H0},
 			battle_log:hit(Unit#b_unit.battle_id, From, Log);
 		M0 when is_record(M0, b_magic_attack) ->
-			Log = #log_magic{attacker = HitResult#b_magic_attack.attacker, defendant = DamagedUnit, attack_result = M0},
+			Log = #log_magic{attacker = HitResult#b_magic_attack.attacker, defendant = DamagedUnit#b_unit{user = DamagedUser}, attack_result = M0},
 			battle_log:magic(Unit#b_unit.battle_id, From, Log)
 	end,
 
@@ -397,7 +408,11 @@ handle_call({got_damage, HitResult0, From}, _, Unit) ->
 					true  -> HitResult#b_hit_result.attacker;
 					false -> HitResult#b_magic_attack.attacker
 			   end,
-	unit:hit_damage(Attacker, HitResult, self()),
+	case Attacker =:= self() of
+		true  ->
+			timer:apply_after(1, unit, hit_damage, [Attacker, HitResult, From]);
+		false -> unit:hit_damage(Attacker, HitResult, From)
+	end,
 
 	%% ответный урон
 	buff_mgr:on_after_got_damage(?unitid(Unit), HitResult),
@@ -446,9 +461,10 @@ handle_call({avoid_damage, HitResult0, From}, _, Unit) ->
 		}),
 
 	DamagedUnit = Unit#b_unit{tactics = Tactics},
+	DamagedUser = user_state:get(DamagedUnit#b_unit.user),
 
 	%% пишем в лог избегание урона
-	Log = #log_miss{attacker = HitResult#b_hit_result.attacker, defendant = DamagedUnit, hit_result = HitResult},
+	Log = #log_miss{attacker = HitResult#b_hit_result.attacker, defendant = DamagedUnit#b_unit{user = DamagedUser}, hit_result = HitResult},
 	battle_log:hit(Unit#b_unit.battle_id, From, Log),
 
 	{reply, ok,  DamagedUnit};
@@ -555,9 +571,10 @@ handle_cast({magic_damage, MagicAttack0, From}, Unit) ->
 
 	user_state:reduce(?userpid(Unit), [{'vitality.hp', Damage}]),
 	DamagedUnit = Unit#b_unit{total_lost = Unit#b_unit.total_lost + Damage},
+	DamagedUser = user_state:get(DamagedUnit#b_unit.user),
 
 	%% пишем в лог получение урона
-	Log = #log_magic{attacker = MagicAttack#b_magic_attack.attacker, defendant = DamagedUnit, attack_result = MagicAttack},
+	Log = #log_magic{attacker = MagicAttack#b_magic_attack.attacker, defendant = DamagedUnit#b_unit{user = DamagedUser}, attack_result = MagicAttack},
 	battle_log:magic(Unit#b_unit.battle_id, From, Log),
 
 	buff_mgr:on_after_got_damage(?unitid(Unit), MagicAttack),
@@ -587,9 +604,10 @@ handle_cast({got_heal, Heal0, TransactionId}, Unit) when ?spirit(Unit) > 0 ->
 	Tactics  = ?tactics(Unit),
 	HealedUnit = Unit#b_unit{total_healed = Unit#b_unit.total_healed + Healed,
 							 tactics = Tactics#b_tactics{spirit = Spirit}},
+	HealedUser = user_state:get(HealedUnit#b_unit.user),
 
 	%% пишем в лог получение хилла
-	Log = #log_heal{recipient = HealedUnit, sender = Heal#b_heal.sender, value = Heal#b_heal.value, buff = Heal#b_heal.buff},
+	Log = #log_heal{recipient = HealedUnit#b_unit{user = HealedUser}, sender = Heal#b_heal.sender, value = Heal#b_heal.value, buff = Heal#b_heal.buff},
 	battle_log:heal(Unit#b_unit.battle_id, TransactionId, Log),
 
 	{noreply, HealedUnit};
@@ -597,7 +615,8 @@ handle_cast({got_heal, Heal0, TransactionId}, Unit) when ?spirit(Unit) > 0 ->
 %% если духа нет, но хилл от баффа, пишем в лог отхилл в 0
 handle_cast({got_heal, Heal, TransactionId}, Unit) when is_record(Heal#b_heal.buff, buff),
 														?spirit(Unit) =< 0 ->
-	Log = #log_heal{recipient = Unit, sender = Heal#b_heal.sender, value = 0, buff = Heal#b_heal.buff, empty_spirit = true},
+	HealedUser = user_state:get(Unit#b_unit.user),
+	Log = #log_heal{recipient = Unit#b_unit{user = HealedUser}, sender = Heal#b_heal.sender, value = 0, buff = Heal#b_heal.buff, empty_spirit = true},
 	battle_log:heal(Unit#b_unit.battle_id, TransactionId, Log),
 
 	{noreply, Unit};
@@ -905,11 +924,12 @@ killed(Unit) ->
 							 opponent  = undefined,
 							 obtained  = [],
 							 hits      = []},
+	KilledUser = user_state:get(KilledUnit#b_unit.user),
 	%% @todo записываем убийство на счет оппонента
 	?DBG("Unit ~p killed", [self()]),
 
 	%% записываем в лог
-	battle_log:killed(KilledUnit#b_unit.battle_id, battle_log:unit(KilledUnit)),
+	battle_log:killed(KilledUnit#b_unit.battle_id, battle_log:unit(KilledUnit#b_unit{user = KilledUser})),
 
 	KilledUnit.
 

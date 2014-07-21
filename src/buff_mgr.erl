@@ -44,6 +44,8 @@
 %% callbacks
 -export([on_before_got_damage/2,
 		 on_after_got_damage/2,
+		 on_before_hit/2,
+		 on_before_defend/2,
 		 on_hit_damage/2,
 		 on_avoid_damage/2,
 		 on_before_got_heal/2,
@@ -100,6 +102,14 @@ on_before_got_damage(Unit, HitResult) ->
 
 on_after_got_damage(Unit, HitResult) ->
 	?CALL(Unit, {on_after_got_damage, HitResult}).
+
+
+on_before_hit(Unit, HitQueue) ->
+	?CALL(Unit, {on_before_hit, HitQueue}).
+
+
+on_before_defend(Unit, HitQueue) ->
+	?CALL(Unit, {on_before_defend, HitQueue}).
 
 
 on_hit_damage(Unit, HitResult) ->
@@ -210,6 +220,24 @@ handle_call({on_after_got_damage, HitResult}, _From, State) ->
 						gen_event:call(State#state.event_mgr, Buff, {on_after_got_damage, HitResult0})
 				end, HitResult, Buffs),
 	{reply, HitResult1, State};
+
+
+% обработка перед ударом
+handle_call({on_before_hit, HitQueue}, _From, State) ->
+	Buffs = gen_event:which_handlers(State#state.event_mgr),
+	HitQueue1 = lists:foldl(fun(Buff, HitQueue0) ->
+						gen_event:call(State#state.event_mgr, Buff, {on_before_hit, HitQueue0})
+				end, HitQueue, Buffs),
+	{reply, HitQueue1, State};
+
+
+% обработка перед отражением удара
+handle_call({on_before_defend, HitQueue}, _From, State) ->
+	Buffs = gen_event:which_handlers(State#state.event_mgr),
+	HitQueue1 = lists:foldl(fun(Buff, HitQueue0) ->
+						gen_event:call(State#state.event_mgr, Buff, {on_before_defend, HitQueue0})
+				end, HitQueue, Buffs),
+	{reply, HitQueue1, State};
 
 
 % обработка нанесения урона юнитом

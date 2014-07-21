@@ -52,6 +52,15 @@
         }).
 
 
+%% очередь ударов
+-record(b_hit_queue, {attacker_pid,    %% PID атакующего
+                      hit,             %% зона удара
+                      attacker_block,  %% зоны блоков атакующего
+                      defendant_pid,   %% PID защищающегося
+                      defendant_block, %% зоны блоков защищающегося
+                      index            %% номер удара в размене
+       }).
+
 %% результат хилла
 -record(b_heal, {value = 0,
                  buff,

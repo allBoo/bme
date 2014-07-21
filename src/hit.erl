@@ -318,7 +318,12 @@ generate_hits_queue1(_, [], _, _, _, _) ->
 	{[], []};
 
 generate_hits_queue1(AttackerPid, [Hit | AttackerHits], AttackerBlock, DefendantPid, DefendantBlock, Index) ->
-	{[{AttackerPid, Hit, AttackerBlock, DefendantPid, DefendantBlock, Index}], AttackerHits}.
+	{[#b_hit_queue{attacker_pid = AttackerPid,
+				   hit = Hit,
+				   attacker_block  = AttackerBlock,
+				   defendant_pid   = DefendantPid,
+				   defendant_block = DefendantBlock,
+				   index = Index}], AttackerHits}.
 
 
 %% hits_queue/2
@@ -329,8 +334,15 @@ hits_queue(_, []) ->
 	ok;
 
 
-hits_queue(BattleId, [{AttackerPid, HitZone, AttackerBlock, DefendantPid, DefendantBlock, Index} | TailHits]) ->
-	%?DBG("DO HIT, ~p~n", [{HitZone, Blocks, Attacker#user.id, Defendant#user.id}]),
+hits_queue(BattleId, [CurrHit0 | TailHits]) ->
+	%?DBG("DO HIT, ~p~n", [CurrHit0]),
+	%% баффы перед ударом
+	CurrHit1 = buff_mgr:on_before_hit(unit:get_id(CurrHit0#b_hit_queue.attacker_pid), CurrHit0),
+	%% баффы перед отражением удара
+	CurrHit  = buff_mgr:on_before_defend(unit:get_id(CurrHit1#b_hit_queue.defendant_pid), CurrHit0),
+
+	{_, AttackerPid, HitZone, AttackerBlock, DefendantPid, DefendantBlock, Index} = CurrHit,
+
 	%% получаем данные юнитов при каждом ударе, чтобы не потерять ничего при конкурентных запросах
 	Attacker  = unit:get_user(AttackerPid),
 	Defendant = unit:get_user(DefendantPid),
@@ -436,7 +448,12 @@ hits_queue(BattleId, [{AttackerPid, HitZone, AttackerBlock, DefendantPid, Defend
 
 	%% если сработала контра, добавляем удар от защищающегося
 	AddHit = case Counter of
-				 true -> [{DefendantPid, counter, DefendantBlock, AttackerPid, AttackerBlock, Index + 1}];	% @todo поправить index
+				 true -> [#b_hit_queue{attacker_pid = DefendantPid,
+									   hit = counter,
+									   attacker_block  = DefendantBlock,
+									   defendant_pid   = AttackerPid,
+									   defendant_block = AttackerBlock,
+									   index = Index + 1}];	% @todo поправить index
 				 false -> []
 			 end,
 

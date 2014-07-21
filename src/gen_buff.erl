@@ -210,11 +210,17 @@ handle_call({renew, Buff}, #state{mod = Module} = State) ->
 handle_call({on_before_got_damage, HitResult}, State) ->
 	apply_data_callback(on_unit_before_damage, HitResult, State);
 
-
 %% обработка баффов на получение урона юнитом
 handle_call({on_after_got_damage, HitResult}, State) ->
 	apply_data_callback(on_unit_after_damage, HitResult, State);
 
+%% обработка баффов перед нанесением удара
+handle_call({on_before_hit, HitQueue}, State) ->
+	apply_data_callback(on_unit_before_hit, HitQueue, State);
+
+%% обработка баффов перед отражением удара
+handle_call({on_before_defend, HitQueue}, State) ->
+	apply_data_callback(on_unit_before_defend, HitQueue, State);
 
 %% обработка баффов на нанесение урона юнитом
 handle_call({on_hit_damage, HitResult}, State) ->
