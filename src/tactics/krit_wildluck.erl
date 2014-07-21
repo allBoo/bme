@@ -25,7 +25,7 @@ new(Buff) ->
 	{ok, Buff#buff{
 			id   = krit_blindluck,
 			name = <<"Дикая удача"/utf8>>,
-			type = effect,
+			type = trick,
 			time = infinity,
 			charges = undefined,
 			value = []

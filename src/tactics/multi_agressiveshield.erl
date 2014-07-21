@@ -27,7 +27,7 @@ new(Buff) ->
 	{ok, Buff#buff{
 			id   = multi_agressiveshield,
 			name = <<"Агрессивная Защита"/utf8>>,
-			type = effect,
+			type = trick,
 			time = infinity,
 			charges = undefined,
 			value = []

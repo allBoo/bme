@@ -26,7 +26,7 @@ new(Buff) ->
 	{ok, Buff#buff{
 			id   = block_fullshield,
 			name = <<"Полная защита"/utf8>>,
-			type = effect,
+			type = trick,
 			time = infinity,
 			charges = undefined,
 			value = []

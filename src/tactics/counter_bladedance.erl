@@ -26,7 +26,7 @@ new(Buff) ->
 	{ok, Buff#buff{
 			id   = counter_bladedance,
 			name = <<"Танец лезвий"/utf8>>,
-			type = effect,
+			type = trick,
 			time = infinity,
 			charges = 1,
 			value = [{'mfs.adodge', 100}, {'mfs.acounter', 100}]

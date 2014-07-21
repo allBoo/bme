@@ -25,7 +25,7 @@ new(Buff) ->
 	{ok, Buff#buff{
 			id   = novice_hit,
 			name = <<"Вломить"/utf8>>,
-			type = effect,
+			type = trick,
 			time = infinity,
 			charges = undefined,
 			value = []

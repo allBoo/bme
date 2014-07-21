@@ -25,7 +25,7 @@ new(Buff) ->
 	{ok, Buff#buff{
 			id   = multi_doom,
 			name = <<"Обречённость"/utf8>>,
-			type = effect,
+			type = trick,
 			time = infinity,
 			charges = 1,
 			value = [{'mfs.audodge', 100}]

@@ -26,7 +26,7 @@ new(Buff) ->
 	{ok, Buff#buff{
 			id   = multi_skiparmor,
 			name = <<"Точный удар"/utf8>>,
-			type = effect,
+			type = trick,
 			time = infinity,
 			charges = undefined,
 			value = []

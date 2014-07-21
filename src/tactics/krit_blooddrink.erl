@@ -28,7 +28,7 @@ new(Buff) ->
 	{ok, Buff#buff{
 			id   = krit_blooddrink,
 			name = <<"Хлебнуть Крови"/utf8>>,
-			type = effect,
+			type = trick,
 			time = infinity,
 			charges = undefined,
 			value = [],

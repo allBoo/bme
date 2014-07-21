@@ -26,7 +26,7 @@ new(Buff) ->
 	{ok, Buff#buff{
 			id   = krit_blindluck,
 			name = <<"Слепая удача"/utf8>>,
-			type = effect,
+			type = trick,
 			time = infinity,
 			charges = undefined,
 			value = [{'mfs.acrit', 100}]

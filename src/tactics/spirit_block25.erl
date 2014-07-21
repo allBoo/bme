@@ -27,7 +27,7 @@ new(Buff) ->
 	{ok, Buff#buff{
 			id   = spirit_block25,
 			name = <<"Призрачная защита"/utf8>>,
-			type = effect,
+			type = trick,
 			time = infinity,
 			charges = 1,
 			value = []

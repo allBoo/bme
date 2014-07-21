@@ -26,7 +26,7 @@ new(Buff) ->
 	{ok, Buff#buff{
 			id   = spirit_3_protair100,
 			name = <<"Призрачный воздух"/utf8>>,
-			type = effect,
+			type = trick,
 			time = infinity,
 			charges = 3,
 			value = []
