@@ -187,6 +187,10 @@ handle_event(_Event, State) ->
 	Module2 :: atom().
 %% ====================================================================
 
+%% возвращает всю информацию по баффу
+handle_call(get_buff, #state{buff = Buff} = State) ->
+	{ok, Buff, State};
+
 %% обработка обновления эффекта
 handle_call({renew, Buff}, #state{mod = Module} = State) ->
 	%% если бафф поддерживает ф-ю обновления вызываем
@@ -241,6 +245,23 @@ handle_call({on_before_calc_damage, HitData}, State) ->
 %% обработка при расчете наносимого урона
 handle_call({on_calc_damage, Damage}, State) ->
 	apply_data_callback(on_unit_calc_damage, Damage, State);
+
+%% обработка баффов, перенаправляющих урон при разгадайке
+handle_call({on_before_unravel, Data}, State) ->
+	apply_data_callback(on_unit_before_unravel, Data, State);
+
+%% обработка баффов, защищающих от разгадайки
+handle_call(is_unravel_protected, #state{mod = Module} = State) ->
+	case ?callback(Module, is_unravel_protected, State) of
+		{ok, true, Buff} ->
+			{ok, true, State#state{buff = Buff}};
+		{ok, false, Buff} ->
+			{ok, false, State#state{buff = Buff}};
+		{ok, Buff} ->
+			{ok, false, State#state{buff = Buff}};
+		_ ->
+			{ok, ?ERROR_UNDEFINED, State}
+	end;
 
 
 %% unknown request

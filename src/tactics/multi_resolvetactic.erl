@@ -6,41 +6,44 @@
 %%% Author contact: alboo@list.ru
 
 %%% ====================================================================
-%%% Коварный уход
-%%% Следующий удар противника наносится по нему, вместо вас.
+%%% Разгадать тактику
+%%% Отменяет все приемы на противнике при размене ударами.
 %%% ====================================================================
 
 
--module(multi_cowardshift).
+-module(multi_resolvetactic).
 -behaviour(gen_buff).
 -include_lib("bme.hrl").
 
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([new/1, is_unravel_protected/1, on_unit_before_defend/2, on_unit_before_unravel/2]).
+-export([new/1, on_unit_before_hit/2, on_unit_before_defend/2]).
 
 
 new(Buff) ->
 	{ok, Buff#buff{
-			id   = multi_cowardshift,
-			name = <<"Коварный уход"/utf8>>,
+			id   = multi_resolvetactic,
+			name = <<"Разгадать тактику"/utf8>>,
 			type = trick,
 			time = infinity,
 			charges = 1,
 			value = []
 		}}.
 
-is_unravel_protected(Buff) ->
-	{ok, true, Buff}.
+
+on_unit_before_hit(HitQueue, _Buff) ->
+	do(HitQueue#b_hit_queue.defendant_pid, HitQueue#b_hit_queue.attacker_pid),
+	{remove_handler, HitQueue}.
 
 on_unit_before_defend(HitQueue, _Buff) ->
-	{remove_handler, HitQueue#b_hit_queue{defendant_pid = HitQueue#b_hit_queue.attacker_pid}}.
+	do(HitQueue#b_hit_queue.attacker_pid, HitQueue#b_hit_queue.defendant_pid),
+	{remove_handler, HitQueue}.
 
-on_unit_before_unravel({ToUnit, FromUnit}, Buff) ->
-	%% меняем местами юнитов
-	{ok, {FromUnit, ToUnit}, Buff}.
 
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
+
+do(Whom, From) ->
+	buff_mgr:unravel(unit:get_id(Whom), From).

@@ -52,6 +52,9 @@
 		 on_before_calc_damage/2,
 		 on_calc_damage/2]).
 
+%% actions
+-export([unravel/2]).
+
 
 %% start_mgr/1
 %% ====================================================================
@@ -130,6 +133,14 @@ on_before_calc_damage(Unit, HitData) ->
 
 on_calc_damage(Unit, Damage) ->
 	?CALL(Unit, {on_calc_damage, Damage}).
+
+
+%% unravel/2
+%% ====================================================================
+%% @doc "Разгадать тактику"
+unravel(BuffMgr, FromUnit) ->
+	?CAST(BuffMgr, {unravel, FromUnit}).
+
 
 %% ====================================================================
 %% Behavioural functions
@@ -308,6 +319,35 @@ handle_cast({notify, Event}, State) ->
 	{noreply, State};
 
 
+%% обработка "Разгадать тактику"
+handle_cast({unravel, FromUnit0}, State) ->
+	?DBG("Start unravel from ~p~n", [FromUnit0]),
+	%% обработка баффов, защищающих от разгадывания
+	Buffs = gen_event:which_handlers(State#state.event_mgr),
+	Protected = lists:any(fun(Buff) ->
+						gen_event:call(State#state.event_mgr, Buff, is_unravel_protected)
+				end, Buffs),
+	case Protected of
+		true  ->
+			%% обработка баффов, перенаправляющих урон
+			{ToUnit, _FromUnit} =
+				lists:foldl(fun(Buff, Data0) ->
+						gen_event:call(State#state.event_mgr, Buff, {on_before_unravel, Data0})
+				end, {State#state.unit, FromUnit0}, Buffs),
+			%% если ничего не изменилось, то ничего не делаем
+			%% иначе снимаем с другого юнита
+			case ToUnit =:= State#state.unit of
+				true  -> ok;
+				false ->
+					buff_mgr:unravel(unit:get_id(ToUnit), State#state.unit)
+			end;
+		false ->
+			%% снимаем все приемы
+			do_unravel(State)
+	end,
+	{noreply, State};
+
+
 %% unknown request
 handle_cast(_Msg, State) ->
 	{noreply, State}.
@@ -392,3 +432,22 @@ apply_buff(Ev, UnitPid, Buff) when is_pid(Ev),
 
 start_buff(Ev, BuffId, UnitPid, BuffOptions) ->
 	gen_buff:start_link(Ev, BuffId, UnitPid, BuffOptions).
+
+
+%% do_unravel/1
+%% ====================================================================
+%% разгадать тактику
+do_unravel(State) ->
+	do_unravel_buff(gen_event:which_handlers(State#state.event_mgr), State).
+
+do_unravel_buff([], _) ->
+	ok;
+
+do_unravel_buff([BuffId | TailBuffs], State) ->
+	Buff = gen_event:call(State#state.event_mgr, BuffId, get_buff),
+	case Buff#buff.type of
+		trick ->
+			gen_event:delete_handler(State#state.event_mgr, BuffId, remove_handler);
+		_ -> ok
+	end,
+	do_unravel_buff(TailBuffs, State).

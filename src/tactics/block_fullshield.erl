@@ -22,7 +22,6 @@
 
 
 new(Buff) ->
-	?DBG("Start block_fullshield module~n", []),
 	{ok, Buff#buff{
 			id   = block_fullshield,
 			name = <<"Полная защита"/utf8>>,
