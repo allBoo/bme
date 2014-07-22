@@ -14,6 +14,7 @@
 -include_lib("battle.hrl").
 -include_lib("hit.hrl").
 -include_lib("buff.hrl").
+-include_lib("trick.hrl").
 -include_lib("battle_log.hrl").
 
 %%% ====================================================================
@@ -30,6 +31,7 @@
 -define(USER(User), {?GSI("user_", User#user.id), {user_state, start_link, [User]}, transient, 1000, worker, [user_state]}).
 -define(UNIT(Unit), {?GSI("unit_", Unit#b_unit.id), {unit, start_link, [Unit]}, transient, 5000, worker, [unit]}).
 -define(BUFF_SUP(Unit), {?GSI("buffsup_", Unit#b_unit.id), {buff_sup, start_link, [Unit]}, transient, infinity, supervisor, [buff_sup]}).
+-define(TRICK_SUP(Unit), {?GSI("tricksup_", Unit#b_unit.id), {trick_sup, start_link, [Unit]}, transient, infinity, supervisor, [trick_sup]}).
 -define(AI0(Unit), {?GSI("ai0_", Unit#b_unit.id), {ai0, start_link, [Unit]}, transient, 1000, worker, [ai0]}).
 
 %%% ====================================================================

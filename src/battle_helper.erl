@@ -48,4 +48,5 @@ create_unit(User, TeamId) when is_record(User, user)->
 			name = User#user.name,
 			ai = User#user.ai,
 			team_id = TeamId,
+			tactics = #b_tactics{changes = 3},
 			user = User}.

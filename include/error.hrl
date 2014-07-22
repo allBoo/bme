@@ -35,3 +35,4 @@
 -define(ERROR_UNIT_DEAD, #error{code = 105, message = <<"Вы погибли, ожидаем окончания поединка."/utf8>>}).
 -define(ERROR_EMPTY_SPIRIT, #error{code = 106, message = <<"Нет силы духа"/utf8>>}).
 -define(ERROR_BUFF_EXISTS, #error{code = 107, message = <<"Прием уже активен"/utf8>>}).
+-define(ERROR_TRICK_NOT_EXISTS, #error{code = 108, message = <<"Прием не существует"/utf8>>}).

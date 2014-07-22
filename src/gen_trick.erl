@@ -1,0 +1,233 @@
+%%% -*- coding: utf-8 -*-
+%%% Copyright (C) 2014 Alex Kazinskiy
+%%%
+%%% This file is part of Combats Battle Manager
+%%%
+%%% Author contact: alboo@list.ru
+
+%%% ====================================================================
+%%% базовый модуль всех приемов
+%%% ====================================================================
+
+
+-module(gen_trick).
+-behaviour(gen_event).
+-include_lib("bme.hrl").
+
+%% standart behaviourals
+-export([init/1, handle_event/2, handle_call/2, handle_info/2, terminate/2, code_change/3]).
+
+
+%% ====================================================================
+%% API functions
+%% ====================================================================
+-export([start_link/3]).
+
+
+%% start_link/4
+%% ====================================================================
+%% запуск процессов баффа
+start_link(Ev, TrickId, Unit) ->
+	%% запускаем хендлер
+	gen_event:add_handler(Ev, {?MODULE, TrickId}, {TrickId, Unit}).
+
+
+%% ====================================================================
+%% Behavioural functions
+%% ====================================================================
+
+
+%% init/1
+%% ====================================================================
+%% @doc <a href="http://www.erlang.org/doc/man/gen_event.html#Module:init-1">gen_event:init/1</a>
+-spec init(InitArgs) -> Result when
+	InitArgs :: Args | {Args, Term :: term()},
+	Args :: term(),
+	Result :: {ok, State}
+			| {ok, State, hibernate}
+			| {error, Reason :: term()},
+	State :: term().
+%% ====================================================================
+
+init({TrickId, Unit}) when is_atom(TrickId),
+						   is_pid(Unit) ->
+	try
+		%% получаем описание приема
+		Trick = tricks:TrickId(),
+
+		%% формируем стейт
+		State = #b_trick{
+			trick   = Trick,
+			unit    = Unit,
+			active  = false,
+			delay   = Trick#trick.initial_delay,
+			mana    = Trick#trick.mana,
+			tactics = Trick#trick.tactics
+		},
+		{ok, State}
+	catch
+		error:undef ->
+			{error, ?ERROR_TRICK_NOT_EXISTS}
+	end;
+
+
+init(_) ->
+	{error, undef}.
+
+
+%% handle_event/2
+%% ====================================================================
+%% @doc <a href="http://www.erlang.org/doc/man/gen_event.html#Module:handle_event-2">gen_event:handle_event/2</a>
+-spec handle_event(Event :: term(), State :: term()) -> Result when
+	Result :: {ok, NewState}
+			| {ok, NewState, hibernate}
+			| {swap_handlers, Args1, NewState, Handler2, Args2}
+			| remove_handler,
+	NewState :: term(), Args1 :: term(), Args2 :: term(),
+	Handler2 :: Module2 | {Module2, Id :: term()},
+	Module2 :: atom().
+%% ====================================================================
+
+%% обработка конца хода
+handle_event({swap_done, Unit}, #b_trick{delay = Delay} = State) ->
+	%% уменьшаем задержку и делаем проверку на доступность приема
+	{ok, check_active(State#b_trick{delay = max(Delay - 1, 0)}, Unit)};
+
+
+%% изменение параметров юнита
+handle_event({unit_changed, Unit}, State) ->
+	{ok, check_active(State, Unit)};
+
+
+%% Пересчет доступности приемов
+handle_event({recalc, Unit}, State) ->
+	{ok, check_active(State, Unit)};
+
+
+%% unknown request
+handle_event(_Event, State) ->
+	{ok, State}.
+
+
+%% handle_call/2
+%% ====================================================================
+%% @doc <a href="http://www.erlang.org/doc/man/gen_event.html#Module:handle_call-2">gen_event:handle_call/2</a>
+-spec handle_call(Request :: term(), State :: term()) -> Result when
+	Result :: {ok, Reply, NewState}
+			| {ok, Reply, NewState, hibernate}
+			| {swap_handler, Reply, Args1, NewState, Handler2, Args2}
+			| {remove_handler, Reply},
+	Reply :: term(),
+	NewState :: term(), Args1 :: term(), Args2 :: term(),
+	Handler2 :: Module2 | {Module2, Id :: term()},
+	Module2 :: atom().
+%% ====================================================================
+
+%% возвращает информацию по приему
+handle_call(get_trick, #b_trick{trick = Trick} = State) ->
+	{ok, Trick, State};
+
+
+%% возвращает всю информацию по текущему состоянию приема
+handle_call(get_state, State) ->
+	{ok, State, State};
+
+
+%% Пересчет доступности приемов
+handle_call({recalc, Unit}, State) ->
+	{ok, ok, check_active(State, Unit)};
+
+
+%% unknown request
+handle_call(_Request, State) ->
+	{ok, ok, State}.
+
+
+%% handle_info/2
+%% ====================================================================
+%% @doc <a href="http://www.erlang.org/doc/man/gen_event.html#Module:handle_info-2">gen_event:handle_info/2</a>
+-spec handle_info(Info :: term(), State :: term()) -> Result when
+	Result :: {ok, NewState}
+			| {ok, NewState, hibernate}
+			| {swap_handler, Args1, NewState, Handler2, Args2}
+			| remove_handler,
+	NewState :: term(), Args1 :: term(), Args2 :: term(),
+	Handler2 :: Module2 | {Module2, Id :: term()},
+	Module2 :: atom().
+%% ====================================================================
+handle_info(_Info, State) ->
+	{ok, State}.
+
+
+%% terminate/2
+%% ====================================================================
+%% @doc <a href="http://www.erlang.org/doc/man/gen_event.html#Module:terminate-2">gen_event:terminate/2</a>
+-spec terminate(Arg, State :: term()) -> term() when
+	Arg :: Args
+		| {stop, Reason}
+		| stop
+		| remove_handler
+		| {error, {'EXIT', Reason}}
+		| {error, Term :: term()},
+	Args :: term(), Reason :: term().
+%% ====================================================================
+
+%% завершение действия приема
+terminate(remove_handler, State) ->
+	?DBG("Terminate trick ~p~n", [State#b_trick.trick]),
+	ok;
+
+terminate(_Arg, _State) ->
+	ok.
+
+
+%% code_change/3
+%% ====================================================================
+%% @doc <a href="http://www.erlang.org/doc/man/gen_event.html#Module:code_change-3">gen_event:code_change/3</a>
+-spec code_change(OldVsn, State :: term(), Extra :: term()) -> {ok, NewState :: term()} when
+	OldVsn :: Vsn | {down, Vsn},
+	Vsn :: term().
+%% ====================================================================
+code_change(_OldVsn, State, _Extra) ->
+	{ok, State}.
+
+
+%% ====================================================================
+%% Internal functions
+%% ====================================================================
+
+%% check_active/2
+%% ====================================================================
+%% @doc Проверка доступности приема
+check_active(#b_trick{trick = Trick} = State, Unit) ->
+	?DBG("Check active ~p~n", [Trick#trick.id]),
+	Active = all([fun() -> State#b_trick.delay == 0 end,
+				  fun() -> ?level(Unit#b_unit.user) >= Trick#trick.level end,
+				  fun() -> ?mana(Unit#b_unit.user) >= Trick#trick.mana end,
+				  fun() -> check_values(State#b_trick.tactics, Unit#b_unit.tactics) end,
+				  fun() -> check_values(Trick#trick.stats, ?stats(Unit#b_unit.user)) end,
+				  fun() -> check_values(Trick#trick.skills, ?skills(Unit#b_unit.user)) end]),
+	State#b_trick{active = Active}.
+
+
+check_values(TrickValues, UnitValues) when is_tuple(TrickValues),
+										   is_tuple(UnitValues) ->
+	check_values(erlang:tuple_to_list(TrickValues), erlang:tuple_to_list(UnitValues));
+
+check_values([T | TV], [U | UV]) ->
+	case U >= T of
+		true  -> check_values(TV, UV);
+		false -> false
+	end;
+
+check_values([], []) ->
+	true.
+
+
+all([Fn | Fns]) ->
+	case Fn() of
+		true  -> all(Fns);
+		false -> false
+	end;
+
+all([]) -> true.

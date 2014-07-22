@@ -238,7 +238,7 @@ change_state(User0, {State, Delta}) when is_atom(State),
 										is_record(User0, user) ->
 	SState = erlang:atom_to_list(State),
 	User = change_state(User0, {SState, Delta}),
-	%unit:notify(User#user.id, {change_state, {State, Delta}}),
+	unit:notify(User#user.id, {change_state, {State, Delta}}),
 	User;
 
 %% изменение внутреннего параметра User
@@ -520,6 +520,7 @@ get_attr(dprotection, User) -> User#user.dprotection;
 get_attr(wprotection, User) -> User#user.wprotection;
 get_attr(battle_spec, User) -> User#user.battle_spec;
 get_attr(buffs, User) -> User#user.buffs;
+get_attr(tricks, User) -> User#user.tricks;
 
 %% внутренние элементы
 get_attr(Part0, User) when is_atom(Part0),

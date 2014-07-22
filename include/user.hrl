@@ -15,6 +15,7 @@
 -define(sex(User), (User#user.info)#u_info.sex).
 -define(mfs(User), User#user.mfs).
 -define(stats(User), (User#user.stats)).
+-define(skills(User), (User#user.skills)).
 -define(drcost(User), (User#user.dress)#u_dress.cost).
 
 
@@ -61,10 +62,10 @@
        }).
 
 %% статы
--record(u_stats, {str   = 3,   %% сила
-                  agil  = 3,   %% ловкость
-                  int   = 3,   %% интуиция
-                  dex   = 3,   %% вынос
+-record(u_stats, {str   = 0,   %% сила
+                  agil  = 0,   %% ловкость
+                  int   = 0,   %% интуиция
+                  dex   = 0,   %% вынос
                   intel = 0,   %% интеллект
                   wisd  = 0,   %% мудрость
                   spir  = 0    %% духовность
@@ -219,10 +220,9 @@
                dprotection = #'u_dprotection'{}, 	%% защита от урона
                wprotection = #'u_wprotection'{},	%% защита от магии
                battle_spec = #'u_battle_spec'{},	%% боевые спецификации
-               buffs = [] :: [#u_buff{}]			%% наложенные баффы
-%% одетые приемы
+               buffs = [] :: [#u_buff{}],			%% наложенные баффы
+               tricks = [] :: [atom()]				%% одетые приемы
 %% одетые заклинания
-%% баффы
        }).
 
 

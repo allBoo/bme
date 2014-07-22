@@ -8,6 +8,10 @@
 -define(tactics(Unit), (Unit#b_unit.tactics)).
 -define(spirit(Unit), (Unit#b_unit.tactics)#b_tactics.spirit).
 
+-define(puserpid(UnitPid), unit:get_user_pid(UnitPid)).
+-define(puser(UnitPid), user_state:get(?puserpid(UnitPid))).
+-define(plevel(UnitPid), user_state:get(unit:get_user_pid(UnitPid), 'info.level')).
+
 -define(TACTIC(Cond), case Cond of true -> 1; false -> 0 end).
 -define(TACTIC(Cond1, Cond2, Val), case Cond1 of true -> (case Cond2 of true -> Val; false -> 1 end); false -> 0 end).
 
@@ -25,7 +29,7 @@
                     parry   = 0,
                     hearts  = 0,
                     spirit  = 0,
-                    changes = 3
+                    changes = 0
        }).
 
 

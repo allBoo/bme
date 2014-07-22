@@ -6,11 +6,11 @@
 %%% Author contact: alboo@list.ru
 
 %%% ====================================================================
-%%% Супервизор участника боя
+%%% Супервизор приемов
 %%% ====================================================================
 
 
--module(unit_sup).
+-module(trick_sup).
 -behaviour(supervisor).
 -include_lib("bme.hrl").
 -export([init/1]).
@@ -45,20 +45,11 @@ start_link(Unit) when is_record(Unit, b_unit) ->
 	Modules :: [module()] | dynamic.
 %% ====================================================================
 init([Unit]) ->
-	?DBG("Start unit supervisor ~p~n", [{Unit#b_unit.battle_id, Unit#b_unit.team_id, Unit#b_unit.id}]),
-	true = gproc:add_local_name({unit_sup, Unit#b_unit.battle_id, Unit#b_unit.team_id, Unit#b_unit.id}),
-	true = gproc:add_local_name({unit_sup, Unit#b_unit.id}),
-	true = gproc:add_local_name({unit_sup, Unit#b_unit.name}),
+	?DBG("Start unit tricks supervisor ~p~n", [{Unit#b_unit.id}]),
 
-	%% запускаем евент-сервер бойца, ген-сервер бойца команды, супервайзер баффов
-	Children = [?USER(Unit#b_unit.user), ?UNIT(Unit), ?BUFF_SUP(Unit), ?TRICK_SUP(Unit)] ++
-				   case Unit#b_unit.ai of
-					   true  -> [?AI0(Unit)];
-					   false -> []
-				   end,
-	%% ++ lists:map(fun(Unit) -> ?MEMBER_SUP(Team, Unit) end, Team#b_team.members),
+	%% запускаем эвент-менеджер и менеджер приемов
+	Children = [?TRICK_EV(Unit), ?TRICK_MGR(Unit)],
 
-	%% @todo добавить супервайзер приемов
 	Strategy = one_for_one,
 	MaxR = 10, MaxT = 10,
 	{ok, {{Strategy, MaxR, MaxT}, Children}}.

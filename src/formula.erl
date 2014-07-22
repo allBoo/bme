@@ -55,6 +55,8 @@
 		 get_wpower_by_intellect/1,
 		 get_mana_by_wisd/1]).
 
+%% ГСЧ
+-export([get_from_interval/2]).
 
 %% get_d_interval/1
 %% ====================================================================

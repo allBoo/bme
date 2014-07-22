@@ -64,6 +64,7 @@
 %% результат хилла
 -record(b_heal, {value = 0,
                  buff,
+                 trick,
                  use_spirit = true,
                  sender,
                  recipient,
