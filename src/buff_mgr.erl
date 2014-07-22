@@ -53,7 +53,7 @@
 		 on_calc_damage/2]).
 
 %% actions
--export([unravel/2]).
+-export([unravel/2, steal/2]).
 
 
 %% start_mgr/1
@@ -140,6 +140,13 @@ on_calc_damage(Unit, Damage) ->
 %% @doc "Разгадать тактику"
 unravel(BuffMgr, FromUnit) ->
 	?CAST(BuffMgr, {unravel, FromUnit}).
+
+
+%% steal/2
+%% ====================================================================
+%% @doc "Ставка на опережение"
+steal(BuffMgr, FromUnit) ->
+	?CAST(BuffMgr, {steal, FromUnit}).
 
 
 %% ====================================================================
@@ -320,8 +327,8 @@ handle_cast({notify, Event}, State) ->
 
 
 %% обработка "Разгадать тактику"
-handle_cast({unravel, FromUnit0}, State) ->
-	?DBG("Start unravel from ~p~n", [FromUnit0]),
+handle_cast({unravel, FromUnit}, State) ->
+	?DBG("Start unravel from ~p~n", [FromUnit]),
 	%% обработка баффов, защищающих от разгадывания
 	Buffs = gen_event:which_handlers(State#state.event_mgr),
 	Protected = lists:any(fun(Buff) ->
@@ -333,7 +340,7 @@ handle_cast({unravel, FromUnit0}, State) ->
 			{ToUnit, _FromUnit} =
 				lists:foldl(fun(Buff, Data0) ->
 						gen_event:call(State#state.event_mgr, Buff, {on_before_unravel, Data0})
-				end, {State#state.unit, FromUnit0}, Buffs),
+				end, {State#state.unit, FromUnit}, Buffs),
 			%% если ничего не изменилось, то ничего не делаем
 			%% иначе снимаем с другого юнита
 			case ToUnit =:= State#state.unit of
@@ -346,6 +353,40 @@ handle_cast({unravel, FromUnit0}, State) ->
 			do_unravel(State)
 	end,
 	{noreply, State};
+
+
+%% обработка "Ставки на опережение"
+handle_cast({steal, FromUnit}, State) when FromUnit =/= State#state.unit ->
+	?DBG("Start steal from ~p~n", [FromUnit]),
+	%% обработка баффов, защищающих от ставки
+	Buffs = gen_event:which_handlers(State#state.event_mgr),
+	Protected = lists:any(fun(Buff) ->
+						gen_event:call(State#state.event_mgr, Buff, is_steal_protected)
+				end, Buffs),
+	case Protected of
+		true  ->
+			%% обработка баффов, перенаправляющих урон
+			{ToUnit, _FromUnit} =
+				lists:foldl(fun(Buff, Data0) ->
+						gen_event:call(State#state.event_mgr, Buff, {on_before_unravel, Data0})
+				end, {State#state.unit, FromUnit}, Buffs),
+			%% если ничего не изменилось, то ничего не делаем
+			%% иначе снимаем с другого юнита
+			case ToUnit =:= State#state.unit of
+				true  -> ok;
+				false ->
+					buff_mgr:steal(unit:get_id(ToUnit), FromUnit)
+			end;
+		false ->
+			%% воруем все приемы
+			do_steal(State, FromUnit)
+	end,
+	{noreply, State};
+
+handle_cast({steal, FromUnit}, State) when FromUnit =:= State#state.unit ->
+	?DBG("Try steal yourself ~p~n", [FromUnit]),
+	{noreply, State};
+
 
 
 %% unknown request
@@ -426,8 +467,10 @@ apply_buff(Ev, UnitPid, Buff) when is_pid(Ev),
 								   is_record(Buff, buff) ->
 	Options = [{time, Buff#buff.time},
 			   {value, Buff#buff.value},
-			   {level, Buff#buff.level}],
-	start_buff(Ev, Buff#u_buff.id, UnitPid, Options).
+			   {level, Buff#buff.level},
+			   {charges, Buff#buff.charges},
+			   {state, Buff#buff.state}],
+	start_buff(Ev, Buff#buff.id, UnitPid, Options).
 
 
 start_buff(Ev, BuffId, UnitPid, BuffOptions) ->
@@ -451,3 +494,24 @@ do_unravel_buff([BuffId | TailBuffs], State) ->
 		_ -> ok
 	end,
 	do_unravel_buff(TailBuffs, State).
+
+
+%% do_unravel/1
+%% ====================================================================
+%% воровство всех приемов
+do_steal(State, Unit) ->
+	UnitId = unit:get_id(Unit),
+	do_steal_buff(gen_event:which_handlers(State#state.event_mgr), State, UnitId).
+
+do_steal_buff([], _, _) ->
+	ok;
+
+do_steal_buff([BuffId | TailBuffs], State, UnitId) ->
+	Buff = gen_event:call(State#state.event_mgr, BuffId, get_buff),
+	case Buff#buff.type of
+		trick ->
+			gen_event:delete_handler(State#state.event_mgr, BuffId, remove_handler),
+			buff_mgr:apply(UnitId, Buff);
+		_ -> ok
+	end,
+	do_steal_buff(TailBuffs, State, UnitId).

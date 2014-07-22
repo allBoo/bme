@@ -223,10 +223,10 @@ timeout_alarm(UnitPid, OpponentPid) ->
 %% ====================================================================
 %% тестирование падения юнита
 crash(_UnitId) ->
-	buff_mgr:apply(1, #u_buff{id=krit_blindluck}),
-	buff_mgr:apply(1, #u_buff{id=multi_doom}),
-	buff_mgr:apply(1, #u_buff{id=multi_cowardshift}),
+	buff_mgr:apply(1, #u_buff{id=multi_speedup}),
 
+	buff_mgr:apply(2, #u_buff{id=krit_blindluck}),
+	buff_mgr:apply(2, #u_buff{id=multi_doom}),
 	buff_mgr:apply(2, #u_buff{id=multi_cowardshift}),
 
 	unit:hit(1, [head, legs], paunch),

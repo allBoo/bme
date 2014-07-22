@@ -57,7 +57,8 @@ start_link(Ev, Module, Unit, Options) ->
 		owner   = proplists:get_value(owner, Options, Unit),
 		value   = proplists:get_value(value, Options),
 		time    = proplists:get_value(time, Options),
-		charges = proplists:get_value(charges, Options)
+		charges = proplists:get_value(charges, Options),
+		state   = proplists:get_value(state, Options, [])
 	},
 
 	Id = {Module, Buff#buff.unit, Buff#buff.owner},
@@ -251,17 +252,12 @@ handle_call({on_before_unravel, Data}, State) ->
 	apply_data_callback(on_unit_before_unravel, Data, State);
 
 %% обработка баффов, защищающих от разгадайки
-handle_call(is_unravel_protected, #state{mod = Module} = State) ->
-	case ?callback(Module, is_unravel_protected, State) of
-		{ok, true, Buff} ->
-			{ok, true, State#state{buff = Buff}};
-		{ok, false, Buff} ->
-			{ok, false, State#state{buff = Buff}};
-		{ok, Buff} ->
-			{ok, false, State#state{buff = Buff}};
-		_ ->
-			{ok, ?ERROR_UNDEFINED, State}
-	end;
+handle_call(is_unravel_protected, State) ->
+	apply_bool_callback(is_unravel_protected, State);
+
+%% обработка баффов, защищающих от ставки
+handle_call(is_steal_protected, State) ->
+	apply_bool_callback(is_steal_protected, State);
 
 
 %% unknown request
@@ -388,6 +384,18 @@ apply_data_callback(Callback, Data, #state{mod = Module} = State) ->
 			{remove_handler, Data}
 	end.
 
+
+apply_bool_callback(Callback, #state{mod = Module} = State) ->
+	case ?callback(Module, Callback, State) of
+		{ok, true, Buff} ->
+			{ok, true, State#state{buff = Buff}};
+		{ok, false, Buff} ->
+			{ok, false, State#state{buff = Buff}};
+		{ok, Buff} ->
+			{ok, false, State#state{buff = Buff}};
+		_ ->
+			{ok, ?ERROR_UNDEFINED, State}
+	end.
 
 find_exists(Ev, BuffId) ->
 	Buffs = gen_event:which_handlers(Ev),

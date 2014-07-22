@@ -22,6 +22,7 @@
 %% ====================================================================
 -export([new/1,
 		 is_unravel_protected/1,
+		 is_steal_protected/1,
 		 on_unit_before_damage/2,
 		 on_unit_after_damage/2]).
 
@@ -42,6 +43,9 @@ is_unravel_protected(Buff) ->
 	%% если даже не получим урона, то прием снимаем
 	{ok, true, Buff#buff{charges = 1}}.
 
+%% защита от ставки
+is_steal_protected(Buff) ->
+	{ok, true, Buff#buff{charges = 1}}.
 
 %% реакция на урон оружием
 on_unit_before_damage(HitResult, Buff) when is_record(HitResult, b_hit_result) ->
