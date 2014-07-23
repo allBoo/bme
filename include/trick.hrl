@@ -12,10 +12,10 @@
 -define(TRICK_EV(Unit), {?GSI("trick_ev_", Unit#b_unit.id), {trick_mgr, start_ev, [Unit]}, transient, 5000, worker, dynamic}).
 -define(TRICK_MGR(Unit), {?GSI("trick_mgr_", Unit#b_unit.id), {trick_mgr, start_mgr, [Unit]}, transient, 5000, worker, [trick_mgr]}).
 
-%% классы приемов
--type trick_class() :: novice | weapon | fire | air | water | earth | light | dark | gray.
+%% классы приемов (для блокировки одновременного использования)
+-type trick_class() :: novice | spirit_weapon | spirit_magic | hp.
 
-%% типы приемов
+%% типы приемов (прием/заклинание)
 -type trick_type() :: trick | spell.
 
 %% типы целей (дружественные, вражеские, любые)
@@ -33,7 +33,7 @@
                 stats          = #u_stats{}     :: #u_stats{},          %% Требуемые статы
                 skills         = #u_skills{}    :: #u_skills{},         %% Требуемые умелки
                 initial_delay  = 0              :: non_neg_integer(),   %% Начальная задержка
-                delay          = 0              :: non_neg_integer(),   %% Задержка
+                delay          = 1              :: non_neg_integer(),   %% Задержка
                 class_delay    = false          :: boolean(),           %% Общая задержка
                 expend         = false          :: boolean(),           %% Прием тратит ход
                 require_target = false          :: boolean(),           %% Требует указать цель

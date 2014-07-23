@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tricks>
+	<trick>
+		<id>novice_hit</id>
+		<name><![CDATA[Вломить]]></name>
+		<decription><![CDATA[Следующий удар наносит на 4 ед. больше урона]]></decription>
+		<class>novice</class>
+		<type>trick</type>
+		<delay>4</delay>
+		<class_delay>true</class_delay>
+		<self_buff>novice_hit</self_buff>
+	</trick>
+	<trick>
+		<id>novice_def</id>
+		<name><![CDATA[Прикрыться]]></name>
+		<decription><![CDATA[Следующий удар по вам нанесет на 3 ед. меньше урона]]></decription>
+		<class>novice</class>
+		<type>trick</type>
+		<delay>3</delay>
+		<class_delay>true</class_delay>
+		<self_buff>novice_def</self_buff>
+		<action arity="1"><![CDATA[
+			trick_helper:heal(novice_hp, UnitPid, #d_value{n = 1, k = 4}, false)
+		]]></action>
+	</trick>
+	<trick>
+		<id>novice_hp</id>
+		<name><![CDATA[Собрать Зубы]]></name>
+		<decription><![CDATA[Вы восстанавливаете от 2-5 HP]]></decription>
+		<class>novice</class>
+		<type>trick</type>
+		<tactics>
+			<spirit>1</spirit>
+		</tactics>
+		<delay>4</delay>
+		<class_delay>true</class_delay>
+		<action arity="1">
+			<predefined name="heal/4">
+				<value>
+					<dvalue>
+						<n>1</n>
+						<k>4</k>
+					</dvalue>
+				</value>
+				<spirit>false</spirit>
+			</predefined>
+		</action>
+	</trick>
+</tricks>
