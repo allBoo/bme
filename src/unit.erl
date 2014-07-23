@@ -33,15 +33,22 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_link/1,
-		 get_id/1,
+
+-export([start_link/1]).
+
+%% getters and setters
+-export([get_id/1,
 		 get_pid/1,
 		 get_user_pid/1,
 		 get_user/1,
-		 get_state/1,
-		 is_alive/1,
+		 get/1,
+		 get/2,
+		 increase/2,
+		 reduce/2,
+		 is_alive/1]).
 
-		 notify/2,
+%%
+-export([notify/2,
 		 create_opponent_info/1,
 		 set_opponents/2,
 		 hit/3,
@@ -53,7 +60,7 @@
 		 timeout_alarm/2,
 		 crash/1]).
 
-%% damage anf heal
+%% damage and heal
 -export([magic_damage/2,
 		 magic_damage/3,
 		 got_damage/3,
@@ -61,6 +68,7 @@
 		 avoid_damage/3,
 		 got_heal/2,
 		 got_heal/3]).
+
 
 %% start_link/1
 %% ====================================================================
@@ -100,11 +108,32 @@ get_user(UnitId) ->
 	user_state:get(get_user_pid(UnitId)).
 
 
-%% get_state/1
+%% get/1
 %% ====================================================================
-%% возвращает текущий state юнита
-get_state(Unit) ->
-	?CALL(Unit, get_state).
+%% возвращает текущий State (информацию о юните)
+get(UnitId) ->
+	?CALL(UnitId, get).
+
+
+%% get/2
+%% ====================================================================
+%% возвращает выбранный параметр юзера
+get(UnitId, Part) when is_atom(Part) ->
+	?CALL(UnitId, {get, Part}).
+
+
+%% increase/2
+%% ====================================================================
+%% увеличение параметров юнита
+increase(UnitId, Params) ->
+	?CAST(UnitId, {increase, Params}).
+
+
+%% reduce/2
+%% ====================================================================
+%% уменьшение параметров юнита
+reduce(UnitId, Params) ->
+	?CAST(UnitId, {reduce, Params}).
 
 
 %% is_alive/1
@@ -321,8 +350,11 @@ handle_call(get_user, _, Unit) ->
 
 
 %% возвращает state юнита
-handle_call(get_state, _, Unit) ->
+handle_call(get, _, Unit) ->
 	{reply, Unit, Unit};
+
+handle_call({get, Part}, _, User) ->
+	{reply, unit_state:get_attr(Part, User), User};
 
 
 %% возвращает state юнита
@@ -512,6 +544,16 @@ handle_cast(_, Unit) when is_record(Unit, b_unit),
 	{noreply, Unit};
 
 
+%% увеличение параметров юнита
+handle_cast({increase, Params}, Unit) ->
+	{noreply, unit_state:change_state(increase, Unit, Params)};
+
+
+%% уменьшение параметров юнита
+handle_cast({reduce, Params}, Unit) ->
+	{noreply, unit_state:change_state(reduce, Unit, Params)};
+
+
 %% устанавливает юниту список оппонентов
 handle_cast({set_opponents, OpponentsList}, Unit) ->
 	%% сравниваем стоимось комлектов и определяем серых в бою
@@ -608,7 +650,8 @@ handle_cast({got_heal, Heal0, TransactionId}, Unit) when ?spirit(Unit) > 0 ->
 	HealedUser = user_state:get(HealedUnit#b_unit.user),
 
 	%% пишем в лог получение хилла
-	Log = #log_heal{recipient = HealedUnit#b_unit{user = HealedUser}, sender = Heal#b_heal.sender, value = Heal#b_heal.value, buff = Heal#b_heal.buff},
+	Log = #log_heal{recipient = HealedUnit#b_unit{user = HealedUser}, sender = Heal#b_heal.sender,
+					value = Heal#b_heal.value, buff = Heal#b_heal.buff, trick = Heal#b_heal.trick},
 	battle_log:heal(Unit#b_unit.battle_id, TransactionId, Log),
 
 	{noreply, HealedUnit};
@@ -771,12 +814,7 @@ set_initial_unit_data(Unit) ->
 					_Hight when Level > 9 -> 40
 				end + Stats#u_stats.spir,
 	Spirit = math:precision((Vitality#u_vitality.hp / Vitality#u_vitality.maxhp) * MaxSpirit, 2),
-
-	Unit#b_unit{tactics  = #b_tactics{spirit = Spirit},
-				alive    = true,
-				opponent = undefined,
-				obtained = [],
-				hits     = []}.
+	unit_state:change_state(increase, Unit, [{'tactics.spirit', Spirit}]).
 
 
 %% create_hit/3

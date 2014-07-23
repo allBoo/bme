@@ -104,6 +104,20 @@ handle_event({recalc, Unit}, State) ->
 	{ok, check_active(State, Unit)};
 
 
+%% Уведомление о выполненном приеме
+%% принимается приемами с классовой задержкой
+handle_event({applied, AT}, #b_trick{trick = Trick} = State) when Trick#trick.class_delay == true,
+																  AT =/= Trick#trick.id ->
+	AppliedTrick = tricks:AT(),
+	NewState = case AppliedTrick#trick.class == Trick#trick.class of
+				   true ->
+					   ?DBG("Deactivate trick ~p~n", [Trick#trick.id]),
+					   State#b_trick{delay = AppliedTrick#trick.delay, active = false};
+				   _ -> State
+			   end,
+	{ok, NewState};
+
+
 %% unknown request
 handle_event(_Event, State) ->
 	{ok, State}.
@@ -136,6 +150,31 @@ handle_call(get_state, State) ->
 %% Пересчет доступности приемов
 handle_call({recalc, Unit}, State) ->
 	{ok, ok, check_active(State, Unit)};
+
+
+%% выполнение приема
+handle_call(apply, #b_trick{trick = Trick} = State) when State#b_trick.active == true,
+														 Trick#trick.require_target == false ->
+	case do_apply(State) of
+		{ok, State0}  -> {ok, ok, State0};
+		{Err, State0} -> {ok, Err, State0};
+		Err -> {ok, Err, State}
+	end;
+
+
+handle_call({apply, Recipient}, #b_trick{trick = Trick} = State) when State#b_trick.active == true,
+																	  Trick#trick.require_target == true ->
+	case do_apply(State, Recipient) of
+		{ok, State0}  -> {ok, ok, State0};
+		{Err, State0} -> {ok, Err, State0};
+		Err -> {ok, Err, State}
+	end;
+
+handle_call(apply, State) ->
+	{ok, ?ERROR_TRICK_NOT_APPLICABLE, State};
+
+handle_call({apply, _}, State) ->
+	{ok, ?ERROR_TRICK_NOT_APPLICABLE, State};
 
 
 %% unknown request
@@ -200,14 +239,19 @@ code_change(_OldVsn, State, _Extra) ->
 %% ====================================================================
 %% @doc Проверка доступности приема
 check_active(#b_trick{trick = Trick} = State, Unit) ->
-	?DBG("Check active ~p~n", [Trick#trick.id]),
 	Active = all([fun() -> State#b_trick.delay == 0 end,
 				  fun() -> ?level(Unit#b_unit.user) >= Trick#trick.level end,
-				  fun() -> ?mana(Unit#b_unit.user) >= Trick#trick.mana end,
+				  fun() -> ?mana(Unit#b_unit.user) >= State#b_trick.mana end,
 				  fun() -> check_values(State#b_trick.tactics, Unit#b_unit.tactics) end,
 				  fun() -> check_values(Trick#trick.stats, ?stats(Unit#b_unit.user)) end,
 				  fun() -> check_values(Trick#trick.skills, ?skills(Unit#b_unit.user)) end]),
+	?DBG("Check active ~p with result ~p~n", [Trick#trick.id, Active]),
 	State#b_trick{active = Active}.
+
+check_active(State) ->
+	Unit = unit:get(State#b_trick.unit),
+	User = user_state:get(Unit#b_unit.id),
+	check_active(State, Unit#b_unit{user = User}).
 
 
 check_values(TrickValues, UnitValues) when is_tuple(TrickValues),
@@ -231,3 +275,103 @@ all([Fn | Fns]) ->
 	end;
 
 all([]) -> true.
+
+
+%% do_apply/1
+%% ====================================================================
+%% @doc Выполнение приема
+do_apply(State) ->
+	Opponent = unit:get(State#b_trick.unit, 'opponent.pid'),
+	do_apply(check_active(State), State#b_trick.unit, Opponent).
+
+%% do_apply/2
+%% ====================================================================
+%% @doc Выполнение приема с указанием цели
+do_apply(#b_trick{trick = Trick} = State, RecipientPid) ->
+	%% проверяем правильность указания цели
+	UnitTeam      = unit:get(State#b_trick.unit, 'team_id'),
+	RecipientTeam = unit:get(RecipientPid, 'team_id'),
+
+	R = case Trick#trick.target_type of
+			friendly ->
+				case UnitTeam == RecipientTeam of
+					true  -> ok;
+					false -> ?ERROR_TRICK_FRIEND_ONLY
+				end;
+			enemy    ->
+				case UnitTeam == RecipientTeam of
+					false -> ok;
+					true  -> ?ERROR_TRICK_ENEMY_ONLY
+				end;
+			_        -> ok
+		end,
+	case R of
+		ok ->
+			%% перепроверка доступности приема
+			do_apply(check_active(State), State#b_trick.unit, RecipientPid);
+		Err -> Err
+	end.
+
+
+do_apply(#b_trick{trick = Trick} = State, UnitPid, RecipientPid) when State#b_trick.active == true ->
+	%% вычитаем тактики и ману
+	unit:reduce(UnitPid, [{'tactics', State#b_trick.tactics}]),
+	if
+		State#b_trick.mana > 0 ->
+			user_state:reduce(?puserpid(UnitPid), [{'vitality.mana', State#b_trick.mana}]);
+		true -> ok
+	end,
+
+	%% порядок действий прерывается если что-то возвращает не ok
+	Res = allok([
+		%% накладываем бафф на себя
+		fun() -> do_buff(Trick#trick.self_buff, UnitPid) end,
+		%% накладываем бафф на противника
+		fun() -> do_buff(Trick#trick.enemy_buff, RecipientPid) end,
+		%% вызов калбека
+		fun() -> do_call(Trick#trick.action, UnitPid, RecipientPid) end
+	]),
+
+	%% ставим задержку после использования
+	if
+		Res == ok -> {Res, State#b_trick{delay = max(Trick#trick.delay, 1)}};
+		true -> {Res, State}
+	end;
+
+
+do_apply(_State, _UnitPid, _RecipientPid) ->
+	?ERROR_TRICK_NOT_APPLICABLE.
+
+
+do_buff(Buff0, UnitPid) ->
+	case Buff0 of
+		undefined -> ok;
+		BuffId when is_atom(BuffId) ->
+			UBuff = #u_buff{id = BuffId},
+			buff_mgr:apply(unit:get_id(UnitPid), UBuff);
+		Buff when is_record(Buff, u_buff) ->
+			buff_mgr:apply(unit:get_id(UnitPid), Buff)
+	end.
+
+do_call(Action, UnitPid, RecipientPid) ->
+	if
+		is_function(Action, 0) ->
+			Action();
+
+		is_function(Action, 1) ->
+			Action(UnitPid);
+
+		is_function(Action, 2) ->
+			Action(UnitPid, RecipientPid);
+
+		true -> ok
+	end.
+
+
+allok([Fn | Fns]) ->
+	case Fn() of
+		ok  -> allok(Fns);
+		Err -> Err
+	end;
+
+allok([]) -> ok.

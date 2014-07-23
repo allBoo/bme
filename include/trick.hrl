@@ -37,7 +37,7 @@
                 class_delay    = false          :: boolean(),           %% Общая задержка
                 expend         = false          :: boolean(),           %% Прием тратит ход
                 require_target = false          :: boolean(),           %% Требует указать цель
-                target_type    = enemy          :: trick_target_type(), %% Тип цели
+                target_type    = any            :: trick_target_type(), %% Тип цели
                 self_buff                       :: atom(),              %% Накладываемый на себя бафф
                 enemy_buff                      :: atom(),              %% Накладываемый на противника бафф
                 action                          :: fun()                %% Вызываемая ф-я

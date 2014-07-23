@@ -68,7 +68,7 @@ init(UnitPid) when is_pid(UnitPid) ->
 	random:seed(now()),
 
 	%% получаем инфу об юните
-	case unit:get_state(UnitPid) of
+	case unit:get(UnitPid) of
 		Unit when is_record(Unit, b_unit) ->
 			%% подписываемся на его ивенты и ждем выбора противника
 			subscribe(Unit),

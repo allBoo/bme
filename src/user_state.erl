@@ -546,6 +546,10 @@ get_attr("intel", Stats) when is_record(Stats, u_stats) -> Stats#u_stats.intel;
 get_attr("wisd", Stats) when is_record(Stats, u_stats) -> Stats#u_stats.wisd;
 get_attr("spir", Stats) when is_record(Stats, u_stats) -> Stats#u_stats.spir;
 
+%% u_mf
+get_attr("mfs." ++ Part, User) when is_record(User, user) -> get_attr(Part, User#user.mfs);
+get_attr("luck", Mfs) when is_record(Mfs, u_mf) -> Mfs#u_mf.luck;
+
 %% u_dress
 get_attr("dress." ++ Part, User) when is_record(User, user) -> get_attr(Part, User#user.dress);
 get_attr("cost", Dress) when is_record(Dress, u_dress) -> Dress#u_dress.cost;

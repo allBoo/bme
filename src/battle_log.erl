@@ -84,7 +84,7 @@ unit(Unit) when is_record(Unit, b_unit) ->
 			  team    = Unit#b_unit.team_id};
 
 unit(UnitPid) when is_pid(UnitPid) ->
-	Unit = unit:get_state(UnitPid),
+	Unit = unit:get(UnitPid),
 	unit(Unit).
 
 
@@ -729,6 +729,18 @@ write(HealLog, File) when is_record(HealLog, log_heal),
 	S = unit(HealLog#log_heal.sender),
 	V = (HealLog#log_heal.value),
 	B = (HealLog#log_heal.buff)#spell.name,
+	Template = ?log_heal1,
+	Params = [curtime(), R#log_unit.team, R#log_unit.name, B, S#log_unit.name, V, R#log_unit.hp, R#log_unit.maxhp],
+	io:fwrite(File, Template, Params),
+	ok;
+
+write(HealLog, File) when is_record(HealLog, log_heal),
+						  HealLog#log_heal.trick =/= undefined ->
+	R = unit(HealLog#log_heal.recipient),
+	S = unit(HealLog#log_heal.sender),
+	V = (HealLog#log_heal.value),
+	T = tricks:(HealLog#log_heal.trick)(),
+	B = T#trick.name,
 	Template = ?log_heal1,
 	Params = [curtime(), R#log_unit.team, R#log_unit.name, B, S#log_unit.name, V, R#log_unit.hp, R#log_unit.maxhp],
 	io:fwrite(File, Template, Params),

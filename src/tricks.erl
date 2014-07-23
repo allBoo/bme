@@ -54,8 +54,8 @@ novice_hp() ->
 		tactics        = #b_tactics{spirit = 1},
 		delay          = 4,
 		class_delay    = true,
-		action         = fun(Unit) ->
-								 trick_helper:heal(novice_hp, Unit, #d_value{n = 1, k = 4}, false)
+		action         = fun(UnitPid) ->
+								 trick_helper:heal(novice_hp, UnitPid, #d_value{n = 1, k = 4}, false)
 						 end
 	}.
 

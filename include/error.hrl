@@ -35,4 +35,8 @@
 -define(ERROR_UNIT_DEAD, #error{code = 105, message = <<"Вы погибли, ожидаем окончания поединка."/utf8>>}).
 -define(ERROR_EMPTY_SPIRIT, #error{code = 106, message = <<"Нет силы духа"/utf8>>}).
 -define(ERROR_BUFF_EXISTS, #error{code = 107, message = <<"Прием уже активен"/utf8>>}).
--define(ERROR_TRICK_NOT_EXISTS, #error{code = 108, message = <<"Прием не существует"/utf8>>}).
+
+-define(ERROR_TRICK_NOT_EXISTS, #error{code = 200, message = <<"Прием не существует"/utf8>>}).
+-define(ERROR_TRICK_NOT_APPLICABLE, #error{code = 201, message = <<"Не применимо в данный момент"/utf8>>}).
+-define(ERROR_TRICK_ENEMY_ONLY, #error{code = 202, message = <<"Нельзя использовать на дружественную цель"/utf8>>}).
+-define(ERROR_TRICK_FRIEND_ONLY, #error{code = 203, message = <<"Нельзя использовать на вражескую цель"/utf8>>}).

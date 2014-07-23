@@ -35,6 +35,7 @@
 				   sender   = #log_unit{},
 				   value    = 0,
 				   buff     :: #buff{} | #spell{},
+				   trick     :: atom(),
 				   empty_spirit = false}).
 
 

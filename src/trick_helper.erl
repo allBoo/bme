@@ -19,15 +19,15 @@
 -export([heal/4]).
 
 
-heal(Trick, Unit, DValue, Spirit) when is_record(DValue, d_value) ->
-	Luck  = user_state:get(?puserpid(Unit), 'mfs.luck'),
+heal(Trick, UnitPid, DValue, Spirit) when is_record(DValue, d_value) ->
+	Luck  = user_state:get(?puserpid(UnitPid), 'mfs.luck'),
 	Value = formula:get_from_interval(DValue, Luck),
-	heal(Trick, Unit, Value, Spirit);
+	heal(Trick, UnitPid, Value, Spirit);
 
-heal(Trick, Unit, Value, Spirit) when is_number(Value),
+heal(Trick, UnitPid, Value, Spirit) when is_number(Value),
 									  is_boolean(Spirit) ->
-	unit:got_heal(Unit, #b_heal{value = Value,
-								trick = Trick,
-								sender = Unit,
-								recipient = Unit,
-								use_spirit = Spirit}).
+	unit:got_heal(UnitPid, #b_heal{value = Value,
+								   trick = Trick,
+								   sender = UnitPid,
+								   recipient = UnitPid,
+								   use_spirit = Spirit}).

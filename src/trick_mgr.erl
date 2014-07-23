@@ -140,15 +140,13 @@ init(Unit) ->
 %% ====================================================================
 
 %% выполнение приема
-handle_call({apply, UnitId, Buff}, From, State) when is_integer(UnitId) ->
-	case reg:find({unit, UnitId}) of
-		undefined -> {reply, ?ERROR_NOT_IN_BATTLE, State};
-		UnitPid   -> handle_call({apply, UnitPid, Buff}, From, State)
-	end;
+handle_call({apply, Trick, RecipientPid}, _From, State) when is_pid(RecipientPid) ->
+	R = apply_trick(State#state.event_mgr, Trick, RecipientPid),
+	{reply, R, State};
 
-handle_call({apply, UnitPid, Buff}, _From, State) when is_pid(UnitPid) ->
-	%R = apply_buff(State#state.event_mgr, UnitPid, Buff),
-	{reply, ok, State};
+handle_call({apply, Trick}, _From, State) ->
+	R = apply_trick(State#state.event_mgr, Trick),
+	{reply, R, State};
 
 
 %% возвращает список одетых приемов
@@ -159,7 +157,7 @@ handle_call(list, _From, State) ->
 
 %% unknown request
 handle_call(_Request, _From, State) ->
-	{reply, ok, State}.
+	{reply, ?ERROR_UNDEFINED, State}.
 
 
 %% handle_cast/2
@@ -197,8 +195,22 @@ handle_info({unit, swap_done}, State) ->
 	do_notify(swap_done, State),
 	{noreply, State};
 
-handle_info({unit, _Msg}, State) ->
-	do_notify(unit_changed, State),
+handle_info({unit, {change_state, {Change, _}}}, State) ->
+	%% реагируем только на определенные изменения
+	ChangeStr = atom_to_list(Change),
+	Update = case ChangeStr of
+				 "tactics"       -> true;
+				 "tactics." ++ _ -> true;
+				 "stats"         -> true;
+				 "stats." ++ _   -> true;
+				 "vitality.mana" -> true;
+				 _ -> false
+			 end,
+	if
+		Update -> do_notify(unit_changed, State);
+		true   -> ok
+	end,
+
 	{noreply, State};
 
 
@@ -248,7 +260,30 @@ init_tricks(Ev, UnitPid, [Trick | Tail]) ->
 
 
 do_notify(Msg, State) ->
-	Unit = unit:get_state(State#state.unit),
+	Unit = unit:get(State#state.unit),
 	User = user_state:get(Unit#b_unit.id),
 	gen_event:notify(State#state.event_mgr, {Msg, Unit#b_unit{user = User}}).
 
+
+apply_trick(Ev, Trick) ->
+	Msg = apply,
+	do_apply_trick(Ev, Trick, Msg).
+
+apply_trick(Ev, Trick, RecipientPid) ->
+	Msg = {apply, RecipientPid},
+	do_apply_trick(Ev, Trick, Msg).
+
+
+do_apply_trick(Ev, Trick, Msg) ->
+	Id = {gen_trick, Trick},
+	Result = gen_event:call(Ev, Id, Msg),
+
+	case Result of
+		ok ->
+			%% если прием выполнился, рассылаем уведомления другим приемам
+			gen_event:notify(Ev, {applied, Trick}),
+			ok;
+		Error when is_record(Error, error) -> Error;
+		{error, bad_module} -> ?ERROR_TRICK_NOT_APPLICABLE;
+		_ -> ?ERROR_UNDEFINED
+	end.
