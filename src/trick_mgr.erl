@@ -151,7 +151,9 @@ handle_call({apply, Trick}, _From, State) ->
 
 %% возвращает список одетых приемов
 handle_call(list, _From, State) ->
-	List = gen_event:which_handlers(State#state.event_mgr),
+	List = lists:map(fun(Id) ->
+						gen_event:call(State#state.event_mgr, Id, get_state)
+					 end, gen_event:which_handlers(State#state.event_mgr)),
 	{reply, List, State};
 
 

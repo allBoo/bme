@@ -463,18 +463,19 @@ handle_call({hit_damage, HitResult0, _From}, _, Unit) ->
 	%% считаем полученные тактики
 	Attacker  = ?user(Unit),	%% получаем полный State юзера, он нужен для formula
 	Defendant = ?puser(HitResult#b_hit_result.defendant),
-	Tactics = add_tactics(Unit, #b_tactics{
-			attack  = ?TACTIC(HitResult#b_hit_result.hited and not(HitResult#b_hit_result.crit), HitResult#b_hit_result.weapon_twain, 3),
-			crit    = ?TACTIC(HitResult#b_hit_result.crit, HitResult#b_hit_result.weapon_twain or not(HitResult#b_hit_result.crit_break), 2),
-			hearts  = formula:get_hearts(Damage, Attacker, Defendant)
-		}),
+	Tactics = #b_tactics{
+					attack  = ?TACTIC(HitResult#b_hit_result.hited and not(HitResult#b_hit_result.crit), HitResult#b_hit_result.weapon_twain, 3),
+					crit    = ?TACTIC(HitResult#b_hit_result.crit, HitResult#b_hit_result.weapon_twain or not(HitResult#b_hit_result.crit_break), 2),
+					hearts  = formula:get_hearts(Damage, Attacker, Defendant)
+			  },
 
 	%% кол-во экспы за удар
 	Exp = formula:get_exp_by_damage(Damage, Attacker, Defendant),
 
-	DamagedUnit = Unit#b_unit{total_damaged = Unit#b_unit.total_damaged + Damage,
-							  exp = Unit#b_unit.exp + Exp,
-							  tactics = Tactics},
+	%% обновляем стейт
+	DamagedUnit = unit_state:increase(Unit, [{'tactics', Tactics},
+											 {'total_damaged', Damage},
+											 {'exp', Exp}]),
 
 	{reply, {ok, Damage},  DamagedUnit};
 
@@ -486,14 +487,14 @@ handle_call({avoid_damage, HitResult0, From}, _, Unit) ->
 	HitResult = buff_mgr:on_avoid_damage(?unitid(Unit), HitResult0),
 
 	%% считаем полученные тактики
-	Tactics = add_tactics(Unit, #b_tactics{
-			counter = ?TACTIC(HitResult#b_hit_result.counter),
-			block   = ?TACTIC((HitResult#b_hit_result.block or HitResult#b_hit_result.shield)
-					  and not(HitResult#b_hit_result.hited), HitResult#b_hit_result.weapon_twain, 2),
-			parry   = ?TACTIC(HitResult#b_hit_result.parry and not(HitResult#b_hit_result.hited))
-		}),
+	Tactics = #b_tactics{
+					counter = ?TACTIC(HitResult#b_hit_result.counter),
+					block   = ?TACTIC((HitResult#b_hit_result.block or HitResult#b_hit_result.shield)
+							  and not(HitResult#b_hit_result.hited), HitResult#b_hit_result.weapon_twain, 2),
+					parry   = ?TACTIC(HitResult#b_hit_result.parry and not(HitResult#b_hit_result.hited))
+			  },
 
-	DamagedUnit = Unit#b_unit{tactics = Tactics},
+	DamagedUnit = unit_state:increase(Unit, [{'tactics', Tactics}]),
 	DamagedUser = user_state:get(DamagedUnit#b_unit.user),
 
 	%% пишем в лог избегание урона
@@ -546,12 +547,12 @@ handle_cast(_, Unit) when is_record(Unit, b_unit),
 
 %% увеличение параметров юнита
 handle_cast({increase, Params}, Unit) ->
-	{noreply, unit_state:change_state(increase, Unit, Params)};
+	{noreply, unit_state:increase(Unit, Params)};
 
 
 %% уменьшение параметров юнита
 handle_cast({reduce, Params}, Unit) ->
-	{noreply, unit_state:change_state(reduce, Unit, Params)};
+	{noreply, unit_state:reduce(Unit, Params)};
 
 
 %% устанавливает юниту список оппонентов
@@ -613,7 +614,7 @@ handle_cast({magic_damage, MagicAttack0, From}, Unit) ->
 	Damage = MagicAttack#b_magic_attack.damage,
 
 	user_state:reduce(?userpid(Unit), [{'vitality.hp', Damage}]),
-	DamagedUnit = Unit#b_unit{total_lost = Unit#b_unit.total_lost + Damage},
+	DamagedUnit = unit_state:increase(Unit, [{'total_lost', Damage}]),
 	DamagedUser = user_state:get(DamagedUnit#b_unit.user),
 
 	%% пишем в лог получение урона
@@ -640,13 +641,12 @@ handle_cast({got_heal, Heal0, TransactionId}, Unit) when ?spirit(Unit) > 0 ->
 	Healed = min(NewHp - InitialHp, Heal#b_heal.value),	%% реально отхиленное
 
 	Spirit = case Heal0#b_heal.use_spirit of
-				 true  -> math:precision(?spirit(Unit) - (Healed / user_state:get(?userpid(Unit), 'vitality.maxhp')) * 10, 2);
-				 false -> ?spirit(Unit)
+				 true  -> math:precision((Healed / user_state:get(?userpid(Unit), 'vitality.maxhp')) * 10, 2);
+				 false -> 0
 			 end,
 
-	Tactics  = ?tactics(Unit),
-	HealedUnit = Unit#b_unit{total_healed = Unit#b_unit.total_healed + Healed,
-							 tactics = Tactics#b_tactics{spirit = Spirit}},
+	HealedUnit = unit_state:increase(Unit, [{'total_healed', Healed},
+											{'tactics.spirit', -Spirit}]),
 	HealedUser = user_state:get(HealedUnit#b_unit.user),
 
 	%% пишем в лог получение хилла
@@ -814,7 +814,7 @@ set_initial_unit_data(Unit) ->
 					_Hight when Level > 9 -> 40
 				end + Stats#u_stats.spir,
 	Spirit = math:precision((Vitality#u_vitality.hp / Vitality#u_vitality.maxhp) * MaxSpirit, 2),
-	unit_state:change_state(increase, Unit, [{'tactics.spirit', Spirit}]).
+	unit_state:increase(Unit, [{'tactics.spirit', Spirit}]).
 
 
 %% create_hit/3
@@ -887,21 +887,6 @@ validate_unique_hit(_Hit, Unit) ->
 		false ->
 			ok
 	end.
-
-
-%% add_tactics/2
-%% ====================================================================
-%% пересчет тактик
-add_tactics(Unit, Delta) when is_record(Unit, b_unit),
-							  is_record(Delta, b_tactics) ->
-	Current = Unit#b_unit.tactics,
-	Current#b_tactics{attack  = math:limit(Current#b_tactics.attack + Delta#b_tactics.attack, 25),
-                      crit    = math:limit(Current#b_tactics.crit + Delta#b_tactics.crit, 25),
-                      counter = math:limit(Current#b_tactics.counter + Delta#b_tactics.counter, 25),
-                      block   = math:limit(Current#b_tactics.block + Delta#b_tactics.block, 25),
-                      parry   = math:limit(Current#b_tactics.parry + Delta#b_tactics.parry, 25),
-                      hearts  = math:limit(math:precision(Current#b_tactics.hearts + Delta#b_tactics.hearts, 2), 25),
-                      spirit  = math:limit(math:precision(Current#b_tactics.spirit + Delta#b_tactics.spirit, 2), Current#b_tactics.spirit)}.
 
 
 %% do_swap_done/2

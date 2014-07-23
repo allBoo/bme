@@ -15,7 +15,7 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([get_attr/2, change_state/3]).
+-export([get_attr/2, change_state/3, increase/2, reduce/2]).
 
 
 %% get_attr/2
@@ -78,6 +78,20 @@ get_attr("changes", Tactics) when is_record(Tactics, b_tactics) -> Tactics#b_tac
 
 
 
+%% increase/3
+%% ====================================================================
+%% изменение параметров юнита
+increase(Unit, Delta) ->
+	change_state(increase, Unit, Delta).
+
+
+%% reduce/3
+%% ====================================================================
+%% изменение параметров юнита
+reduce(Unit, Delta) ->
+	change_state(reduce, Unit, Delta).
+
+
 %% change_state/3
 %% ====================================================================
 %% изменение параметров юнита
@@ -103,8 +117,8 @@ change_state(increase, Unit, [{tactics, Delta} | TParams]) when is_record(Unit, 
 		counter = math:limit(Tactics0#b_tactics.counter + Delta#b_tactics.counter, 0, 25),
 		block   = math:limit(Tactics0#b_tactics.block   + Delta#b_tactics.block, 0, 25),
 		parry   = math:limit(Tactics0#b_tactics.parry   + Delta#b_tactics.parry, 0, 25),
-		hearts  = math:limit(Tactics0#b_tactics.hearts  + Delta#b_tactics.hearts, 0, 25),
-		spirit  = max(Tactics0#b_tactics.spirit         + Delta#b_tactics.spirit, 0),
+		hearts  = math:precision(math:limit(Tactics0#b_tactics.hearts  + Delta#b_tactics.hearts, 0, 25), 2),
+		spirit  = math:precision(max(Tactics0#b_tactics.spirit         + Delta#b_tactics.spirit, 0), 2),
 		changes = math:limit(Tactics0#b_tactics.changes + Delta#b_tactics.changes, 0, 25)
 	},
 	Unit0 = Unit#b_unit{tactics = Tactics},
@@ -120,8 +134,8 @@ change_state(reduce, Unit, [{tactics, Delta} | TParams]) when is_record(Unit, b_
 		counter = math:limit(Tactics0#b_tactics.counter - Delta#b_tactics.counter, 0, 25),
 		block   = math:limit(Tactics0#b_tactics.block   - Delta#b_tactics.block, 0, 25),
 		parry   = math:limit(Tactics0#b_tactics.parry   - Delta#b_tactics.parry, 0, 25),
-		hearts  = math:limit(Tactics0#b_tactics.hearts  - Delta#b_tactics.hearts, 0, 25),
-		spirit  = max(Tactics0#b_tactics.spirit         - Delta#b_tactics.spirit, 0),
+		hearts  = math:precision(math:limit(Tactics0#b_tactics.hearts  - Delta#b_tactics.hearts, 0, 25), 2),
+		spirit  = math:precision(max(Tactics0#b_tactics.spirit         - Delta#b_tactics.spirit, 0), 2),
 		changes = math:limit(Tactics0#b_tactics.changes - Delta#b_tactics.changes, 0, 25)
 	},
 	Unit0 = Unit#b_unit{tactics = Tactics},
@@ -135,6 +149,17 @@ change_state(Unit0, {State, Delta}) when is_atom(State),
 	Unit = change_state(Unit0, {SState, Delta}),
 	unit:notify(Unit#b_unit.id, {change_state, {State, Delta}}),
 	Unit;
+
+
+%% изменение корневых свойств
+change_state(Unit, {"total_damaged", Delta}) when is_record(Unit,b_unit) ->
+	Unit#b_unit{total_damaged = change_state(Unit#b_unit.total_damaged, Delta)};
+change_state(Unit, {"total_healed", Delta}) when is_record(Unit,b_unit) ->
+	Unit#b_unit{total_healed = change_state(Unit#b_unit.total_healed, Delta)};
+change_state(Unit, {"total_lost", Delta}) when is_record(Unit,b_unit) ->
+	Unit#b_unit{total_lost = change_state(Unit#b_unit.total_lost, Delta)};
+change_state(Unit, {"exp", Delta}) when is_record(Unit,b_unit) ->
+	Unit#b_unit{exp = change_state(Unit#b_unit.exp, Delta)};
 
 
 %% изменение тактик
