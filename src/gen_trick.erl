@@ -347,10 +347,14 @@ do_buff(Buff0, UnitPid) ->
 	case Buff0 of
 		undefined -> ok;
 		BuffId when is_atom(BuffId) ->
-			UBuff = #u_buff{id = BuffId},
-			buff_mgr:apply(unit:get_id(UnitPid), UBuff);
-		Buff when is_record(Buff, u_buff) ->
-			buff_mgr:apply(unit:get_id(UnitPid), Buff)
+			buff_mgr:apply(unit:get_id(UnitPid), BuffId);
+		Buff when is_record(Buff, buff) ->
+			buff_mgr:apply(unit:get_id(UnitPid), Buff);
+		UBuff when is_record(UBuff, u_buff) ->
+			Options = [{time, UBuff#u_buff.time},
+					   {value, UBuff#u_buff.value},
+					   {level, UBuff#u_buff.level}],
+			buff_mgr:apply(unit:get_id(UnitPid), UBuff#u_buff.id, Options)
 	end.
 
 do_call(Action, UnitPid, RecipientPid) ->

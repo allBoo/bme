@@ -17,18 +17,14 @@
 %% standart behaviourals
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
--define(CAST(BuffMgr, Cmd), case is_pid(BuffMgr) of
-								 true -> gen_server:cast(BuffMgr, Cmd);
-								 false ->
-									 case reg:find({buff_mgr, BuffMgr}) of
-										 undefined -> ?ERROR_NOT_IN_BATTLE;
-										 BuffMgrPid -> gen_server:cast(BuffMgrPid, Cmd) end end).
--define(CALL(BuffMgr, Cmd), case is_pid(BuffMgr) of
-								 true -> gen_server:call(BuffMgr, Cmd);
-								 false ->
-									 case reg:find({buff_mgr, BuffMgr}) of
-										 undefined -> ?ERROR_NOT_IN_BATTLE;
-										 BuffMgrPid -> gen_server:call(BuffMgrPid, Cmd) end end).
+-define(CAST(Unit, Cmd), case reg:find({buff_mgr, Unit}) of
+							 undefined   -> ?ERROR_NOT_IN_BATTLE;
+							 BuffMgrPid -> gen_server:cast(BuffMgrPid, Cmd)
+						 end).
+-define(CALL(Unit, Cmd), case reg:find({buff_mgr, Unit}) of
+							 undefined   -> ?ERROR_NOT_IN_BATTLE;
+							 BuffMgrPid -> gen_server:call(BuffMgrPid, Cmd)
+						 end).
 
 
 %% ====================================================================
@@ -75,27 +71,28 @@ start_mgr(Unit) when is_record(Unit, b_unit) ->
 %% apply/3
 %% ====================================================================
 %% применение баффа на юнита
-apply(BuffMgr, Unit, Buff) when (is_record(Buff, u_buff) or is_record(Buff, buff)) ->
-	?CALL(BuffMgr, {apply, Unit, Buff}).
+apply(Unit, BuffId, Options) when is_atom(BuffId),
+								  is_list(Options) ->
+	?CALL(Unit, {apply, Unit, BuffId, Options}).
 
+apply(Unit, Buff) when is_atom(Buff) ->
+	buff_mgr:apply(Unit, Buff, []);
 
-apply(UnitId, Buff) when is_integer(UnitId),
-						 (is_record(Buff, u_buff) or is_record(Buff, buff)) ->
-	?CALL(UnitId, {apply, UnitId, Buff}).
-
+apply(Unit, Buff) when is_record(Buff, buff) ->
+	?CALL(Unit, {apply, Unit, Buff}).
 
 %% notify/2
 %% ====================================================================
 %% асинхронное уведомление баффов
-notify(BuffMgr, Event) ->
-	?CAST(BuffMgr, {notify, Event}).
+notify(Unit, Event) ->
+	?CAST(Unit, {notify, Event}).
 
 
 %% list/1
 %% ====================================================================
 %% возвращает список запущенных баффов
-list(BuffMgr) ->
-	?CALL(BuffMgr, list).
+list(Unit) ->
+	?CALL(Unit, list).
 
 
 %% callbacks
@@ -138,15 +135,15 @@ on_calc_damage(Unit, Damage) ->
 %% unravel/2
 %% ====================================================================
 %% @doc "Разгадать тактику"
-unravel(BuffMgr, FromUnit) ->
-	?CAST(BuffMgr, {unravel, FromUnit}).
+unravel(Unit, FromUnit) ->
+	?CAST(Unit, {unravel, FromUnit}).
 
 
 %% steal/2
 %% ====================================================================
 %% @doc "Ставка на опережение"
-steal(BuffMgr, FromUnit) ->
-	?CAST(BuffMgr, {steal, FromUnit}).
+steal(Unit, FromUnit) ->
+	?CAST(Unit, {steal, FromUnit}).
 
 
 %% ====================================================================
@@ -175,11 +172,12 @@ init(Unit) ->
 			case reg:get({buff_ev, Unit#b_unit.id}) of
 				undefined -> {stop, buff_event_mgr_not_found};
 				BuffEv    ->
-					ok = reg:name({buff_mgr, Unit#b_unit.id}),
+					ok = reg:name([{buff_mgr, Unit#b_unit.id},
+								   {buff_mgr, UnitPid}]),
 					reg:bind({unit, Unit#b_unit.id}),
 
 					%% запускаем уже наложенные баффы
-					%% @attention используем b_unit.id т.к. сюда приходим из супервайзера, где нет unit pid
+					%% @attention используем b_unit.id т.к. сюда приходим из супервайзера, где нет user pid
 					lists:foreach(fun(Buff) -> apply_exists(BuffEv, UnitPid, Buff) end, user_state:get(Unit#b_unit.id, 'buffs')),
 					{ok, #state{unit = UnitPid, event_mgr = BuffEv}}
 			end
@@ -205,14 +203,25 @@ init(Unit) ->
 %% ====================================================================
 
 %% наложение баффа на юнита
-handle_call({apply, UnitId, Buff}, From, State) when is_integer(UnitId) ->
+handle_call({apply, UnitId, Buff}, From, State) when is_integer(UnitId),
+													 is_record(Buff, buff) ->
 	case reg:find({unit, UnitId}) of
 		undefined -> {reply, ?ERROR_NOT_IN_BATTLE, State};
 		UnitPid   -> handle_call({apply, UnitPid, Buff}, From, State)
 	end;
+handle_call({apply, UnitId, BuffId, Options}, From, State) when is_integer(UnitId) ->
+	case reg:find({unit, UnitId}) of
+		undefined -> {reply, ?ERROR_NOT_IN_BATTLE, State};
+		UnitPid   -> handle_call({apply, UnitPid, BuffId, Options}, From, State)
+	end;
 
-handle_call({apply, UnitPid, Buff}, _From, State) when is_pid(UnitPid) ->
+handle_call({apply, UnitPid, Buff}, _From, State) when is_pid(UnitPid),
+													   is_record(Buff, buff) ->
 	R = apply_buff(State#state.event_mgr, UnitPid, Buff),
+	{reply, R, State};
+
+handle_call({apply, UnitPid, BuffId, Options}, _From, State) when is_pid(UnitPid) ->
+	R = apply_buff(State#state.event_mgr, UnitPid, BuffId, Options),
 	{reply, R, State};
 
 
@@ -451,21 +460,22 @@ code_change(_OldVsn, State, _Extra) ->
 %% запуск существующего баффа
 apply_exists(Ev, UnitPid, Buff) when is_pid(Ev),
 									 is_record(Buff, u_buff) ->
-	apply_buff(Ev, UnitPid, Buff#u_buff{exists = true}).
-
-
-%% запуск нового баффа
-apply_buff(Ev, UnitPid, Buff) when is_pid(Ev),
-								   is_record(Buff, u_buff) ->
 	Options = [{time, Buff#u_buff.time},
 			   {value, Buff#u_buff.value},
 			   {level, Buff#u_buff.level},
-			   {exists, Buff#u_buff.exists}],
-	start_buff(Ev, Buff#u_buff.id, UnitPid, Options);
+			   {exists, true}],
+	apply_buff(Ev, UnitPid, Buff#u_buff.id, Options).
+
+
+%% запуск нового баффа
+apply_buff(Ev, UnitPid, BuffId, Options) when is_pid(Ev),
+											  is_list(Options) ->
+	start_buff(Ev, BuffId, UnitPid, Options).
 
 apply_buff(Ev, UnitPid, Buff) when is_pid(Ev),
 								   is_record(Buff, buff) ->
-	Options = [{time, Buff#buff.time},
+	Options = [{owner, Buff#buff.owner},
+			   {time, Buff#buff.time},
 			   {value, Buff#buff.value},
 			   {level, Buff#buff.level},
 			   {charges, Buff#buff.charges},
