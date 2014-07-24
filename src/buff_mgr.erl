@@ -35,7 +35,8 @@
 		 apply/3,
 		 apply/2,
 		 notify/2,
-		 list/1]).
+		 list/1,
+		 find/2]).
 
 %% callbacks
 -export([on_before_got_damage/2,
@@ -92,7 +93,25 @@ notify(Unit, Event) ->
 %% ====================================================================
 %% возвращает список запущенных баффов
 list(Unit) ->
-	?CALL(Unit, list).
+	case reg:find({buff_mgr, Unit}) of
+		undefined  -> ?ERROR_NOT_IN_BATTLE;
+		BuffMgrPid -> get_buffs_list(BuffMgrPid)
+	end.
+
+
+%% find/2
+%% ====================================================================
+%% возвращает список запущенных баффов
+find(Unit, Id) ->
+	UnitId = unit:get_id(Unit),
+	case reg:find({buff_mgr, Unit}) of
+		undefined  -> ?ERROR_NOT_IN_BATTLE;
+		BuffMgrPid ->
+			case reg:get({buff_ev, UnitId}) of
+				undefined  -> ?ERROR_NOT_IN_BATTLE;
+				Ev -> find_buff(BuffMgrPid, Ev, Id)
+			end
+	end.
 
 
 %% callbacks
@@ -421,6 +440,16 @@ handle_info({unit, Msg}, State) ->
 	{noreply, State};
 
 
+%% messages from buffs
+handle_info({gen_event_EXIT, {gen_buff, Id}, Reason}, State) ->
+	drop_buff_from_list(self(), Id),
+	case Reason of
+		{swapped, {gen_buff, NewId}, _} ->
+			add_buff_to_list(self(), NewId);
+		_ -> ok
+	end,
+	{noreply, State};
+
 %% unknows message
 handle_info(_Info, State) ->
 	{noreply, State}.
@@ -484,7 +513,72 @@ apply_buff(Ev, UnitPid, Buff) when is_pid(Ev),
 
 
 start_buff(Ev, BuffId, UnitPid, BuffOptions) ->
-	gen_buff:start_link(Ev, BuffId, UnitPid, BuffOptions).
+	case gen_buff:start_link(Ev, BuffId, UnitPid, BuffOptions) of
+		ok ->
+			%% сохраняем ID баффа в ETS
+			Owner = proplists:get_value(owner, BuffOptions, UnitPid),
+			Id = {BuffId, UnitPid, Owner},
+			add_buff_to_list(self(), Id);
+		Err -> Err
+	end.
+
+
+%% get_list/1
+%% ====================================================================
+%% Возвращает список запущенных баффов в данном менеджере
+get_buffs_list(Pid) ->
+	case reg:get({buff_list, Pid}, []) of
+		 L when is_list(L) -> L;
+		 _ -> []
+	end.
+
+%% set_list/2
+%% ====================================================================
+%% Сохраняет список запущенных баффов в данном менеджере
+set_buffs_list(Pid, List) ->
+	reg:unbind({buff_list, Pid}),
+	reg:set({buff_list, Pid}, List).
+
+%% add_buff_to_list/2
+%% ====================================================================
+%% Добавляет бафф в список
+add_buff_to_list(Pid, Id) ->
+	List = get_buffs_list(Pid),
+	case lists:member(Id, List) of
+		true -> ok;
+		_ -> set_buffs_list(Pid, List ++ [Id])
+	end.
+
+%% add_buff_to_list/2
+%% ====================================================================
+%% Удаляет бафф из списка
+drop_buff_from_list(Pid, Id) ->
+	List = get_buffs_list(Pid),
+	set_buffs_list(Pid, lists:delete(Id, List)).
+
+
+%% find_buff/2
+%% ====================================================================
+%% Поиск существующего баффа
+find_buff(Pid, Ev, Id) when is_tuple(Id) ->
+	List = get_buffs_list(Pid),
+	case lists:member(Id, List) of
+		true  -> get_buff_state(Ev, Id);
+		false -> false
+	end;
+
+find_buff(Pid, Ev, Id) when is_atom(Id) ->
+	List = get_buffs_list(Pid),
+	case lists:keyfind(Id, 1, List) of
+		false -> false;
+		BuffId -> get_buff_state(Ev, BuffId)
+	end.
+
+get_buff_state(Ev, Id) ->
+	case gen_event:call(Ev, {gen_buff, Id}, get_buff) of
+		Buff when is_record(Buff, buff) -> Buff;
+		_ -> false
+	end.
 
 
 %% do_unravel/1

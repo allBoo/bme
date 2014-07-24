@@ -68,8 +68,8 @@ start_link(Ev, Module, Unit, Options) ->
 		false ->
 			?DBG("Start buff ~p~n", [{Ev, Buff#buff.unit, Buff}]),
 			case proplists:get_value(exists, Options) of
-				true  -> gen_event:add_handler(Ev, {?MODULE, Id}, {exists, Module, Buff});
-				_     -> gen_event:add_handler(Ev, {?MODULE, Id}, {Module, Buff})
+				true  -> gen_event:add_sup_handler(Ev, {?MODULE, Id}, {exists, Module, Buff});
+				_     -> gen_event:add_sup_handler(Ev, {?MODULE, Id}, {Module, Buff})
 			end;
 		%% если есть и бафф поддерживает ф-ю renew, вызываем ее
 		%% иначе возвращаем ошибку
@@ -164,7 +164,8 @@ handle_event({change_state, Change}, #state{mod = Module} = State) ->
 		{ok, Buff1} ->
 			{ok, State#state{buff = Buff1}};
 		{swap, Module1, Buff1} ->
-			{swap_handler, swap, State#state{buff = Buff1}, gen_buff, Module1};	%% eg init({Module, Buff})
+			Id = {Module1, Buff1#buff.unit, Buff1#buff.owner},
+			{swap_handler, swap, State#state{buff = Buff1}, {gen_buff, Id}, Module1};	%% eg init({Module, Buff})
 		_ ->
 			remove_handler
 	end;
@@ -202,7 +203,8 @@ handle_call({renew, Buff}, #state{mod = Module} = State) ->
 				{ok, Buff1} ->
 					{ok, ok, State#state{buff = Buff1}};
 				{swap, Module1, Buff1} ->
-					{swap_handler, ok, swap, State#state{buff = Buff1}, gen_buff, Module1};
+					Id = {Module1, Buff1#buff.unit, Buff1#buff.owner},
+					{swap_handler, ok, swap, State#state{buff = Buff1}, {gen_buff, Id}, Module1};
 				_ ->
 					{ok, ?ERROR_UNDEFINED, State}
 			end;
@@ -377,7 +379,8 @@ apply_data_callback(Callback, Data, #state{mod = Module} = State) ->
 		{ok, Buff1} ->
 			{ok, Data, State#state{buff = Buff1}};
 		{swap, Data1, Module1, Buff1} ->
-			{swap_handler, Data1, swap, State#state{buff = Buff1}, gen_buff, Module1};
+			Id = {Module1, Buff1#buff.unit, Buff1#buff.owner},
+			{swap_handler, Data1, swap, State#state{buff = Buff1}, {gen_buff, Id}, Module1};
 		{remove_handler, Data1} ->
 			{remove_handler, Data1};
 		_ ->

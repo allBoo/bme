@@ -21,7 +21,7 @@
 %% API functions
 %% ====================================================================
 -export([name/1, find/1, bind/1, unbind/1, binded/1, send/2, broadcast/3,
-		 set/2, get/1]).
+		 set/2, get/1, get/2]).
 
 
 name(Names) when is_list(Names) ->
@@ -62,6 +62,12 @@ set(Name, Value) ->
 get(Name) ->
 	case gproc:lookup_values({p, l, Name}) of
 		[] -> undefined;
+		[{_, Value} | _Tail] -> Value
+	end.
+
+get(Name, Default) ->
+	case gproc:lookup_values({p, l, Name}) of
+		[] -> Default;
 		[{_, Value} | _Tail] -> Value
 	end.
 

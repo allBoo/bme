@@ -81,8 +81,10 @@ start_link(Unit) when is_record(Unit, b_unit) ->
 %% ====================================================================
 %% возвращает id юнита по его PID
 get_id(UnitPid) when is_pid(UnitPid) ->
-	reg:get({unit_id, UnitPid}).
+	reg:get({unit_id, UnitPid});
 
+get_id(UnitId) when is_integer(UnitId) ->
+	UnitId.
 
 %% get_pid/1
 %% ====================================================================
