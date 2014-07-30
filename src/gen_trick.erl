@@ -152,6 +152,21 @@ handle_call({recalc, Unit}, State) ->
 	{ok, ok, check_active(State, Unit)};
 
 
+%% блокировка приема шоком
+handle_call(shock, #b_trick{trick = Trick} = State) ->
+	{ok, ok, State#b_trick{locked = (Trick#trick.unshockable == false)}};
+
+
+%% блокировка приема
+handle_call(lock, State) ->
+	{ok, ok, State#b_trick{locked = true}};
+
+
+%% разблокировка приема
+handle_call(unlock, State) ->
+	{ok, ok, State#b_trick{locked = false}};
+
+
 %% выполнение приема
 handle_call(apply, #b_trick{trick = Trick} = State) when State#b_trick.active == true,
 														 Trick#trick.require_target == false ->
@@ -240,6 +255,7 @@ code_change(_OldVsn, State, _Extra) ->
 %% @doc Проверка доступности приема
 check_active(#b_trick{trick = Trick} = State, Unit) ->
 	Active = all([fun() -> State#b_trick.delay == 0 end,
+				  fun() -> State#b_trick.locked == false end,
 				  fun() -> ?level(Unit#b_unit.user) >= Trick#trick.level end,
 				  fun() -> ?mana(Unit#b_unit.user) >= State#b_trick.mana end,
 				  fun() -> check_values(State#b_trick.tactics, Unit#b_unit.tactics) end,

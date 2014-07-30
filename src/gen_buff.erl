@@ -39,6 +39,8 @@
 %% но после пересчета оставшихся зарядов
 %-callback on_swap_done(Buff0 :: #buff{}) -> Buff ::#buff{}.
 
+%-callback on_unit_state_change(Buff0 :: #buff{}) -> Buff ::#buff{}.
+
 %% ф-я вызывается при начале действия эффекта
 %-callback on_start(Buff0 :: #buff{}) -> Buff ::#buff{}.
 
@@ -201,6 +203,7 @@ handle_call({renew, Buff}, #state{mod = Module} = State) ->
 		true  ->
 			case Module:renew(Buff, State#state.buff) of
 				{ok, Buff1} ->
+					do_locks(Buff1),
 					{ok, ok, State#state{buff = Buff1}};
 				{swap, Module1, Buff1} ->
 					Id = {Module1, Buff1#buff.unit, Buff1#buff.owner},
@@ -330,12 +333,22 @@ call_on_start(#state{mod = Module, buff = Buff} = State) ->
 		true  -> Module:on_start(Buff);
 		false -> do_on_start(Buff)
 	end,
+	case R of
+		{ok, Buff1} ->
+			do_locks(Buff1);
+		Er -> Er
+	end,
 	?result(R).
 
 call_on_end(#state{mod = Module, buff = Buff} = State) ->
 	R = case is_callable(on_end, State) of
 		true  -> Module:on_end(Buff);
 		false -> do_on_end(Buff)
+	end,
+	case R of
+		{ok, Buff1} ->
+			do_unlocks(Buff1);
+		Er -> Er
 	end,
 	?result(R).
 
@@ -350,6 +363,28 @@ do_on_end(Buff) when is_list(Buff#buff.value) ->
 	{ok, Buff};
 do_on_end(_) ->
 	{error, undef}.
+
+
+do_locks(Buff) ->
+	do_locks(Buff#buff.unit, Buff#buff.lock).
+do_unlocks(Buff) ->
+	do_unlocks(Buff#buff.unit, Buff#buff.lock).
+
+do_locks(_, []) -> ok;
+do_locks(Unit, [TrickId | TrickIds]) ->
+	do_lock(Unit, TrickId),
+	do_locks(Unit, TrickIds).
+
+do_unlocks(_, []) -> ok;
+do_unlocks(Unit, [TrickId | TrickIds]) ->
+	do_unlock(Unit, TrickId),
+	do_unlocks(Unit, TrickIds).
+
+do_lock(Unit, TrickId) ->
+	trick_mgr:lock(Unit, TrickId).
+
+do_unlock(Unit, TrickId) ->
+	trick_mgr:unlock(Unit, TrickId).
 
 
 decrease_charges(Buff) ->

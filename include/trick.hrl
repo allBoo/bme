@@ -32,9 +32,11 @@
                 level          = 0              :: non_neg_integer(),   %% Требуемый уровень персонажа
                 stats          = #u_stats{}     :: #u_stats{},          %% Требуемые статы
                 skills         = #u_skills{}    :: #u_skills{},         %% Требуемые умелки
+                unshockable    = false          :: boolean(),           %% Не подвержен шоку
                 initial_delay  = 0              :: non_neg_integer(),   %% Начальная задержка
                 delay          = 1              :: non_neg_integer(),   %% Задержка
                 class_delay    = false          :: boolean(),           %% Общая задержка
+                uses                            :: non_neg_integer(),   %% Кол-во юзов
                 expend         = false          :: boolean(),           %% Прием тратит ход
                 require_target = false          :: boolean(),           %% Требует указать цель
                 target_type    = any            :: trick_target_type(), %% Тип цели
@@ -47,6 +49,7 @@
 -record(b_trick, {trick   = #trick{}        :: #trick{},            %% описание приема
                   unit                      :: pid(),               %% владелец
                   active  = false           :: boolean(),           %% доступен в данный момент
+                  locked  = false           :: boolean(),           %% блокировка приема
                   delay   = 0               :: non_neg_integer(),   %% текущая задержка
                   mana    = 0               :: non_neg_integer(),   %% требуемая мана
                   tactics = #b_tactics{}    :: #b_tactics{}         %% требуемые тактики

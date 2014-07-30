@@ -19,9 +19,6 @@
 		<delay>3</delay>
 		<class_delay>true</class_delay>
 		<self_buff>novice_def</self_buff>
-		<action arity="1"><![CDATA[
-			trick_helper:heal(novice_hp, UnitPid, #d_value{n = 1, k = 4}, false)
-		]]></action>
 	</trick>
 	<trick>
 		<id>novice_hp</id>
@@ -45,5 +42,31 @@
 				<spirit>false</spirit>
 			</predefined>
 		</action>
+	</trick>
+	<trick>
+		<id>hp_defence</id>
+		<name><![CDATA[Стойкость]]></name>
+		<decription><![CDATA[Увеличивает вашу защиту от урона на 5% до конца боя. Можно применять трижды]]></decription>
+		<class>hp</class>
+		<type>trick</type>
+		<level>4</level>
+		<class_delay>true</class_delay>
+		<tactics>
+			<hearts>5</hearts>
+		</tactics>
+		<self_buff>hp_defence</self_buff>
+	</trick>
+	<trick>
+		<id>hp_enrage</id>
+		<name><![CDATA[Ярость]]></name>
+		<decription><![CDATA[Увеличивает ваш урона на 5% до конца боя. Можно применять трижды.]]></decription>
+		<class>hp</class>
+		<type>trick</type>
+		<level>4</level>
+		<class_delay>true</class_delay>
+		<tactics>
+			<hearts>5</hearts>
+		</tactics>
+		<self_buff>hp_enrage</self_buff>
 	</trick>
 </tricks>

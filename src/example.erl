@@ -148,7 +148,7 @@ get1() ->
 				 #u_buff{id = bonus_spir_50},
 				 #u_buff{id = wis_water_shield, level = 10},
 				 #u_buff{id = multi_skiparmor}],
-		tricks = [novice_hit, novice_def, novice_hp]
+		tricks = [novice_hit, novice_def, novice_hp, hp_defence, hp_enrage]
 	}.
 
 

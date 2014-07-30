@@ -34,7 +34,10 @@
 		 start_mgr/1,
 		 apply/3,
 		 apply/2,
-		 list/1]).
+		 list/1,
+		 shock/1,
+		 lock/2,
+		 unlock/2]).
 
 
 %% start_mgr/1
@@ -78,6 +81,27 @@ apply(Unit, Trick) when is_atom(Trick) ->
 %% возвращает список приемов
 list(Unit) ->
 	?CALL(Unit, list).
+
+
+%% shock/1
+%% ====================================================================
+%% шок
+shock(Unit) ->
+	?CAST(Unit, shock).
+
+
+%% lock/2
+%% ====================================================================
+%% блокировка приема
+lock(Unit, TrickId) when is_atom(TrickId) ->
+	?CAST(Unit, {lock, TrickId}).
+
+
+%% unlock/2
+%% ====================================================================
+%% разблокировка приема
+unlock(Unit, TrickId) when is_atom(TrickId) ->
+	?CAST(Unit, {unlock, TrickId}).
 
 
 %% ====================================================================
@@ -174,6 +198,28 @@ handle_call(_Request, _From, State) ->
 	Timeout :: non_neg_integer() | infinity.
 %% ====================================================================
 
+%% шок
+handle_cast(shock, State) ->
+	{noreply, State};
+
+
+%% блокировка приема
+handle_cast({lock, TrickId}, State) ->
+	case gen_event:call(State#state.event_mgr, {gen_trick, TrickId}, lock) of
+		ok -> do_notify(TrickId, recalc, State);
+		_  -> error
+	end,
+	{noreply, State};
+
+
+%% блокировка приема
+handle_cast({unlock, TrickId}, State) ->
+	case gen_event:call(State#state.event_mgr, {gen_trick, TrickId}, unlock) of
+		ok -> do_notify(recalc, State);
+		_  -> error
+	end,
+	{noreply, State};
+
 
 %% unknown request
 handle_cast(_Msg, State) ->
@@ -265,6 +311,11 @@ do_notify(Msg, State) ->
 	Unit = unit:get(State#state.unit),
 	User = user_state:get(Unit#b_unit.id),
 	gen_event:notify(State#state.event_mgr, {Msg, Unit#b_unit{user = User}}).
+
+do_notify(TrickId, Msg, State) ->
+	Unit = unit:get(State#state.unit),
+	User = user_state:get(Unit#b_unit.id),
+	gen_event:call(State#state.event_mgr, {gen_trick, TrickId}, {Msg, Unit#b_unit{user = User}}).
 
 
 apply_trick(Ev, Trick) ->
