@@ -24,7 +24,7 @@
 %% описание приемов
 -record(trick, {id                              :: atom(),              %% ID
                 name           = <<""/utf8>>    :: bitstring(),         %% Название
-                decription     = <<""/utf8>>    :: bitstring(),         %% Описание
+                description    = <<""/utf8>>    :: bitstring(),         %% Описание
                 class                           :: trick_class(),       %% Класс приема
                 type                            :: trick_type(),        %% Тип приема
                 tactics        = #b_tactics{}   :: #b_tactics{},        %% Требуемые тактики

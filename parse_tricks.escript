@@ -55,8 +55,8 @@ parse_trick_attrs(Trick, [{"id",[],[Value]} | Attrs]) ->
 	parse_trick_attrs(Trick#trick{id = list_to_atom(Value)}, Attrs);
 parse_trick_attrs(Trick, [{"name",[],[Value]} | Attrs]) ->
 	parse_trick_attrs(Trick#trick{name = binary:list_to_bin(Value)}, Attrs);
-parse_trick_attrs(Trick, [{"decription",[],[Value]} | Attrs]) ->
-	parse_trick_attrs(Trick#trick{decription = binary:list_to_bin(Value)}, Attrs);
+parse_trick_attrs(Trick, [{"description",[],[Value]} | Attrs]) ->
+	parse_trick_attrs(Trick#trick{description = binary:list_to_bin(Value)}, Attrs);
 parse_trick_attrs(Trick, [{"class",[],[Value]} | Attrs]) ->
 	parse_trick_attrs(Trick#trick{class = list_to_atom(Value)}, Attrs);
 parse_trick_attrs(Trick, [{"type",[],[Value]} | Attrs]) ->
@@ -125,8 +125,10 @@ parse_trick_tactics(Tactics, [{"parry",[],[Value]} | Attrs]) ->
 	parse_trick_tactics(Tactics#b_tactics{parry = list_to_integer(Value)}, Attrs);
 parse_trick_tactics(Tactics, [{"hearts",[],[Value]} | Attrs]) ->
 	parse_trick_tactics(Tactics#b_tactics{hearts = list_to_integer(Value)}, Attrs);
-parse_trick_tactics(Tactics, [{"spirit",[],["any"]} | Attrs]) ->
+parse_trick_tactics(Tactics, [{"spirit",[],["100%"]} | Attrs]) ->
 	parse_trick_tactics(Tactics#b_tactics{spirit = any}, Attrs);
+parse_trick_tactics(Tactics, [{"spirit",[],["0.5"]} | Attrs]) ->
+	parse_trick_tactics(Tactics#b_tactics{spirit = 0.5}, Attrs);
 parse_trick_tactics(Tactics, [{"spirit",[],[Value]} | Attrs]) ->
 	parse_trick_tactics(Tactics#b_tactics{spirit = list_to_integer(Value)}, Attrs);
 
@@ -276,7 +278,7 @@ write_trick(Trick, File) ->
 	Str = s(Trick#trick.id) ++ "() -> #trick{" ++
 		"id = " ++ s(Trick#trick.id) ++
 		", name = <<\"" ++ s(Trick#trick.name) ++ "\"/utf8>>" ++
-		", decription = <<\"" ++ s(Trick#trick.decription) ++ "\"/utf8>>" ++
+		", description = <<\"" ++ s(Trick#trick.description) ++ "\"/utf8>>" ++
 		", class = " ++ s(Trick#trick.class) ++
 		", type = " ++ s(Trick#trick.type) ++
 		", tactics = " ++ s(Trick#trick.tactics) ++
@@ -299,6 +301,7 @@ write_trick(Trick, File) ->
 s(A) when is_atom(A)-> atom_to_list(A);
 s(A) when is_binary(A)-> io_lib:format("~ts", [A]);
 s(A) when is_integer(A)-> integer_to_list(A);
+s(A) when is_float(A)-> io_lib:format("~.1f", [A]);
 
 s(A) when is_record(A, b_tactics) ->
 	"#b_tactics{" ++

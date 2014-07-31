@@ -1,19 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tricks>
-	<trick>
-		<id>novice_hit</id>
-		<name><![CDATA[Вломить]]></name>
-		<decription><![CDATA[Следующий удар наносит на 4 ед. больше урона]]></decription>
-		<class>novice</class>
-		<type>trick</type>
-		<delay>4</delay>
-		<class_delay>true</class_delay>
-		<self_buff>novice_hit</self_buff>
-	</trick>
+
 	<trick>
 		<id>novice_def</id>
 		<name><![CDATA[Прикрыться]]></name>
-		<decription><![CDATA[Следующий удар по вам нанесет на 3 ед. меньше урона]]></decription>
+		<description><![CDATA[Следующий удар по вам нанесет на 3 ед. меньше урона]]></description>
 		<class>novice</class>
 		<type>trick</type>
 		<delay>3</delay>
@@ -21,9 +12,19 @@
 		<self_buff>novice_def</self_buff>
 	</trick>
 	<trick>
+		<id>novice_hit</id>
+		<name><![CDATA[Вломить]]></name>
+		<description><![CDATA[Следующий удар наносит на 4 ед. больше урона]]></description>
+		<class>novice</class>
+		<type>trick</type>
+		<delay>4</delay>
+		<class_delay>true</class_delay>
+		<self_buff>novice_hit</self_buff>
+	</trick>
+	<trick>
 		<id>novice_hp</id>
 		<name><![CDATA[Собрать Зубы]]></name>
-		<decription><![CDATA[Вы восстанавливаете от 2-5 HP]]></decription>
+		<description><![CDATA[Вы восстанавливаете от 2-5 HP]]></description>
 		<class>novice</class>
 		<type>trick</type>
 		<tactics>
@@ -44,9 +45,805 @@
 		</action>
 	</trick>
 	<trick>
+		<id>block_absolute</id>
+		<name><![CDATA[Абсолютная защита]]></name>
+		<description><![CDATA[До Вашего следующего размена ударами, все повреждения от оружия или магии по Вам сводятся к 1.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<block>7</block>
+		</tactics>
+		<self_buff>block_absolute</self_buff>
+	</trick>
+	<trick>
+		<id>block_fullshield</id>
+		<name><![CDATA[Полная защита]]></name>
+		<description><![CDATA[Следующий удар или заклятие нанесет вам не более 1 повреждения.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>5</level>
+		<delay></delay>
+		<tactics>
+			<block>5</block>
+		</tactics>
+		<self_buff>block_fullshield</self_buff>
+	</trick>
+	<trick>
+		<id>block_activeshield</id>
+		<name><![CDATA[Активная защита]]></name>
+		<description><![CDATA[Следующий удар или заклятие нанесет вам лишь половину повреждений.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>2</level>
+		<delay></delay>
+		<tactics>
+			<block>3</block>
+		</tactics>
+		<self_buff>block_activeshield</self_buff>
+	</trick>
+	<trick>
+		<id>block_addchange</id>
+		<name><![CDATA[Выбор противника]]></name>
+		<description><![CDATA[Дополнительная смена противника.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>2</level>
+		<delay></delay>
+		<tactics>
+			<block>1</block>
+		</tactics>
+		<self_buff>block_addchange</self_buff>
+	</trick>
+	<trick>
+		<id>block_target</id>
+		<name><![CDATA[Защитить]]></name>
+		<description><![CDATA[Следующий удар по защищаемой цели попадает по вам.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<dex>35</dex>
+		</stats><tactics>
+			<block>2</block>
+		</tactics>
+		<self_buff>block_target</self_buff>
+	</trick>
+	<trick>
+		<id>block_aftershock</id>
+		<name><![CDATA[Контузия]]></name>
+		<description><![CDATA[Оглушает противника ударом щита, нанося уровень-уровень*2 урона, лишая его возможности использовать последний применённый им приём на два хода.<br>Требует для использования наличия щита.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>5</level>
+		<delay></delay>
+		<tactics>
+			<block>2</block>
+		</tactics>
+		<self_buff>block_aftershock</self_buff>
+	</trick>
+	<trick>
+		<id>block_restore</id>
+		<name><![CDATA[Глухая Защита]]></name>
+		<description><![CDATA[Вы восстанавливаете 15%HP за 6 ходов, урон по Вам падает на 25%.<br>Требует для использования наличия щита.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>6</level>
+		<delay></delay>
+		<stats>
+			<str>30</str>
+			<dex>30</dex>
+		</stats><tactics>
+			<block>10</block>
+		</tactics>
+		<self_buff>block_restore</self_buff>
+	</trick>
+	<trick>
+		<id>block_target_shield</id>
+		<name><![CDATA[Живой щит]]></name>
+		<description><![CDATA[Предложить себя в качестве живого щита на один ход. Если кто-то использует на вас прием Живой меч, то нанесет удар по противнику вместо вас.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<dex>30</dex>
+		</stats><tactics>
+			<block>1</block>
+		</tactics>
+		<self_buff>block_target_shield</self_buff>
+	</trick>
+	<trick>
+		<id>block_magicshield</id>
+		<name><![CDATA[Магическая Защита]]></name>
+		<description><![CDATA[Следующее заклятие нанесет вам не более 1 повреждения, защита действует не более трех ходов.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<block>3</block>
+		</tactics>
+		<self_buff>block_magicshield</self_buff>
+	</trick>
+	<trick>
+		<id>block_revenge</id>
+		<name><![CDATA[Возмездие]]></name>
+		<description><![CDATA[Нанесший вам удар получит 6*(ваш уровень) ед. урона.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<block>5</block>
+		</tactics>
+		<self_buff>block_revenge</self_buff>
+	</trick>
+	<trick>
+		<id>block_path</id>
+		<name><![CDATA[Путь Щита]]></name>
+		<description><![CDATA[Увеличивает ваш мф. против критического удара на 50 и снижает весь получаемый урон на 5%. Можно применять трижды.<br>Требует для использования наличия щита.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<block>5</block>
+		</tactics>
+		<self_buff>block_path</self_buff>
+	</trick>
+	<trick>
+		<id>spirit_11_prot_100</id>
+		<name><![CDATA[Призрачный Кинжал]]></name>
+		<description><![CDATA[Уменьшает колющий урон в два раза на 3 хода.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<spirit>5</spirit>
+		</tactics>
+		<self_buff>spirit_11_prot_100</self_buff>
+	</trick>
+	<trick>
+		<id>spirit_12_prot_100</id>
+		<name><![CDATA[Призрачный Топор]]></name>
+		<description><![CDATA[Уменьшает рубящий урон в два раза на 3 хода.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<spirit>5</spirit>
+		</tactics>
+		<self_buff>spirit_12_prot_100</self_buff>
+	</trick>
+	<trick>
+		<id>spirit_13_prot_100</id>
+		<name><![CDATA[Призрачный Удар]]></name>
+		<description><![CDATA[Уменьшает дробящий урон в два раза на 3 хода.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<spirit>5</spirit>
+		</tactics>
+		<self_buff>spirit_13_prot_100</self_buff>
+	</trick>
+	<trick>
+		<id>spirit_14_prot_100</id>
+		<name><![CDATA[Призрачное Лезвие]]></name>
+		<description><![CDATA[Уменьшает режущий урон в два раза на 3 хода.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<spirit>5</spirit>
+		</tactics>
+		<self_buff>spirit_14_prot_100</self_buff>
+	</trick>
+	<trick>
+		<id>spirit_1_protfire100</id>
+		<name><![CDATA[Призрачный Огонь]]></name>
+		<description><![CDATA[Уменьшает урон от Магии Огня в два раза на 3 хода.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<spirit>5</spirit>
+		</tactics>
+		<self_buff>spirit_1_protfire100</self_buff>
+	</trick>
+	<trick>
+		<id>spirit_2_protwater100</id>
+		<name><![CDATA[Призрачная Вода]]></name>
+		<description><![CDATA[Уменьшает урон от Магии Воды в два раза на 3 хода.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<spirit>5</spirit>
+		</tactics>
+		<self_buff>spirit_2_protwater100</self_buff>
+	</trick>
+	<trick>
+		<id>spirit_3_protair100</id>
+		<name><![CDATA[Призрачный Воздух]]></name>
+		<description><![CDATA[Уменьшает урон от Магии Воздуха в два раза на 3 хода.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<spirit>5</spirit>
+		</tactics>
+		<self_buff>spirit_3_protair100</self_buff>
+	</trick>
+	<trick>
+		<id>spirit_4_protearth100</id>
+		<name><![CDATA[Призрачная Земля]]></name>
+		<description><![CDATA[Уменьшает урон от Магии Земли в два раза на 3 хода.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<spirit>5</spirit>
+		</tactics>
+		<self_buff>spirit_4_protearth100</self_buff>
+	</trick>
+	<trick>
+		<id>spirit_block25</id>
+		<name><![CDATA[Призрачная защита]]></name>
+		<description><![CDATA[До вашего следующего размена ударами, вы получаете лишь четверть повреждений от оружия или магии.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<spirit>10</spirit>
+		</tactics>
+		<self_buff>spirit_block25</self_buff>
+	</trick>
+	<trick>
+		<id>spirit_survive</id>
+		<name><![CDATA[Выжить]]></name>
+		<description><![CDATA[Исцеляет вас, используя все набранные вами тактики. Сила Духа на лечение не тратится.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<dex>30</dex>
+		</stats><tactics>
+			<spirit>10</spirit>
+		</tactics>
+		<self_buff>spirit_survive</self_buff>
+	</trick>
+	<trick>
+		<id>hit_strong</id>
+		<name><![CDATA[Сильный удар]]></name>
+		<description><![CDATA[Следующий удар наносит на 3*(Ваш уровень) ед. урона больше.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>2</level>
+		<delay></delay>
+		<tactics>
+			<attack>3</attack>
+		</tactics>
+		<self_buff>hit_strong</self_buff>
+	</trick>
+	<trick>
+		<id>hit_luck</id>
+		<name><![CDATA[Удачный удар]]></name>
+		<description><![CDATA[Следующий удар наносит на 6*(Ваш уровень) ед. урона больше.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>4</level>
+		<delay></delay>
+		<tactics>
+			<attack>5</attack>
+		</tactics>
+		<self_buff>hit_luck</self_buff>
+	</trick>
+	<trick>
+		<id>hit_overhit</id>
+		<name><![CDATA[Подлый удар]]></name>
+		<description><![CDATA[Мгновенно наносит противнику 5*(уровень) ед. урона.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>4</level>
+		<delay></delay>
+		<tactics>
+			<attack>7</attack>
+			<spirit>1</spirit>
+		</tactics>
+		<self_buff>hit_overhit</self_buff>
+	</trick>
+	<trick>
+		<id>hit_restrike</id>
+		<name><![CDATA[Прорыв]]></name>
+		<description><![CDATA[Мгновенно наносит противнику треть урона оружием.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<str>45</str>
+		</stats><tactics>
+			<attack>9</attack>
+			<spirit>1</spirit>
+		</tactics>
+		<self_buff>hit_restrike</self_buff>
+	</trick>
+	<trick>
+		<id>hit_resolve</id>
+		<name><![CDATA[Разведка боем]]></name>
+		<description><![CDATA[Успешное попадание раскрывает тактику противника, пять ходов показывая все его усиления и приемы.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>5</level>
+		<delay></delay>
+		<tactics>
+			<attack>2</attack>
+		</tactics>
+		<self_buff>hit_resolve</self_buff>
+	</trick>
+	<trick>
+		<id>hit_shock</id>
+		<name><![CDATA[Ошеломить]]></name>
+		<description><![CDATA[Ваше следующее попадание ошеломляет противника снижая его урон вдвое на один ход.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<attack>3</attack>
+		</tactics>
+		<self_buff>hit_shock</self_buff>
+	</trick>
+	<trick>
+		<id>hit_target_sword</id>
+		<name><![CDATA[Живой меч]]></name>
+		<description><![CDATA[Нанести удар вместо союзника решившего стать живым щитом. Требуется цель с приемом Живой щит.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<str>50</str>
+		</stats><tactics>
+			<attack>3</attack>
+		</tactics>
+		<self_buff>hit_target_sword</self_buff>
+	</trick>
+	<trick>
+		<id>blood_gainattack</id>
+		<name><![CDATA[Рывок]]></name>
+		<description><![CDATA[Ослабляя свою защиту, вы прорываетесь к противнику и получаете <img src=\"hit.gif\" width=8 height=8> 3]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<str>25</str>
+			<dex>25</dex>
+		</stats>
+		<self_buff>blood_gainattack</self_buff>
+	</trick>
+	<trick>
+		<id>hit_willpower</id>
+		<name><![CDATA[Воля к победе]]></name>
+		<description><![CDATA[Вы восстанавливаете 5*(уровень)+7 HP, эффект увеличен на 25%, если ваши HP ниже 33%]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>3</level>
+		<delay></delay>
+		<tactics>
+			<attack>5</attack>
+			<spirit>1</spirit>
+		</tactics>
+		<self_buff>hit_willpower</self_buff>
+	</trick>
+	<trick>
+		<id>hit_empower</id>
+		<name><![CDATA[Усиленные удары]]></name>
+		<description><![CDATA[Все удары в следующем размене наносят на 5*(Уровень) ед. урона больше.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<attack>3</attack>
+		</tactics>
+		<self_buff>hit_empower</self_buff>
+	</trick>
+	<trick>
+		<id>krit_wildluck</id>
+		<name><![CDATA[Дикая удача]]></name>
+		<description><![CDATA[Следующий критический удар наносит максимальные повреждения.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>3</level>
+		<delay></delay>
+		<tactics>
+			<crit>3</crit>
+		</tactics>
+		<self_buff>krit_wildluck</self_buff>
+	</trick>
+	<trick>
+		<id>krit_blindluck</id>
+		<name><![CDATA[Слепая удача]]></name>
+		<description><![CDATA[Следующий удар будет критическим.Вы не получите <IMG width=7 height=8 src=\"krit.gif\"> с этого крита.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>5</level>
+		<delay></delay>
+		<tactics>
+			<crit>5</crit>
+		</tactics>
+		<self_buff>krit_blindluck</self_buff>
+	</trick>
+	<trick>
+		<id>krit_crush</id>
+		<name><![CDATA[Сокрушающий удар]]></name>
+		<description><![CDATA[Ваш следующий удар нанесет двойной урон.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<crit>7</crit>
+		</tactics>
+		<self_buff>krit_crush</self_buff>
+	</trick>
+	<trick>
+		<id>krit_blooddrink</id>
+		<name><![CDATA[Хлебнуть Крови]]></name>
+		<description><![CDATA[Ваш следуюший критический удар и два удара за ним лечит вас частью нанесеного урона, но не более чем 154 НР с противника 10 уровня. Выпитая крoвь придает вам силы.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>6</level>
+		<delay></delay>
+		<tactics>
+			<block>3</block>
+			<crit>7</crit>
+			<spirit>2</spirit>
+		</tactics>
+		<self_buff>krit_blooddrink</self_buff>
+	</trick>
+	<trick>
+		<id>krit_bloodlust</id>
+		<name><![CDATA[Жажда Крови]]></name>
+		<description><![CDATA[Увеличивает ваш мф. критического удара на 50 до конца боя и увеличивает физический урон на 5%. Можно применять трижды.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<attack>2</attack>
+			<crit>3</crit>
+		</tactics>
+		<self_buff>krit_bloodlust</self_buff>
+	</trick>
+	<trick>
+		<id>counter_winddance</id>
+		<name><![CDATA[Танец ветра]]></name>
+		<description><![CDATA[Вы увернетесь от следующего направленного в вас удара.Вы не получите <IMG width=8 height=8 src=\"counter.gif\"> за контрудар с этого уворота.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>3</level>
+		<delay></delay>
+		<tactics>
+			<counter>3</counter>
+		</tactics>
+		<self_buff>counter_winddance</self_buff>
+	</trick>
+	<trick>
+		<id>counter_bladedance</id>
+		<name><![CDATA[Танец лезвий]]></name>
+		<description><![CDATA[Вы увернетесь от следующего направленного в вас удара и нанесете контрудар.Вы не получите <IMG width=8 height=8 src=\"counter.gif\"> за контрудар с этого уворота.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>5</level>
+		<delay></delay>
+		<tactics>
+			<counter>5</counter>
+		</tactics>
+		<self_buff>counter_bladedance</self_buff>
+	</trick>
+	<trick>
+		<id>counter_ward</id>
+		<name><![CDATA[Осторожность]]></name>
+		<description><![CDATA[Уменьшает урон от магии стихий вдвое на три хода.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<counter>2</counter>
+		</tactics>
+		<self_buff>counter_ward</self_buff>
+	</trick>
+	<trick>
+		<id>counter_deathwalk</id>
+		<name><![CDATA[Поступь Смерти]]></name>
+		<description><![CDATA[Увеличивает максимальный урон оружием на 1*(Уровень). Каждый успешный удар увеличивает макс. урон еще на 1*(Уровень) ед., до 10*(Уровень) и обновляет время эффекта. Эффект длится один ход.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<counter>5</counter>
+		</tactics>
+		<self_buff>counter_deathwalk</self_buff>
+	</trick>
+	<trick>
+		<id>parry_prediction</id>
+		<name><![CDATA[Предвидение]]></name>
+		<description><![CDATA[Следующий удар противника парируется.Вы не получите <img width=8 height=8 src=\"parry.gif\"> за это парирование.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>3</level>
+		<delay></delay>
+		<tactics>
+			<parry>3</parry>
+		</tactics>
+		<self_buff>parry_prediction</self_buff>
+	</trick>
+	<trick>
+		<id>parry_secondlife</id>
+		<name><![CDATA[Второе дыхание]]></name>
+		<description><![CDATA[Следующий удар противника - парируется, за каждый уровень противника, чей удар вы парировали, вы получаете 5 ХП.Вы не получите <img width=8 height=8 src=\"parry.gif\"> за это парирование.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>5</level>
+		<delay></delay>
+		<tactics>
+			<parry>5</parry>
+			<spirit>2</spirit>
+		</tactics>
+		<self_buff>parry_secondlife</self_buff>
+	</trick>
+	<trick>
+		<id>parry_supreme</id>
+		<name><![CDATA[Превосходство]]></name>
+		<description><![CDATA[Увеличивает ваш мф. против критического удара и мф. против увертывания на 25 до конца боя. Снижает урон от магии на 5%. Можно применять трижды.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<block>1</block>
+			<parry>3</parry>
+		</tactics>
+		<self_buff>parry_supreme</self_buff>
+	</trick>
+	<trick>
+		<id>multi_hitshock</id>
+		<name><![CDATA[Шокирующий удар]]></name>
+		<description><![CDATA[Ваше следующее попадание оглушает противника, лишая его возможности использовать приемы и получать очки тактики на два хода.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<attack>3</attack>
+			<counter>1</counter>
+		</tactics>
+		<self_buff>multi_hitshock</self_buff>
+	</trick>
+	<trick>
+		<id>multi_agressiveshield</id>
+		<name><![CDATA[Агрессивная защита]]></name>
+		<description><![CDATA[Следующий удар или заклятие противника нанесет не более 1 повреждения, противник получает 3*(уровень) ед. урона.<br>Защищает от приемов <b>Разгадать Тактику</b> и <b>Ставка на опережение</b>]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>5</level>
+		<delay></delay>
+		<tactics>
+			<attack>2</attack>
+			<block>5</block>
+		</tactics>
+		<self_buff>multi_agressiveshield</self_buff>
+	</trick>
+	<trick>
+		<id>multi_blockchanges</id>
+		<name><![CDATA[Ограничить маневр]]></name>
+		<description><![CDATA[Количество смен противника у противника устанавливается на 0.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>5</level>
+		<delay></delay>
+		<tactics>
+			<attack>1</attack>
+			<block>2</block>
+		</tactics>
+		<self_buff>multi_blockchanges</self_buff>
+	</trick>
+	<trick>
+		<id>multi_cowardshift</id>
+		<name><![CDATA[Коварный уход]]></name>
+		<description><![CDATA[Следующий удар противника наносится по нему, вместо вас.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<block>2</block>
+			<counter>5</counter>
+		</tactics>
+		<self_buff>multi_cowardshift</self_buff>
+	</trick>
+	<trick>
+		<id>multi_doom</id>
+		<name><![CDATA[Обречённость]]></name>
+		<description><![CDATA[Шанс увернуться от вашего удара, парировать или отбить его щитом снижен на 25% на 3 хода]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>5</level>
+		<delay></delay>
+		<tactics>
+			<attack>2</attack>
+			<block>3</block>
+		</tactics>
+		<self_buff>multi_doom</self_buff>
+	</trick>
+	<trick>
+		<id>multi_followme</id>
+		<name><![CDATA[Преследование]]></name>
+		<description><![CDATA[Целью противника становитесь вы. Боец не в праве менять противника, до тех пор, пока не разменяется ударом с вами.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>5</level>
+		<delay></delay>
+		<tactics>
+			<attack>3</attack>
+			<block>2</block>
+		</tactics>
+		<self_buff>multi_followme</self_buff>
+	</trick>
+	<trick>
+		<id>multi_hiddendodge</id>
+		<name><![CDATA[Скрытая ловкость]]></name>
+		<description><![CDATA[Вы уворачиваетесь от следующего удара по вам и наносите контрудар.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>6</level>
+		<delay></delay>
+		<tactics>
+			<block>2</block>
+			<crit>3</crit>
+		</tactics>
+		<self_buff>multi_hiddendodge</self_buff>
+	</trick>
+	<trick>
+		<id>multi_hiddenpower</id>
+		<name><![CDATA[Скрытая сила]]></name>
+		<description><![CDATA[Следующий ваш удар - критический.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>6</level>
+		<delay></delay>
+		<tactics>
+			<attack>3</attack>
+			<counter>4</counter>
+		</tactics>
+		<self_buff>multi_hiddenpower</self_buff>
+	</trick>
+	<trick>
+		<id>multi_resolvetactic</id>
+		<name><![CDATA[Разгадать тактику]]></name>
+		<description><![CDATA[Отменяет все приемы на противнике при размене ударами.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>5</level>
+		<delay></delay>
+		<tactics>
+			<attack>1</attack>
+			<block>2</block>
+		</tactics>
+		<self_buff>multi_resolvetactic</self_buff>
+	</trick>
+	<trick>
+		<id>multi_skiparmor</id>
+		<name><![CDATA[Точный удар]]></name>
+		<description><![CDATA[Следующий ваш удар игнорирует броню противника и снижает сопротивление урону на 250ед., но не ниже 0.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>5</level>
+		<delay></delay>
+		<tactics>
+			<attack>5</attack>
+			<counter>1</counter>
+			<parry>2</parry>
+		</tactics>
+		<self_buff>multi_skiparmor</self_buff>
+	</trick>
+	<trick>
+		<id>multi_speedup</id>
+		<name><![CDATA[Ставка на опережение]]></name>
+		<description><![CDATA[При размене ударами, вы украдете все активные приемы на противнике.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<attack>3</attack>
+			<counter>3</counter>
+		</tactics>
+		<self_buff>multi_speedup</self_buff>
+	</trick>
+	<trick>
+		<id>multi_rollback</id>
+		<name><![CDATA[Отменить]]></name>
+		<description><![CDATA[Отменяет последнее полученное повреждение или лечение. Доступно 3 раза за бой.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<str>25</str>
+			<dex>25</dex>
+		</stats><tactics>
+			<attack>2</attack>
+			<block>2</block>
+		</tactics>
+		<self_buff>multi_rollback</self_buff>
+	</trick>
+	<trick>
+		<id>hp_circleshield</id>
+		<name><![CDATA[Круговая защита]]></name>
+		<description><![CDATA[Физический урон, наносимый вашей команде, уменьшен на 1 до конца боя.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>4</level>
+		<delay></delay>
+		<stats>
+			<dex>10</dex>
+		</stats><tactics>
+			<hearts>10</hearts>
+		</tactics>
+		<self_buff>hp_circleshield</self_buff>
+	</trick>
+	<trick>
+		<id>hp_natisk</id>
+		<name><![CDATA[Натиск]]></name>
+		<description><![CDATA[Физический урон, наносимый вашей командой, увеличен на 1 до конца боя.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>4</level>
+		<delay></delay>
+		<stats>
+			<dex>10</dex>
+		</stats><tactics>
+			<hearts>10</hearts>
+		</tactics>
+		<self_buff>hp_natisk</self_buff>
+	</trick>
+	<trick>
+		<id>hp_cleance</id>
+		<name><![CDATA[Очиститься кровью]]></name>
+		<description><![CDATA[Снимает один негативный эффект от магии, болезни или отравления]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<hearts>1</hearts>
+		</tactics>
+		<self_buff>hp_cleance</self_buff>
+	</trick>
+	<trick>
 		<id>hp_defence</id>
 		<name><![CDATA[Стойкость]]></name>
-		<decription><![CDATA[Увеличивает вашу защиту от урона на 5% до конца боя. Можно применять трижды]]></decription>
+		<description><![CDATA[Увеличивает вашу защиту от урона на 5% до конца боя. Можно применять трижды]]></description>
 		<class>hp</class>
 		<type>trick</type>
 		<level>4</level>
@@ -59,7 +856,7 @@
 	<trick>
 		<id>hp_enrage</id>
 		<name><![CDATA[Ярость]]></name>
-		<decription><![CDATA[Увеличивает ваш урона на 5% до конца боя. Можно применять трижды.]]></decription>
+		<description><![CDATA[Увеличивает ваш урона на 5% до конца боя. Можно применять трижды.]]></description>
 		<class>hp</class>
 		<type>trick</type>
 		<level>4</level>
@@ -69,4 +866,3384 @@
 		</tactics>
 		<self_buff>hp_enrage</self_buff>
 	</trick>
-</tricks>
+	<trick>
+		<id>hp_laststrike</id>
+		<name><![CDATA[Последний удар]]></name>
+		<description><![CDATA[Ценой всей силы духа увеличивает урон на один удар. Нанеся врагу физический урон, вы погибаете.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>4</level>
+		<delay></delay>
+		<tactics>
+			<hearts>3</hearts>
+			<spirit>100%</spirit>
+		</tactics>
+		<self_buff>hp_laststrike</self_buff>
+	</trick>
+	<trick>
+		<id>hp_regen</id>
+		<name><![CDATA[Утереть пот]]></name>
+		<description><![CDATA[Вы восстанавливаете 2*ваш уровень НP. Сила Духа не тратится.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>2</level>
+		<delay></delay>
+		<tactics>
+			<hearts>5</hearts>
+		</tactics>
+		<self_buff>hp_regen</self_buff>
+	</trick>
+	<trick>
+		<id>hp_travma</id>
+		<name><![CDATA[Искалечить]]></name>
+		<description><![CDATA[По окончанию боя, противник может получить травму при поражении. Не работает на монстрах.]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>5</level>
+		<delay></delay>
+		<tactics>
+			<hearts>10</hearts>
+		</tactics>
+		<self_buff>hp_travma</self_buff>
+	</trick>
+	<trick>
+		<id>hp_trade</id>
+		<name><![CDATA[Разделить Кровь]]></name>
+		<description><![CDATA[Цель получает <img width=8 height=8 src=\"hp.gif\">1]]></description>
+		<class>fight</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<tactics>
+			<hearts>3</hearts>
+		</tactics>
+		<self_buff>hp_trade</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_chaincure05</id>
+		<name><![CDATA[Цепь Исцеления [5]]]></name>
+		<description><![CDATA[Восстанавливает 1-3 целям уровень жизни магией воздуха]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>5</level>
+		<delay></delay>
+		<stats>
+			<intel>20</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<air>5</air>
+		</skills>
+		<self_buff>wis_air_chaincure05</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_chaincure06</id>
+		<name><![CDATA[Цепь Исцеления [6]]]></name>
+		<description><![CDATA[Восстанавливает 1-3 целям уровень жизни магией воздуха]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>6</level>
+		<delay></delay>
+		<stats>
+			<intel>30</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<air>6</air>
+		</skills>
+		<self_buff>wis_air_chaincure06</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_chaincure07</id>
+		<name><![CDATA[Цепь Исцеления [7]]]></name>
+		<description><![CDATA[Восстанавливает 1-3 целям уровень жизни магией воздуха]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<air>7</air>
+		</skills>
+		<self_buff>wis_air_chaincure07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_chaincure08</id>
+		<name><![CDATA[Цепь Исцеления [8]]]></name>
+		<description><![CDATA[Восстанавливает 1-3 целям уровень жизни магией воздуха]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<air>8</air>
+		</skills>
+		<self_buff>wis_air_chaincure08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_chaincure09</id>
+		<name><![CDATA[Цепь Исцеления [9]]]></name>
+		<description><![CDATA[Восстанавливает 1-3 целям уровень жизни магией воздуха]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<air>9</air>
+		</skills>
+		<self_buff>wis_air_chaincure09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_chaincure10</id>
+		<name><![CDATA[Цепь Исцеления [10]]]></name>
+		<description><![CDATA[Восстанавливает 1-3 целям уровень жизни магией воздуха]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<air>10</air>
+		</skills>
+		<self_buff>wis_air_chaincure10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_chaincure11</id>
+		<name><![CDATA[Цепь Исцеления [11]]]></name>
+		<description><![CDATA[Восстанавливает 1-3 целям уровень жизни магией воздуха]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<air>11</air>
+		</skills>
+		<self_buff>wis_air_chaincure11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_chainlight06</id>
+		<name><![CDATA[Цепь Молний [6]]]></name>
+		<description><![CDATA[Наносит 2-5 целям урон электричеством]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>6</level>
+		<delay></delay>
+		<stats>
+			<intel>30</intel>
+		</stats><skills>
+			<air>6</air>
+		</skills>
+		<self_buff>wis_air_chainlight06</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_chainlight07</id>
+		<name><![CDATA[Цепь Молний [7]]]></name>
+		<description><![CDATA[Наносит 2-5 целям урон электричеством]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<air>7</air>
+		</skills>
+		<self_buff>wis_air_chainlight07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_chainlight08</id>
+		<name><![CDATA[Цепь Молний [8]]]></name>
+		<description><![CDATA[Наносит 2-5 целям урон электричеством]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<air>8</air>
+		</skills>
+		<self_buff>wis_air_chainlight08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_chainlight09</id>
+		<name><![CDATA[Цепь Молний [9]]]></name>
+		<description><![CDATA[Наносит 2-5 целям урон электричеством]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><skills>
+			<air>9</air>
+		</skills>
+		<self_buff>wis_air_chainlight09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_chainlight10</id>
+		<name><![CDATA[Цепь Молний [10]]]></name>
+		<description><![CDATA[Наносит 2-5 целям урон электричеством]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><skills>
+			<air>10</air>
+		</skills>
+		<self_buff>wis_air_chainlight10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_chainlight11</id>
+		<name><![CDATA[Цепь Молний [11]]]></name>
+		<description><![CDATA[Наносит 2-5 целям урон электричеством]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><skills>
+			<air>11</air>
+		</skills>
+		<self_buff>wis_air_chainlight11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_shaft04</id>
+		<name><![CDATA[Молния [4]]]></name>
+		<description><![CDATA[Наносит цели урон электричеством]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>4</level>
+		<delay></delay>
+		<stats>
+			<intel>15</intel>
+		</stats><skills>
+			<air>4</air>
+		</skills>
+		<self_buff>wis_air_shaft04</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_shaft05</id>
+		<name><![CDATA[Молния [5]]]></name>
+		<description><![CDATA[Наносит цели урон электричеством]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>5</level>
+		<delay></delay>
+		<stats>
+			<intel>20</intel>
+		</stats><skills>
+			<air>5</air>
+		</skills>
+		<self_buff>wis_air_shaft05</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_shaft06</id>
+		<name><![CDATA[Молния [6]]]></name>
+		<description><![CDATA[Наносит цели урон электричеством]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>6</level>
+		<delay></delay>
+		<stats>
+			<intel>30</intel>
+		</stats><skills>
+			<air>6</air>
+		</skills>
+		<self_buff>wis_air_shaft06</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_shaft07</id>
+		<name><![CDATA[Молния [7]]]></name>
+		<description><![CDATA[Наносит цели урон электричеством]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<air>7</air>
+		</skills>
+		<self_buff>wis_air_shaft07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_shaft08</id>
+		<name><![CDATA[Молния [8]]]></name>
+		<description><![CDATA[Наносит цели урон электричеством]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<air>8</air>
+		</skills>
+		<self_buff>wis_air_shaft08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_shaft09</id>
+		<name><![CDATA[Молния [9]]]></name>
+		<description><![CDATA[Наносит цели урон электричеством]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><skills>
+			<air>9</air>
+		</skills>
+		<self_buff>wis_air_shaft09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_shaft10</id>
+		<name><![CDATA[Молния [10]]]></name>
+		<description><![CDATA[Наносит цели урон электричеством]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><skills>
+			<air>10</air>
+		</skills>
+		<self_buff>wis_air_shaft10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_shaft11</id>
+		<name><![CDATA[Молния [11]]]></name>
+		<description><![CDATA[Наносит цели урон электричеством]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><skills>
+			<air>11</air>
+		</skills>
+		<self_buff>wis_air_shaft11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_sparks08</id>
+		<name><![CDATA[Искры [8]]]></name>
+		<description><![CDATA[Наносит 1-7 целям урон электричеством]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<air>8</air>
+		</skills>
+		<self_buff>wis_air_sparks08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_sparks09</id>
+		<name><![CDATA[Искры [9]]]></name>
+		<description><![CDATA[Наносит 1-7 целям урон электричеством]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><skills>
+			<air>9</air>
+		</skills>
+		<self_buff>wis_air_sparks09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_sparks10</id>
+		<name><![CDATA[Искры [10]]]></name>
+		<description><![CDATA[Наносит 1-7 целям урон электричеством]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><skills>
+			<air>10</air>
+		</skills>
+		<self_buff>wis_air_sparks10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_sparks11</id>
+		<name><![CDATA[Искры [11]]]></name>
+		<description><![CDATA[Наносит 1-7 целям урон электричеством]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><skills>
+			<air>11</air>
+		</skills>
+		<self_buff>wis_air_sparks11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_mark</id>
+		<name><![CDATA[Цель Воздуха]]></name>
+		<description><![CDATA[Уменьшает сопротивляемость воздействию Магии Воздуха. Можно применить на одну цель до 5 раз.]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><tactics>
+			<spirit>0.5</spirit>
+		</tactics><skills>
+			<air>7</air>
+		</skills>
+		<self_buff>wis_air_mark</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_sign</id>
+		<name><![CDATA[Знак Воздуха]]></name>
+		<description><![CDATA[Маг получает 10 маны каждый ход. Стоимость всех заклинаний снижена на 3%]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>4</level>
+		<delay></delay>
+		<stats>
+			<intel>25</intel>
+		</stats><tactics>
+			<spirit>1</spirit>
+		</tactics><skills>
+			<air>2</air>
+		</skills>
+		<self_buff>wis_air_sign</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_shield07</id>
+		<name><![CDATA[Туманный Образ [7]]]></name>
+		<description><![CDATA[Все атаки по вам в следующем размене будут отражены в случайного союзника (в том числе и в вас).<br>Прием не подвержен действию шока.]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>20</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<air>7</air>
+		</skills>
+		<self_buff>wis_air_shield07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_shield08</id>
+		<name><![CDATA[Туманный Образ [8]]]></name>
+		<description><![CDATA[Следующая атака по вам будет отражена в случайного противника или союзника.<br>Прием не подвержен действию шока.]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<air>8</air>
+		</skills>
+		<self_buff>wis_air_shield08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_shield09</id>
+		<name><![CDATA[Туманный Образ [9]]]></name>
+		<description><![CDATA[Следующая атака по вам будет отражена в случайного противника.<br>Прием не подвержен действию шока.]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<air>9</air>
+		</skills>
+		<self_buff>wis_air_shield09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_shield10</id>
+		<name><![CDATA[Туманный Образ [10]]]></name>
+		<description><![CDATA[Следующая атака по вам будет отражена обратно в атакующего.<br>Прием не подвержен действию шока.]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>80</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<air>10</air>
+		</skills>
+		<self_buff>wis_air_shield10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_gravity07</id>
+		<name><![CDATA[Гравитация [7]]]></name>
+		<description><![CDATA[Наносит цели 10% урона магией Земли от ее текущего уровня жизни. Заклинание не может нанести более 170 ед. урона. урона.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<earth>7</earth>
+		</skills>
+		<self_buff>wis_earth_gravity07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_gravity08</id>
+		<name><![CDATA[Гравитация [8]]]></name>
+		<description><![CDATA[Наносит цели 10% урона от её текущего уровня жизни. Заклинание не может нанести более 204 ед. урона.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<earth>8</earth>
+		</skills>
+		<self_buff>wis_earth_gravity08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_gravity09</id>
+		<name><![CDATA[Гравитация [9]]]></name>
+		<description><![CDATA[Наносит цели 10% урона от её текущего уровня жизни. Заклинание не может нанести более 244 ед. урона.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><skills>
+			<earth>9</earth>
+		</skills>
+		<self_buff>wis_earth_gravity09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_gravity10</id>
+		<name><![CDATA[Гравитация [10]]]></name>
+		<description><![CDATA[Наносит цели 10% урона от её текущего уровня жизни. Заклинание не может нанести более 293 ед. урона.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><skills>
+			<earth>10</earth>
+		</skills>
+		<self_buff>wis_earth_gravity10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_gravity11</id>
+		<name><![CDATA[Гравитация [11]]]></name>
+		<description><![CDATA[Наносит цели 10% урона от её текущего уровня жизни. Заклинание не может нанести более 352 ед. урона.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><skills>
+			<earth>11</earth>
+		</skills>
+		<self_buff>wis_earth_gravity11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_heal05</id>
+		<name><![CDATA[Дух Природы [5]]]></name>
+		<description><![CDATA[Восстанавливает 5 целям уровень жизни магией земли]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>5</level>
+		<delay></delay>
+		<stats>
+			<intel>20</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<earth>5</earth>
+		</skills>
+		<self_buff>wis_earth_heal05</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_heal06</id>
+		<name><![CDATA[Дух Природы [6]]]></name>
+		<description><![CDATA[Восстанавливает 5 целям уровень жизни магией земли]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>6</level>
+		<delay></delay>
+		<stats>
+			<intel>30</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<earth>6</earth>
+		</skills>
+		<self_buff>wis_earth_heal06</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_heal07</id>
+		<name><![CDATA[Дух Природы [7]]]></name>
+		<description><![CDATA[Восстанавливает 5 целям уровень жизни магией земли]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<earth>7</earth>
+		</skills>
+		<self_buff>wis_earth_heal07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_heal08</id>
+		<name><![CDATA[Дух Природы [8]]]></name>
+		<description><![CDATA[Восстанавливает 5 целям уровень жизни магией земли]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<earth>8</earth>
+		</skills>
+		<self_buff>wis_earth_heal08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_heal09</id>
+		<name><![CDATA[Дух Природы [9]]]></name>
+		<description><![CDATA[Восстанавливает 5 целям уровень жизни магией земли]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<earth>9</earth>
+		</skills>
+		<self_buff>wis_earth_heal09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_heal10</id>
+		<name><![CDATA[Дух Природы [10]]]></name>
+		<description><![CDATA[Восстанавливает 5 целям уровень жизни магией земли]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<earth>10</earth>
+		</skills>
+		<self_buff>wis_earth_heal10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_heal11</id>
+		<name><![CDATA[Дух Природы [11]]]></name>
+		<description><![CDATA[Восстанавливает 5 целям уровень жизни магией земли]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<earth>11</earth>
+		</skills>
+		<self_buff>wis_earth_heal11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_meteor06</id>
+		<name><![CDATA[Метеорит [6]]]></name>
+		<description><![CDATA[Наносит цели урон через три хода]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>6</level>
+		<delay></delay>
+		<stats>
+			<intel>30</intel>
+		</stats><skills>
+			<earth>6</earth>
+		</skills>
+		<self_buff>wis_earth_meteor06</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_meteor07</id>
+		<name><![CDATA[Метеорит [7]]]></name>
+		<description><![CDATA[Наносит цели урон через три хода]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<earth>7</earth>
+		</skills>
+		<self_buff>wis_earth_meteor07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_meteor08</id>
+		<name><![CDATA[Метеорит [8]]]></name>
+		<description><![CDATA[Наносит цели урон через три хода]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<earth>8</earth>
+		</skills>
+		<self_buff>wis_earth_meteor08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_meteor09</id>
+		<name><![CDATA[Метеорит [9]]]></name>
+		<description><![CDATA[Наносит цели урон через три хода]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><skills>
+			<earth>9</earth>
+		</skills>
+		<self_buff>wis_earth_meteor09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_meteor10</id>
+		<name><![CDATA[Метеорит [10]]]></name>
+		<description><![CDATA[Наносит цели урон через три хода]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><skills>
+			<earth>10</earth>
+		</skills>
+		<self_buff>wis_earth_meteor10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_meteor11</id>
+		<name><![CDATA[Метеорит [11]]]></name>
+		<description><![CDATA[Наносит цели урон через три хода]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><skills>
+			<earth>11</earth>
+		</skills>
+		<self_buff>wis_earth_meteor11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_rain05</id>
+		<name><![CDATA[Каменный Дождь [5]]]></name>
+		<description><![CDATA[Наносит 8 целям урон магией земли]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>5</level>
+		<delay></delay>
+		<stats>
+			<intel>20</intel>
+		</stats><skills>
+			<earth>5</earth>
+		</skills>
+		<self_buff>wis_earth_rain05</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_rain06</id>
+		<name><![CDATA[Каменный Дождь [6]]]></name>
+		<description><![CDATA[Наносит 8 целям урон магией земли]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>6</level>
+		<delay></delay>
+		<stats>
+			<intel>30</intel>
+		</stats><skills>
+			<earth>6</earth>
+		</skills>
+		<self_buff>wis_earth_rain06</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_rain07</id>
+		<name><![CDATA[Каменный Дождь [7]]]></name>
+		<description><![CDATA[Наносит 8 целям урон магией земли]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<earth>7</earth>
+		</skills>
+		<self_buff>wis_earth_rain07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_rain08</id>
+		<name><![CDATA[Каменный Дождь [8]]]></name>
+		<description><![CDATA[Наносит 8 целям урон магией земли]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<earth>8</earth>
+		</skills>
+		<self_buff>wis_earth_rain08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_rain09</id>
+		<name><![CDATA[Каменный Дождь [9]]]></name>
+		<description><![CDATA[Наносит 8 целям урон магией земли]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><skills>
+			<earth>9</earth>
+		</skills>
+		<self_buff>wis_earth_rain09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_rain10</id>
+		<name><![CDATA[Каменный Дождь [10]]]></name>
+		<description><![CDATA[Наносит 8 целям урон магией земли]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><skills>
+			<earth>10</earth>
+		</skills>
+		<self_buff>wis_earth_rain10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_rain11</id>
+		<name><![CDATA[Каменный Дождь [11]]]></name>
+		<description><![CDATA[Наносит 8 целям урон магией земли]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><skills>
+			<earth>11</earth>
+		</skills>
+		<self_buff>wis_earth_rain11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_mark</id>
+		<name><![CDATA[Цель Земли]]></name>
+		<description><![CDATA[Уменьшает сопротивляемость воздействию Магии Земли. Можно применить на одну цель до 5 раз.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><tactics>
+			<spirit>0.5</spirit>
+		</tactics><skills>
+			<earth>7</earth>
+		</skills>
+		<self_buff>wis_earth_mark</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_sign</id>
+		<name><![CDATA[Знак Земли]]></name>
+		<description><![CDATA[Цель получает +0 брони. Заклинание требует 10 маны каждый ход.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>4</level>
+		<delay></delay>
+		<stats>
+			<intel>25</intel>
+		</stats><tactics>
+			<spirit>1</spirit>
+		</tactics><skills>
+			<earth>1</earth>
+		</skills>
+		<self_buff>wis_earth_sign</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_strike07</id>
+		<name><![CDATA[Каменный Удар [7]]]></name>
+		<description><![CDATA[Наносит одной цели дробящий урон.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<earth>7</earth>
+		</skills>
+		<self_buff>wis_earth_strike07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_strike08</id>
+		<name><![CDATA[Каменный Удар [8]]]></name>
+		<description><![CDATA[Наносит одной цели дробящий урон.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><skills>
+			<earth>7</earth>
+		</skills>
+		<self_buff>wis_earth_strike08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_cleance</id>
+		<name><![CDATA[Коснуться Земли]]></name>
+		<description><![CDATA[Снимает один негативный эффект от магии или болезни и восстанавливает 3% маны.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<earth>8</earth>
+		</skills>
+		<self_buff>wis_earth_cleance</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_dmg04</id>
+		<name><![CDATA[Булыжник [4]]]></name>
+		<description><![CDATA[Наносит цели урон магией земли.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>4</level>
+		<delay></delay>
+		<stats>
+			<intel>15</intel>
+		</stats><skills>
+			<earth>4</earth>
+		</skills>
+		<self_buff>wis_earth_dmg04</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_dmg05</id>
+		<name><![CDATA[Булыжник [5]]]></name>
+		<description><![CDATA[Наносит цели урон магией земли.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>5</level>
+		<delay></delay>
+		<stats>
+			<intel>20</intel>
+		</stats><skills>
+			<earth>5</earth>
+		</skills>
+		<self_buff>wis_earth_dmg05</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_dmg06</id>
+		<name><![CDATA[Булыжник [6]]]></name>
+		<description><![CDATA[Наносит цели урон магией земли.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>6</level>
+		<delay></delay>
+		<stats>
+			<intel>30</intel>
+		</stats><skills>
+			<earth>6</earth>
+		</skills>
+		<self_buff>wis_earth_dmg06</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_dmg07</id>
+		<name><![CDATA[Булыжник [7]]]></name>
+		<description><![CDATA[Наносит цели урон магией земли.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<earth>7</earth>
+		</skills>
+		<self_buff>wis_earth_dmg07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_dmg08</id>
+		<name><![CDATA[Булыжник [8]]]></name>
+		<description><![CDATA[Наносит цели урон магией земли.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<earth>8</earth>
+		</skills>
+		<self_buff>wis_earth_dmg08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_dmg09</id>
+		<name><![CDATA[Булыжник [9]]]></name>
+		<description><![CDATA[Наносит цели урон магией земли.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><skills>
+			<earth>9</earth>
+		</skills>
+		<self_buff>wis_earth_dmg09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_dmg10</id>
+		<name><![CDATA[Булыжник [10]]]></name>
+		<description><![CDATA[Наносит цели урон магией земли.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><skills>
+			<earth>10</earth>
+		</skills>
+		<self_buff>wis_earth_dmg10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_dmg11</id>
+		<name><![CDATA[Булыжник [11]]]></name>
+		<description><![CDATA[Наносит цели урон магией земли.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><skills>
+			<earth>11</earth>
+		</skills>
+		<self_buff>wis_earth_dmg11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_flower8</id>
+		<name><![CDATA[Каменный Цветок [8]]]></name>
+		<description><![CDATA[Цель получает урон магией земли и лишается возможности использовать приемы 1 ход.<br>Еще 3 цели получают треть урона магией земли]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<earth>8</earth>
+		</skills>
+		<self_buff>wis_earth_flower8</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_flower9</id>
+		<name><![CDATA[Каменный Цветок [9]]]></name>
+		<description><![CDATA[Цель получает урон магией земли и лишается возможности использовать приемы 1 ход. <br>Еще 3 цели получают треть урона магией земли]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<earth>9</earth>
+		</skills>
+		<self_buff>wis_earth_flower9</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_flower10</id>
+		<name><![CDATA[Каменный Цветок [10]]]></name>
+		<description><![CDATA[Цель получает урон магией земли и лишается возможности использовать приемы 1 ход.<br> Еще 3 цели получают треть урона магией земли]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<earth>10</earth>
+		</skills>
+		<self_buff>wis_earth_flower10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_flower11</id>
+		<name><![CDATA[Каменный Цветок [11]]]></name>
+		<description><![CDATA[Цель получает урон магией земли и лишается возможности использовать приемы 1 ход.<br> Еще 3 цели получают треть урона магией земли]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<earth>11</earth>
+		</skills>
+		<self_buff>wis_earth_flower11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_link_minus</id>
+		<name><![CDATA[Заземление: Минус]]></name>
+		<description><![CDATA[Цель теряет 79 маны за 10 ходов. Разные виды Заземления замещают друг друга. <br>Маг в состоянии поддерживать лишь одно Заземление. Требует 1 маны каждый ход. <br>Применяется до 5 раз.Прием не подвержен действию шока.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<earth>8</earth>
+		</skills>
+		<self_buff>wis_earth_link_minus</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_link_plus</id>
+		<name><![CDATA[Заземление: Плюс]]></name>
+		<description><![CDATA[Исцеляет мага на 39HP за 10 ходов за счет жизни цели. Разные виды Заземления замещают друг друга. <br>Маг в состоянии поддерживать лишь одно Заземление. Требует 1 маны каждый ход. <br>Применяется до 5 раз.Прием не подвержен действию шока.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<earth>8</earth>
+		</skills>
+		<self_buff>wis_earth_link_plus</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_link_zero</id>
+		<name><![CDATA[Заземление: Ноль]]></name>
+		<description><![CDATA[Увеличивает весь урон по цели на 3% и уменьшает целебные эффекты на 7%. Разные виды Заземления замещают друг друга. <br>Маг в состоянии поддерживать лишь одно Заземление. Требует 1 маны каждый ход. <br>Применяется до 5 раз.Прием не подвержен действию шока.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<earth>8</earth>
+		</skills>
+		<self_buff>wis_earth_link_zero</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_sacrifice</id>
+		<name><![CDATA[Жертва Земле]]></name>
+		<description><![CDATA[Вы восстанавливаете 5%HP и 5%маны.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><tactics>
+			<hearts>5</hearts>
+		</tactics><skills>
+			<earth>7</earth>
+		</skills>
+		<self_buff>wis_earth_sacrifice</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_shield</id>
+		<name><![CDATA[Каменный Щит]]></name>
+		<description><![CDATA[Вы получаете на 95% меньше урона в этот размен.<br>Прием не подвержен действию шока.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<earth>8</earth>
+		</skills>
+		<self_buff>wis_earth_shield</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_shield2</id>
+		<name><![CDATA[Песчаный Щит]]></name>
+		<description><![CDATA[Вы получаете на 30% меньше урона от магии в течение 5 ходов.<br>Прием не подвержен действию шока.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<earth>8</earth>
+		</skills>
+		<self_buff>wis_earth_shield2</self_buff>
+	</trick>
+	<trick>
+		<id>wis_earth_summon</id>
+		<name><![CDATA[Призвать Каменного Стража]]></name>
+		<description><![CDATA[Призывает в бой Каменного Стража для защиты мага. Страж нуждается в 10 маны каждый ход.]]></description>
+		<class>earth</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<skills>
+			<earth>12</earth>
+		</skills>
+		<self_buff>wis_earth_summon</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_burst08</id>
+		<name><![CDATA[Вспышка [8]]]></name>
+		<description><![CDATA[Мгновенно наносит цели урон огнем. Урон увеличен на 5% за каждую Цель Огня присутствующую на жертве.]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<fire>8</fire>
+		</skills>
+		<self_buff>wis_fire_burst08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_burst09</id>
+		<name><![CDATA[Вспышка [9]]]></name>
+		<description><![CDATA[Мгновенно наносит цели урон огнем. Урон увеличен на 5% за каждую Цель Огня присутствующую на жертве.]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><skills>
+			<fire>9</fire>
+		</skills>
+		<self_buff>wis_fire_burst09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_burst10</id>
+		<name><![CDATA[Вспышка [10]]]></name>
+		<description><![CDATA[Мгновенно наносит цели урон огнем. Урон увеличен на 5% за каждую Цель Огня присутствующую на жертве.]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><skills>
+			<fire>10</fire>
+		</skills>
+		<self_buff>wis_fire_burst10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_burst11</id>
+		<name><![CDATA[Вспышка [11]]]></name>
+		<description><![CDATA[Мгновенно наносит цели урон огнем. Урон увеличен на 5% за каждую Цель Огня присутствующую на жертве.]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><skills>
+			<fire>11</fire>
+		</skills>
+		<self_buff>wis_fire_burst11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_heal05</id>
+		<name><![CDATA[Тепло Жизни [5]]]></name>
+		<description><![CDATA[Исцеляет цель магией огня. Эффект выше при применении на себя.]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>5</level>
+		<delay></delay>
+		<stats>
+			<intel>20</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<fire>5</fire>
+		</skills>
+		<self_buff>wis_fire_heal05</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_heal06</id>
+		<name><![CDATA[Тепло Жизни [6]]]></name>
+		<description><![CDATA[Исцеляет цель магией огня. Эффект выше при применении на себя.]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>6</level>
+		<delay></delay>
+		<stats>
+			<intel>30</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<fire>6</fire>
+		</skills>
+		<self_buff>wis_fire_heal06</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_heal07</id>
+		<name><![CDATA[Тепло Жизни [7]]]></name>
+		<description><![CDATA[Исцеляет цель магией огня. Эффект выше при применении на себя.]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<fire>7</fire>
+		</skills>
+		<self_buff>wis_fire_heal07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_heal08</id>
+		<name><![CDATA[Тепло Жизни [8]]]></name>
+		<description><![CDATA[Исцеляет цель магией огня. Эффект выше при применении на себя.]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<fire>8</fire>
+		</skills>
+		<self_buff>wis_fire_heal08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_heal09</id>
+		<name><![CDATA[Тепло Жизни [9]]]></name>
+		<description><![CDATA[Исцеляет цель магией огня. Эффект выше при применении на себя.]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<fire>9</fire>
+		</skills>
+		<self_buff>wis_fire_heal09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_heal10</id>
+		<name><![CDATA[Тепло Жизни [10]]]></name>
+		<description><![CDATA[Исцеляет цель магией огня. Эффект выше при применении на себя.]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<fire>10</fire>
+		</skills>
+		<self_buff>wis_fire_heal10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_heal11</id>
+		<name><![CDATA[Тепло Жизни [11]]]></name>
+		<description><![CDATA[Исцеляет цель магией огня. Эффект выше при применении на себя.]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<fire>11</fire>
+		</skills>
+		<self_buff>wis_fire_heal11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_flamming06</id>
+		<name><![CDATA[Пожирающее Пламя [6]]]></name>
+		<description><![CDATA[Наносит цели урон огнем за пять ходов]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>6</level>
+		<delay></delay>
+		<stats>
+			<intel>30</intel>
+		</stats><skills>
+			<fire>6</fire>
+		</skills>
+		<self_buff>wis_fire_flamming06</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_flamming07</id>
+		<name><![CDATA[Пожирающее Пламя [7]]]></name>
+		<description><![CDATA[Наносит цели урон огнем за пять ходов]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<fire>7</fire>
+		</skills>
+		<self_buff>wis_fire_flamming07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_flamming08</id>
+		<name><![CDATA[Пожирающее Пламя [8]]]></name>
+		<description><![CDATA[Наносит цели урон огнем за пять ходов]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<fire>8</fire>
+		</skills>
+		<self_buff>wis_fire_flamming08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_flamming09</id>
+		<name><![CDATA[Пожирающее Пламя [9]]]></name>
+		<description><![CDATA[Наносит цели урон огнем за пять ходов]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><skills>
+			<fire>9</fire>
+		</skills>
+		<self_buff>wis_fire_flamming09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_flamming10</id>
+		<name><![CDATA[Пожирающее Пламя [10]]]></name>
+		<description><![CDATA[Наносит цели урон огнем за пять ходов]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><skills>
+			<fire>10</fire>
+		</skills>
+		<self_buff>wis_fire_flamming10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_flamming11</id>
+		<name><![CDATA[Пожирающее Пламя [11]]]></name>
+		<description><![CDATA[Наносит цели урон огнем за пять ходов]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><skills>
+			<fire>11</fire>
+		</skills>
+		<self_buff>wis_fire_flamming11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_incenerate04</id>
+		<name><![CDATA[Испепеление [4]]]></name>
+		<description><![CDATA[Наносит цели урон огнем]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>4</level>
+		<delay></delay>
+		<stats>
+			<intel>15</intel>
+		</stats><skills>
+			<fire>4</fire>
+		</skills>
+		<self_buff>wis_fire_incenerate04</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_incenerate05</id>
+		<name><![CDATA[Испепеление [5]]]></name>
+		<description><![CDATA[Наносит цели урон огнем]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>5</level>
+		<delay></delay>
+		<stats>
+			<intel>20</intel>
+		</stats><skills>
+			<fire>5</fire>
+		</skills>
+		<self_buff>wis_fire_incenerate05</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_incenerate06</id>
+		<name><![CDATA[Испепеление [6]]]></name>
+		<description><![CDATA[Наносит цели урон огнем]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>6</level>
+		<delay></delay>
+		<stats>
+			<intel>30</intel>
+		</stats><skills>
+			<fire>6</fire>
+		</skills>
+		<self_buff>wis_fire_incenerate06</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_incenerate07</id>
+		<name><![CDATA[Испепеление [7]]]></name>
+		<description><![CDATA[Наносит цели урон огнем]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<fire>7</fire>
+		</skills>
+		<self_buff>wis_fire_incenerate07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_incenerate08</id>
+		<name><![CDATA[Испепеление [8]]]></name>
+		<description><![CDATA[Наносит цели урон огнем]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<fire>8</fire>
+		</skills>
+		<self_buff>wis_fire_incenerate08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_incenerate09</id>
+		<name><![CDATA[Испепеление [9]]]></name>
+		<description><![CDATA[Наносит цели урон огнем]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><skills>
+			<fire>9</fire>
+		</skills>
+		<self_buff>wis_fire_incenerate09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_incenerate10</id>
+		<name><![CDATA[Испепеление [10]]]></name>
+		<description><![CDATA[Наносит цели урон огнем]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><skills>
+			<fire>10</fire>
+		</skills>
+		<self_buff>wis_fire_incenerate10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_incenerate11</id>
+		<name><![CDATA[Испепеление [11]]]></name>
+		<description><![CDATA[Наносит цели урон огнем]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><skills>
+			<fire>11</fire>
+		</skills>
+		<self_buff>wis_fire_incenerate11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_mark</id>
+		<name><![CDATA[Цель Огня]]></name>
+		<description><![CDATA[Уменьшает сопротивляемость воздействию Магии Огня. Можно применить на одну цель до 5 раз.]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><tactics>
+			<spirit>0.5</spirit>
+		</tactics><skills>
+			<fire>7</fire>
+		</skills>
+		<self_buff>wis_fire_mark</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_sign</id>
+		<name><![CDATA[Знак Огня]]></name>
+		<description><![CDATA[Маг получает +n мф. мощности магии стихий. Заклинание требует 10 маны каждый ход.]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>4</level>
+		<delay></delay>
+		<stats>
+			<intel>25</intel>
+		</stats><tactics>
+			<spirit>1</spirit>
+		</tactics><skills>
+			<fire>2</fire>
+		</skills>
+		<self_buff>wis_fire_sign</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_flameshock</id>
+		<name><![CDATA[Пылающий Ужас]]></name>
+		<description><![CDATA[Высвобождает энергию вашего заклятия Пожирающее Пламя на цели. Цель получает урон огнем и не может использовать приемы или набирать очки тактики 2 хода.]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<fire>7</fire>
+		</skills>
+		<self_buff>wis_fire_flameshock</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_flamedestroy</id>
+		<name><![CDATA[Пылающий взрыв]]></name>
+		<description><![CDATA[Высвобождает энергию вашего заклятия  Пожирающее Пламя на цели.Цель и еще 4 случайных цели получает 33% оставшегося урона Пожирающего Пламени магией Огня.]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<fire>7</fire>
+		</skills>
+		<self_buff>wis_fire_flamedestroy</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_flamedeath</id>
+		<name><![CDATA[Пылающая смерть]]></name>
+		<description><![CDATA[Высвобождает энергию вашего заклятия  Пожирающее Пламя на цели, если её уровень жизни менее 33%.Цель получает 125% оставшегося урона Пожирающего пламени.]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<fire>7</fire>
+		</skills>
+		<self_buff>wis_fire_flamedeath</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_boost</id>
+		<name><![CDATA[Разогрев]]></name>
+		<description><![CDATA[Ваше следующее огненное заклинание получит +100 мф. мощности Магии Огня.Не подвержен шоку.]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>25</intel>
+		</stats><skills>
+			<fire>7</fire>
+		</skills>
+		<self_buff>wis_fire_boost</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_sacrifice</id>
+		<name><![CDATA[Жертва огню]]></name>
+		<description><![CDATA[Вы теряете 10%НР, но восстанавливаете 20% маны (Для использования у вас должно быть не меньше 10%НР).]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<fire>7</fire>
+		</skills>
+		<self_buff>wis_fire_sacrifice</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_hiddenpower</id>
+		<name><![CDATA[Скрытое пламя]]></name>
+		<description><![CDATA[Если уровень вашей жизни ниже 33%, то при использовании убирает текущие задержки на заклинаниях школы Огня.Один раз за бой.]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<fire>8</fire>
+		</skills>
+		<self_buff>wis_fire_hiddenpower</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_shield</id>
+		<name><![CDATA[Огненный щит]]></name>
+		<description><![CDATA[Вы получаете на 50% меньше урона 2 последующих размена, полученный урон восстанавливает вашу ману.Не подвержен шоку.]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<fire>8</fire>
+		</skills>
+		<self_buff>wis_fire_shield</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_flametongue08</id>
+		<name><![CDATA[Язык пламени [8]]]></name>
+		<description><![CDATA[Наносит цели 5% урона магией Огня от её Максимального уровня жизни.И ещё +2% за каждый уровень Цели Огня.Заклинание не может нанести более 300 единиц урона, не наносит критический урон. ]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<fire>8</fire>
+		</skills>
+		<self_buff>wis_fire_flametongue08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_flametongue09</id>
+		<name><![CDATA[Язык пламени [9]]]></name>
+		<description><![CDATA[Наносит цели 5% урона магией Огня от её Максимального уровня жизни.И ещё +2% за каждый уровень Цели Огня.Заклинание не может нанести более 400 единиц урона, не наносит критический урон. ]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><skills>
+			<fire>9</fire>
+		</skills>
+		<self_buff>wis_fire_flametongue09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_fire_flametongue10</id>
+		<name><![CDATA[Язык пламени [10]]]></name>
+		<description><![CDATA[Наносит цели 5% урона магией Огня от её Максимального уровня жизни.И ещё +2% за каждый уровень Цели Огня.Заклинание не может нанести более 500 единиц урона, не наносит критический урон. ]]></description>
+		<class>fire</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><skills>
+			<fire>10</fire>
+		</skills>
+		<self_buff>wis_fire_flametongue10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_cloud08</id>
+		<name><![CDATA[Ядовитое Облако [8]]]></name>
+		<description><![CDATA[Наносит 3-5 целям урон ядом за пять ходов]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<water>8</water>
+		</skills>
+		<self_buff>wis_water_cloud08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_cloud09</id>
+		<name><![CDATA[Ядовитое Облако [9]]]></name>
+		<description><![CDATA[Наносит 3-5 целям урон ядом за пять ходов]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><skills>
+			<water>9</water>
+		</skills>
+		<self_buff>wis_water_cloud09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_cloud10</id>
+		<name><![CDATA[Ядовитое Облако [10]]]></name>
+		<description><![CDATA[Наносит 3-5 целям урон ядом за пять ходов]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><skills>
+			<water>10</water>
+		</skills>
+		<self_buff>wis_water_cloud10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_cloud11</id>
+		<name><![CDATA[Ядовитое Облако [11]]]></name>
+		<description><![CDATA[Наносит 3-5 целям урон ядом за пять ходов]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><skills>
+			<water>11</water>
+		</skills>
+		<self_buff>wis_water_cloud11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_frost04</id>
+		<name><![CDATA[Оледенение [4]]]></name>
+		<description><![CDATA[Мгновенно наносит цели урон холодом и ещё столько же за четыре хода]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>4</level>
+		<delay></delay>
+		<stats>
+			<intel>15</intel>
+		</stats><skills>
+			<water>4</water>
+		</skills>
+		<self_buff>wis_water_frost04</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_frost05</id>
+		<name><![CDATA[Оледенение [5]]]></name>
+		<description><![CDATA[Мгновенно наносит цели урон холодом и ещё столько же за четыре хода]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>5</level>
+		<delay></delay>
+		<stats>
+			<intel>20</intel>
+		</stats><skills>
+			<water>5</water>
+		</skills>
+		<self_buff>wis_water_frost05</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_frost06</id>
+		<name><![CDATA[Оледенение [6]]]></name>
+		<description><![CDATA[Мгновенно наносит цели урон холодом и ещё столько же за четыре хода]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>6</level>
+		<delay></delay>
+		<stats>
+			<intel>30</intel>
+		</stats><skills>
+			<water>6</water>
+		</skills>
+		<self_buff>wis_water_frost06</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_frost07</id>
+		<name><![CDATA[Оледенение [7]]]></name>
+		<description><![CDATA[Мгновенно наносит цели урон холодом и ещё столько же за четыре хода]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<water>7</water>
+		</skills>
+		<self_buff>wis_water_frost07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_frost08</id>
+		<name><![CDATA[Оледенение [8]]]></name>
+		<description><![CDATA[Мгновенно наносит цели урон холодом и ещё столько же за четыре хода]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<water>8</water>
+		</skills>
+		<self_buff>wis_water_frost08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_frost09</id>
+		<name><![CDATA[Оледенение [9]]]></name>
+		<description><![CDATA[Мгновенно наносит цели урон холодом и ещё столько же за четыре хода]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><skills>
+			<water>9</water>
+		</skills>
+		<self_buff>wis_water_frost09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_frost10</id>
+		<name><![CDATA[Оледенение [10]]]></name>
+		<description><![CDATA[Мгновенно наносит цели урон холодом и ещё столько же за четыре хода]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><skills>
+			<water>10</water>
+		</skills>
+		<self_buff>wis_water_frost10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_frost11</id>
+		<name><![CDATA[Оледенение [11]]]></name>
+		<description><![CDATA[Мгновенно наносит цели урон холодом и ещё столько же за четыре хода]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><skills>
+			<water>11</water>
+		</skills>
+		<self_buff>wis_water_frost11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_poison06</id>
+		<name><![CDATA[Отравление [6]]]></name>
+		<description><![CDATA[Наносит цели урон ядом за десять ходов. Заклинание требует ману каждый ход.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>6</level>
+		<delay></delay>
+		<stats>
+			<intel>30</intel>
+		</stats><skills>
+			<water>6</water>
+		</skills>
+		<self_buff>wis_water_poison06</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_poison07</id>
+		<name><![CDATA[Отравление [7]]]></name>
+		<description><![CDATA[Наносит цели урон ядом за десять ходов. Заклинание требует ману каждый ход.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<water>7</water>
+		</skills>
+		<self_buff>wis_water_poison07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_poison08</id>
+		<name><![CDATA[Отравление [8]]]></name>
+		<description><![CDATA[Наносит цели урон ядом за десять ходов. Заклинание требует ману каждый ход.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<water>8</water>
+		</skills>
+		<self_buff>wis_water_poison08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_poison09</id>
+		<name><![CDATA[Отравление [9]]]></name>
+		<description><![CDATA[Наносит цели урон ядом за десять ходов. Заклинание требует ману каждый ход.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><skills>
+			<water>9</water>
+		</skills>
+		<self_buff>wis_water_poison09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_poison10</id>
+		<name><![CDATA[Отравление [10]]]></name>
+		<description><![CDATA[Наносит цели урон ядом за десять ходов. Заклинание требует ману каждый ход.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><skills>
+			<water>10</water>
+		</skills>
+		<self_buff>wis_water_poison10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_poison11</id>
+		<name><![CDATA[Отравление [11]]]></name>
+		<description><![CDATA[Наносит цели урон ядом за десять ходов. Заклинание требует ману каждый ход.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><skills>
+			<water>11</water>
+		</skills>
+		<self_buff>wis_water_poison11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_regen05</id>
+		<name><![CDATA[Регенерация [5]]]></name>
+		<description><![CDATA[Восстанавливает цели за  восемь  ходов уровень жизни магией воды. Заклинание требует ману каждый ход.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>5</level>
+		<delay></delay>
+		<stats>
+			<intel>20</intel>
+		</stats><tactics>
+			<hearts>2</hearts>
+		</tactics><skills>
+			<water>5</water>
+		</skills>
+		<self_buff>wis_water_regen05</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_regen06</id>
+		<name><![CDATA[Регенерация [6]]]></name>
+		<description><![CDATA[Восстанавливает цели за  восемь  ходов уровень жизни магией воды. Заклинание требует ману каждый ход.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>6</level>
+		<delay></delay>
+		<stats>
+			<intel>30</intel>
+		</stats><tactics>
+			<hearts>2</hearts>
+		</tactics><skills>
+			<water>6</water>
+		</skills>
+		<self_buff>wis_water_regen06</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_regen07</id>
+		<name><![CDATA[Регенерация [7]]]></name>
+		<description><![CDATA[Восстанавливает цели за  восемь  ходов уровень жизни магией воды. Заклинание требует ману каждый ход.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><tactics>
+			<hearts>2</hearts>
+		</tactics><skills>
+			<water>7</water>
+		</skills>
+		<self_buff>wis_water_regen07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_regen08</id>
+		<name><![CDATA[Регенерация [8]]]></name>
+		<description><![CDATA[Восстанавливает цели за  восемь  ходов уровень жизни магией воды. Заклинание требует ману каждый ход.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><tactics>
+			<hearts>2</hearts>
+		</tactics><skills>
+			<water>8</water>
+		</skills>
+		<self_buff>wis_water_regen08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_regen09</id>
+		<name><![CDATA[Регенерация [9]]]></name>
+		<description><![CDATA[Восстанавливает цели за  восемь  ходов уровень жизни магией воды. Заклинание требует ману каждый ход.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><tactics>
+			<hearts>2</hearts>
+		</tactics><skills>
+			<water>9</water>
+		</skills>
+		<self_buff>wis_water_regen09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_regen10</id>
+		<name><![CDATA[Регенерация [10]]]></name>
+		<description><![CDATA[Восстанавливает цели за  восемь  ходов уровень жизни магией воды. Заклинание требует ману каждый ход.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><tactics>
+			<hearts>2</hearts>
+		</tactics><skills>
+			<water>10</water>
+		</skills>
+		<self_buff>wis_water_regen10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_regen11</id>
+		<name><![CDATA[Регенерация [11]]]></name>
+		<description><![CDATA[Восстанавливает цели за  восемь  ходов уровень жизни магией воды. Заклинание требует ману каждый ход.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><tactics>
+			<hearts>2</hearts>
+		</tactics><skills>
+			<water>11</water>
+		</skills>
+		<self_buff>wis_water_regen11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_mark</id>
+		<name><![CDATA[Цель Воды]]></name>
+		<description><![CDATA[Уменьшает сопротивляемость воздействию Магии Воды. Можно применить на одну цель до 5 раз.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><tactics>
+			<spirit>0.5</spirit>
+		</tactics><skills>
+			<water>7</water>
+		</skills>
+		<self_buff>wis_water_mark</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_sign</id>
+		<name><![CDATA[Знак Воды]]></name>
+		<description><![CDATA[Маг получает +n мф. антикрита. Заклинание требует маны каждый ход.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>4</level>
+		<delay></delay>
+		<stats>
+			<intel>25</intel>
+		</stats><tactics>
+			<spirit>1</spirit>
+		</tactics><skills>
+			<water>2</water>
+		</skills>
+		<self_buff>wis_water_sign</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_shield07</id>
+		<name><![CDATA[Иней [7]]]></name>
+		<description><![CDATA[Вы получаете на 25% меньше урона 4 последующих размена.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<water>7</water>
+		</skills>
+		<self_buff>wis_water_shield07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_shield08</id>
+		<name><![CDATA[Иней [8]]]></name>
+		<description><![CDATA[Вы получаете на 25% меньше урона 4 последующих размена, <br>атакующий оружием получает уязвимость к магии воды, не подвержен шоку.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<water>8</water>
+		</skills>
+		<self_buff>wis_water_shield08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_shield09</id>
+		<name><![CDATA[Иней [9]]]></name>
+		<description><![CDATA[Вы получаете на 25% меньше урона 4 последующих размена, <br>атакующий оружием получает уязвимость к магии воды и часть поглощённого урона, не подвержен шоку.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><skills>
+			<water>9</water>
+		</skills>
+		<self_buff>wis_water_shield09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_gray_beam</id>
+		<name><![CDATA[Силовой луч]]></name>
+		<description><![CDATA[Наносит противнику урон равный значению вашего интеллекта.]]></description>
+		<class>grey</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<gray>4</gray>
+		</skills>
+		<self_buff>wis_gray_beam</self_buff>
+	</trick>
+	<trick>
+		<id>wis_gray_meditation</id>
+		<name><![CDATA[Медитация]]></name>
+		<description><![CDATA[Восстанавливает 10% маны.]]></description>
+		<class>grey</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><tactics>
+			<spirit>2</spirit>
+		</tactics><skills>
+			<gray>3</gray>
+		</skills>
+		<self_buff>wis_gray_meditation</self_buff>
+	</trick>
+	<trick>
+		<id>wis_gray_forcefield07</id>
+		<name><![CDATA[Силовое Поле [7]]]></name>
+		<description><![CDATA[Создает силовое поле вокруг мага, способное поглотить 120 ед. урона. Нанести критический удар оружием по силовому полю - невозможно]]></description>
+		<class>grey</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<gray>2</gray>
+		</skills>
+		<self_buff>wis_gray_forcefield07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_gray_forcefield08</id>
+		<name><![CDATA[Силовое Поле [8]]]></name>
+		<description><![CDATA[Создает силовое поле вокруг мага, способное поглотить 144 ед. урона. Нанести критический удар оружием по силовому полю - невозможно]]></description>
+		<class>grey</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><tactics>
+			<spirit>1</spirit>
+		</tactics><skills>
+			<gray>3</gray>
+		</skills>
+		<self_buff>wis_gray_forcefield08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_gray_forcefield09</id>
+		<name><![CDATA[Силовое Поле [9]]]></name>
+		<description><![CDATA[Создает силовое поле вокруг мага, способное поглотить 172 ед. урона. Нанести критический удар оружием по силовому полю - невозможно]]></description>
+		<class>grey</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><tactics>
+			<spirit>2</spirit>
+		</tactics><skills>
+			<gray>4</gray>
+		</skills>
+		<self_buff>wis_gray_forcefield09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_gray_forcefield10</id>
+		<name><![CDATA[Силовое Поле [10]]]></name>
+		<description><![CDATA[Создает силовое поле вокруг мага, способное поглотить 207 ед. урона. Нанести критический удар оружием по силовому полю - невозможно]]></description>
+		<class>grey</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><tactics>
+			<spirit>3</spirit>
+		</tactics><skills>
+			<gray>5</gray>
+		</skills>
+		<self_buff>wis_gray_forcefield10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_gray_forcefield11</id>
+		<name><![CDATA[Силовое Поле [11]]]></name>
+		<description><![CDATA[Создает силовое поле вокруг мага, способное поглотить 248 ед. урона. Нанести критический удар оружием по силовому полю - невозможно]]></description>
+		<class>grey</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><tactics>
+			<spirit>4</spirit>
+		</tactics><skills>
+			<gray>6</gray>
+		</skills>
+		<self_buff>wis_gray_forcefield11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_gray_manabarrier07</id>
+		<name><![CDATA[Магический Барьер [7]]]></name>
+		<description><![CDATA[Создает магический барьер вокруг мага, способный поглотить n ед. урона, ценой 1.8 ед. маны за каждую единицу урона. <br>Барьер поглощает 55% повреждений. <br>Шанс нанести критический удар по барьеру уменьшен на 14%. Не подвержен действию шока.]]></description>
+		<class>grey</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats>
+		<self_buff>wis_gray_manabarrier07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_gray_manabarrier08</id>
+		<name><![CDATA[Магический Барьер [8]]]></name>
+		<description><![CDATA[Создает магический барьер вокруг мага, способный поглотить n ед. урона, ценой 1.6 ед. маны за каждую единицу урона. <br>Барьер поглощает 60% повреждений. <br>Шанс нанести критический удар по барьеру уменьшен на 16%. Не подвержен действию шока.]]></description>
+		<class>grey</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats>
+		<self_buff>wis_gray_manabarrier08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_gray_manabarrier09</id>
+		<name><![CDATA[Магический Барьер [9]]]></name>
+		<description><![CDATA[Создает магический барьер вокруг мага, способный поглотить n ед. урона, ценой 1.4 ед. маны за каждую единицу урона. <br>Барьер поглощает 65% повреждений. <br>Шанс нанести критический удар по барьеру уменьшен на 18%. Не подвержен действию шока.]]></description>
+		<class>grey</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats>
+		<self_buff>wis_gray_manabarrier09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_gray_manabarrier10</id>
+		<name><![CDATA[Магический Барьер [10]]]></name>
+		<description><![CDATA[Создает магический барьер вокруг мага, способный поглотить n ед. урона, ценой 1.2 ед. маны за каждую единицу урона. <br>Барьер поглощает 70% повреждений. <br>Шанс нанести критический удар по барьеру уменьшен на 20%. Не подвержен действию шока.]]></description>
+		<class>grey</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats>
+		<self_buff>wis_gray_manabarrier10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_gray_manabarrier11</id>
+		<name><![CDATA[Магический Барьер [11]]]></name>
+		<description><![CDATA[Создает магический барьер вокруг мага, способный поглотить n ед. урона, ценой 1 ед. маны за каждую единицу урона. <br>Барьер поглощает 75% повреждений. <br>Шанс нанести критический удар по барьеру уменьшен на 22%. Не подвержен действию шока.]]></description>
+		<class>grey</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats>
+		<self_buff>wis_gray_manabarrier11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_gray_mastery</id>
+		<name><![CDATA[Серое Мастерство]]></name>
+		<description><![CDATA[Увеличивает навык в магии стихий, применяется до 5 раз.<br />Тратит 10*(уровень заклинания) в ход.]]></description>
+		<class>grey</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><tactics>
+			<spirit>3</spirit>
+		</tactics><skills>
+			<gray>4</gray>
+		</skills>
+		<self_buff>wis_gray_mastery</self_buff>
+	</trick>
+	<trick>
+		<id>wis_gray_manabarrier</id>
+		<name><![CDATA[Магический Барьер]]></name>
+		<description><![CDATA[Создает магический барьер вокруг мага, способный поглотить 293 ед. урона, ценой 2 ед. маны за каждую единицу урона. <br>Барьер поглощает лишь половину повреждений. Не подвержен действию шока.]]></description>
+		<class>grey</class>
+		<type>trick</type>
+		<level>4</level>
+		<delay></delay>
+		<stats>
+			<intel>30</intel>
+		</stats>
+		<self_buff>wis_gray_manabarrier</self_buff>
+	</trick>
+	<trick>
+		<id>wis_gray_beam01</id>
+		<name><![CDATA[Магический луч]]></name>
+		<description><![CDATA[Наносит цели 7*(ваш уровень) ед. урона серой магией.]]></description>
+		<class>grey</class>
+		<type>trick</type>
+		<level>4</level>
+		<delay></delay>
+		<stats>
+			<intel>30</intel>
+		</stats>
+		<self_buff>wis_gray_beam01</self_buff>
+	</trick>
+	<trick>
+		<id>wis_light_heal04</id>
+		<name><![CDATA[Магический исцеление]]></name>
+		<description><![CDATA[Исцеляет мага на 50НР, не тратя силу Духа.]]></description>
+		<class>grey</class>
+		<type>trick</type>
+		<level>4</level>
+		<delay></delay>
+		<stats>
+			<intel>30</intel>
+		</stats>
+		<self_buff>wis_light_heal04</self_buff>
+	</trick>
+	<trick>
+		<id>wis_light_cleance</id>
+		<name><![CDATA[Очищение]]></name>
+		<description><![CDATA[Снимает один негативный эффект проклятья, болезни или отравления.]]></description>
+		<class>light</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<light>5</light>
+		</skills>
+		<self_buff>wis_light_cleance</self_buff>
+	</trick>
+	<trick>
+		<id>wis_light_damage07</id>
+		<name><![CDATA[Усмирение [7]]]></name>
+		<description><![CDATA[Наносит цели урон магией Света, цель теряет характеристики на несколько ходов.]]></description>
+		<class>light</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><tactics>
+			<spirit>1</spirit>
+		</tactics><skills>
+			<light>2</light>
+		</skills>
+		<self_buff>wis_light_damage07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_light_damage08</id>
+		<name><![CDATA[Усмирение [8]]]></name>
+		<description><![CDATA[Наносит цели урон магией Света, цель теряет характеристики на несколько ходов.]]></description>
+		<class>light</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><tactics>
+			<spirit>1</spirit>
+		</tactics><skills>
+			<light>3</light>
+		</skills>
+		<self_buff>wis_light_damage08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_light_damage09</id>
+		<name><![CDATA[Усмирение [9]]]></name>
+		<description><![CDATA[Наносит цели урон магией Света, цель теряет характеристики на несколько ходов.]]></description>
+		<class>light</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><tactics>
+			<spirit>1</spirit>
+		</tactics><skills>
+			<light>4</light>
+		</skills>
+		<self_buff>wis_light_damage09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_light_damage10</id>
+		<name><![CDATA[Усмирение [10]]]></name>
+		<description><![CDATA[Наносит цели урон магией Света, цель теряет характеристики на несколько ходов.]]></description>
+		<class>light</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><tactics>
+			<spirit>1</spirit>
+		</tactics><skills>
+			<light>5</light>
+		</skills>
+		<self_buff>wis_light_damage10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_light_damage11</id>
+		<name><![CDATA[Усмирение [11]]]></name>
+		<description><![CDATA[Наносит цели урон магией Света, цель теряет характеристики на несколько ходов.]]></description>
+		<class>light</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><tactics>
+			<spirit>1</spirit>
+		</tactics><skills>
+			<light>6</light>
+		</skills>
+		<self_buff>wis_light_damage11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_light_heal07</id>
+		<name><![CDATA[Лечение [7]]]></name>
+		<description><![CDATA[Исцеляет цель магией Света.]]></description>
+		<class>light</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<light>2</light>
+		</skills>
+		<self_buff>wis_light_heal07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_light_heal08</id>
+		<name><![CDATA[Лечение [8]]]></name>
+		<description><![CDATA[Исцеляет цель магией Света.]]></description>
+		<class>light</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<light>3</light>
+		</skills>
+		<self_buff>wis_light_heal08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_light_heal09</id>
+		<name><![CDATA[Лечение [9]]]></name>
+		<description><![CDATA[Исцеляет цель магией Света.]]></description>
+		<class>light</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<light>4</light>
+		</skills>
+		<self_buff>wis_light_heal09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_light_heal10</id>
+		<name><![CDATA[Лечение [10]]]></name>
+		<description><![CDATA[Исцеляет цель магией Света.]]></description>
+		<class>light</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<light>5</light>
+		</skills>
+		<self_buff>wis_light_heal10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_light_heal11</id>
+		<name><![CDATA[Лечение [11]]]></name>
+		<description><![CDATA[Исцеляет цель магией Света.]]></description>
+		<class>light</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<light>6</light>
+		</skills>
+		<self_buff>wis_light_heal11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_light_insight07</id>
+		<name><![CDATA[Прозрение [7]]]></name>
+		<description><![CDATA[Восстанавливает 552 маны за 20 ходов.]]></description>
+		<class>light</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><tactics>
+			<spirit>5</spirit>
+		</tactics><skills>
+			<light>2</light>
+		</skills>
+		<self_buff>wis_light_insight07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_light_insight08</id>
+		<name><![CDATA[Прозрение [8]]]></name>
+		<description><![CDATA[Восстанавливает 662 маны за 20 ходов.]]></description>
+		<class>light</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><tactics>
+			<spirit>5</spirit>
+		</tactics><skills>
+			<light>3</light>
+		</skills>
+		<self_buff>wis_light_insight08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_light_insight09</id>
+		<name><![CDATA[Прозрение [9]]]></name>
+		<description><![CDATA[Восстанавливает 794 маны за 20 ходов.]]></description>
+		<class>light</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><tactics>
+			<spirit>5</spirit>
+		</tactics><skills>
+			<light>4</light>
+		</skills>
+		<self_buff>wis_light_insight09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_light_insight10</id>
+		<name><![CDATA[Прозрение [10]]]></name>
+		<description><![CDATA[Восстанавливает 953 маны за 20 ходов.]]></description>
+		<class>light</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><tactics>
+			<spirit>5</spirit>
+		</tactics><skills>
+			<light>5</light>
+		</skills>
+		<self_buff>wis_light_insight10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_light_insight11</id>
+		<name><![CDATA[Прозрение [11]]]></name>
+		<description><![CDATA[Восстанавливает 1144 маны за 20 ходов.]]></description>
+		<class>light</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><tactics>
+			<spirit>5</spirit>
+		</tactics><skills>
+			<light>6</light>
+		</skills>
+		<self_buff>wis_light_insight11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_light_shield</id>
+		<name><![CDATA[Защита Света ]]></name>
+		<description><![CDATA[Снижает весь урон получаемый магом на 10%, ускоряет время восстановления от любых видов оглушения на 1 ход.]]></description>
+		<class>light</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<light>4</light>
+		</skills>
+		<self_buff>wis_light_shield</self_buff>
+	</trick>
+	<trick>
+		<id>wis_dark_soulweak</id>
+		<name><![CDATA[Слабость Духа]]></name>
+		<description><![CDATA[На 3 хода все заклинания цели стоят дороже, а физический урон сокращён. Цель получает иммунитет к этому заклинанию на 10 ходов.]]></description>
+		<class>dark</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<dark>5</dark>
+		</skills>
+		<self_buff>wis_dark_soulweak</self_buff>
+	</trick>
+	<trick>
+		<id>wis_dark_souleat</id>
+		<name><![CDATA[Поглотить]]></name>
+		<description><![CDATA[Вы поглощаете дух павшего в бою, восстанавливая себя. Одну цель можно поглотить только один раз. Заклятие не влияет на уровень духа цели.]]></description>
+		<class>dark</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<dark>5</dark>
+		</skills>
+		<self_buff>wis_dark_souleat</self_buff>
+	</trick>
+	<trick>
+		<id>wis_dark_damage07</id>
+		<name><![CDATA[Разрушение [7]]]></name>
+		<description><![CDATA[Наносит цели урон магией Тьмы, часть урона лечит мага.]]></description>
+		<class>dark</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<dark>5</dark>
+		</skills>
+		<self_buff>wis_dark_damage07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_dark_damage08</id>
+		<name><![CDATA[Разрушение [8]]]></name>
+		<description><![CDATA[Наносит цели урон магией Тьмы, часть урона лечит мага.]]></description>
+		<class>dark</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<dark>6</dark>
+		</skills>
+		<self_buff>wis_dark_damage08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_dark_damage09</id>
+		<name><![CDATA[Разрушение [9]]]></name>
+		<description><![CDATA[Наносит цели урон магией Тьмы, часть урона лечит мага.]]></description>
+		<class>dark</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><skills>
+			<dark>7</dark>
+		</skills>
+		<self_buff>wis_dark_damage09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_dark_damage10</id>
+		<name><![CDATA[Разрушение [10]]]></name>
+		<description><![CDATA[Наносит цели урон магией Тьмы, часть урона лечит мага.]]></description>
+		<class>dark</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><skills>
+			<dark>8</dark>
+		</skills>
+		<self_buff>wis_dark_damage10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_dark_damage11</id>
+		<name><![CDATA[Разрушение [11]]]></name>
+		<description><![CDATA[Наносит цели урон магией Тьмы, часть урона лечит мага.]]></description>
+		<class>dark</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><skills>
+			<dark>9</dark>
+		</skills>
+		<self_buff>wis_dark_damage11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_dark_manadamage07</id>
+		<name><![CDATA[Опустошение [7]]]></name>
+		<description><![CDATA[Лишает цель маны при помощи магии Тьмы, <br>лишая цель возможности использовать последний применённый приём и все приёмы того же класса на 3 хода.<br>Цель получает иммунитет к Опустошению на 10 ходов.]]></description>
+		<class>dark</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><tactics>
+			<hearts>2</hearts>
+		</tactics><skills>
+			<dark>5</dark>
+		</skills>
+		<self_buff>wis_dark_manadamage07</self_buff>
+	</trick>
+	<trick>
+		<id>wis_dark_manadamage08</id>
+		<name><![CDATA[Опустошение [8]]]></name>
+		<description><![CDATA[Лишает цель маны при помощи магии Тьмы, <br>лишая цель возможности использовать последний применённый приём и все приёмы того же класса на 3 хода.<br>Цель получает иммунитет к Опустошению на 10 ходов.]]></description>
+		<class>dark</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><tactics>
+			<hearts>2</hearts>
+		</tactics><skills>
+			<dark>6</dark>
+		</skills>
+		<self_buff>wis_dark_manadamage08</self_buff>
+	</trick>
+	<trick>
+		<id>wis_dark_manadamage09</id>
+		<name><![CDATA[Опустошение [9]]]></name>
+		<description><![CDATA[Лишает цель маны при помощи магии Тьмы, <br>лишая цель возможности использовать последний применённый приём и все приёмы того же класса на 3 хода.<br>Цель получает иммунитет к Опустошению на 10 ходов.]]></description>
+		<class>dark</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><tactics>
+			<hearts>2</hearts>
+		</tactics><skills>
+			<dark>7</dark>
+		</skills>
+		<self_buff>wis_dark_manadamage09</self_buff>
+	</trick>
+	<trick>
+		<id>wis_dark_manadamage10</id>
+		<name><![CDATA[Опустошение [10]]]></name>
+		<description><![CDATA[Лишает цель маны при помощи магии Тьмы, <br>лишая цель возможности использовать последний применённый приём и все приёмы того же класса на 3 хода.<br>Цель получает иммунитет к Опустошению на 10 ходов.]]></description>
+		<class>dark</class>
+		<type>trick</type>
+		<level>10</level>
+		<delay></delay>
+		<stats>
+			<intel>75</intel>
+		</stats><tactics>
+			<hearts>2</hearts>
+		</tactics><skills>
+			<dark>8</dark>
+		</skills>
+		<self_buff>wis_dark_manadamage10</self_buff>
+	</trick>
+	<trick>
+		<id>wis_dark_manadamage11</id>
+		<name><![CDATA[Опустошение [11]]]></name>
+		<description><![CDATA[Лишает цель маны при помощи магии Тьмы, <br>лишая цель возможности использовать последний применённый приём и все приёмы того же класса на 3 хода.<br>Цель получает иммунитет к Опустошению на 10 ходов.]]></description>
+		<class>dark</class>
+		<type>trick</type>
+		<level>11</level>
+		<delay></delay>
+		<stats>
+			<intel>100</intel>
+		</stats><tactics>
+			<hearts>2</hearts>
+		</tactics><skills>
+			<dark>9</dark>
+		</skills>
+		<self_buff>wis_dark_manadamage11</self_buff>
+	</trick>
+	<trick>
+		<id>wis_dark_eyeforeye</id>
+		<name><![CDATA[Глаз за глаз]]></name>
+		<description><![CDATA[Следующее заклинание или удар нанесет не более половины урона, <br>оставшуюся половину магией тьмы получит атакующий, но не более 50*(ваш уровень) ед. урона.]]></description>
+		<class>dark</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<dark>4</dark>
+		</skills>
+		<self_buff>wis_dark_eyeforeye</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_charge</id>
+		<name><![CDATA[Статика]]></name>
+		<description><![CDATA[Молния, Цепь молний, Искра, Искры, и удары по Воздушному Щиту будут заряжать цель, увеличивая получаемый от магии Воздуха урон на 1%. Маг может воспользоваться накопленными зарядами.]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><tactics>
+			<spirit>1</spirit>
+		</tactics><skills>
+			<air>7</air>
+		</skills>
+		<self_buff>wis_air_charge</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_charge_shock</id>
+		<name><![CDATA[Заряд: Шок]]></name>
+		<description><![CDATA[Шокирует противника, лишая его возможности использовать последний примененный прием на 5 ходов и рассеивает один позитивный магический эффект.]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<air>7</air>
+		</skills>
+		<self_buff>wis_air_charge_shock</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_charge_gain</id>
+		<name><![CDATA[Заряд: Собрать]]></name>
+		<description><![CDATA[Восстанавливает 33 маны за каждый уровень Заряда на цели и снимает с мага один негативный магический эффект.]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<air>7</air>
+		</skills>
+		<self_buff>wis_air_charge_gain</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_charge_dmg</id>
+		<name><![CDATA[Заряд: Поражение]]></name>
+		<description><![CDATA[Наносит цели 1-2% урона магией Воздуха от ее максимального уровня жизни за каждый уровень Заряда. <br>Заклинание не может нанести более 350 ед. урона.<br>Заклинание не может нанести более 250 ед. урона для 9го уровня.<br>Заклинание не может нанести более 300 ед. урона для 10го уровня.<br>Заклинание не может нанести более 350 ед. урона для 11го уровня.]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<air>7</air>
+		</skills>
+		<self_buff>wis_air_charge_dmg</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_manaheal</id>
+		<name><![CDATA[Энергия Воздуха]]></name>
+		<description><![CDATA[Восстанавливает цели 1-10% маны за каждый ход работы заклинания. Заклинание прекращает действие при использовании любого другого заклинания через 5 ходов.]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+			<spirit>3</spirit>
+		</tactics><skills>
+			<air>11</air>
+		</skills>
+		<self_buff>wis_air_manaheal</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_sacrifice</id>
+		<name><![CDATA[Жертва Воздуху]]></name>
+		<description><![CDATA[Маг получает 25 мф. мощности магии Воздуха на 4 хода. Снимается приемом Очистится кровью.]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><tactics>
+			<hearts>5</hearts>
+		</tactics><skills>
+			<air>7</air>
+		</skills>
+		<self_buff>wis_air_sacrifice</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_speed</id>
+		<name><![CDATA[Скорость Молнии]]></name>
+		<description><![CDATA[Начальная задержка: 5. Любой следующий прием не тратит хода.]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><tactics>
+			<spirit>4</spirit>
+		</tactics><skills>
+			<air>8</air>
+		</skills>
+		<self_buff>wis_air_speed</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_spark</id>
+		<name><![CDATA[Искра]]></name>
+		<description><![CDATA[Мгновенно наносит враждебной цели урон воздухом или исцеляет дружественную.]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<air>8</air>
+		</skills>
+		<self_buff>wis_air_spark</self_buff>
+	</trick>
+	<trick>
+		<id>wis_air_shield</id>
+		<name><![CDATA[Воздушный Щит]]></name>
+		<description><![CDATA[Создаёт воздушный кокон вокруг мага, способный поглотить 1-? ед. урона. Этот приём не подвержен действию шока. Общая задержка с заклинанием Силовое поле.]]></description>
+		<class>air</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><skills>
+			<air>9</air>
+		</skills>
+		<self_buff>wis_air_shield</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_tempheal</id>
+		<name><![CDATA[Ледяное Спасение]]></name>
+		<description><![CDATA[Мгновенно останавливает кровотечения, исцеляя мага на ???HP магией воды, но за 5 ходов теряет 50% полученного здоровья.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<water>8</water>
+		</skills>
+		<self_buff>wis_water_tempheal</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_break</id>
+		<name><![CDATA[Оледенениие: Разбить!]]></name>
+		<description><![CDATA[Наносит текущей цели подверженной Оледенению ??? урона магией воды и еще ???, если уровень жизни цели менее (кол.умений*5+50)]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<water>7</water>
+		</skills>
+		<self_buff>wis_water_break</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_crystalize</id>
+		<name><![CDATA[Кристаллизация]]></name>
+		<description><![CDATA[Мгновенно наносит цели урон равный уровню силы цели но не более чем 10*(ваш уровень). Снижает силу и ловкость цели на (количество владений водой) на три хода.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<water>8</water>
+		</skills>
+		<self_buff>wis_water_crystalize</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_icegrap</id>
+		<name><![CDATA[Хватка Льда]]></name>
+		<description><![CDATA[Через 2 хода цель теряет возможность использовать приемы или набирать очки тактики на 3 хода.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<water>7</water>
+		</skills>
+		<self_buff>wis_water_icegrap</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_spirit</id>
+		<name><![CDATA[Духи Льда]]></name>
+		<description><![CDATA[На три хода увеличивает мф. мощности Магии Воды на 15. Часть вашего прямого урона магией воды, восстанавливают вам ману.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><tactics>
+			<hearts>4</hearts>
+			<spirit>5</spirit>
+		</tactics><skills>
+			<water>8</water>
+		</skills>
+		<self_buff>wis_water_spirit</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_aheal</id>
+		<name><![CDATA[Переохлаждение]]></name>
+		<description><![CDATA[Уменьшает эффекты лечения на цели на 10% Можно применить на одну цель до 5 раз.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>9</level>
+		<delay></delay>
+		<stats>
+			<intel>60</intel>
+		</stats><tactics>
+			<hearts>1</hearts>
+		</tactics><skills>
+			<water>9</water>
+		</skills>
+		<self_buff>wis_water_aheal</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_cleance</id>
+		<name><![CDATA[Чистота Воды]]></name>
+		<description><![CDATA[Снимает один негативный эффект магии или отравления.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<water>8</water>
+		</skills>
+		<self_buff>wis_water_cleance</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_hiddenpower</id>
+		<name><![CDATA[Ледяное Сердце]]></name>
+		<description><![CDATA[При использовании убирает текущие задержки на заклинаниях школы Воды. Не подвержен действию шока.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>8</level>
+		<delay></delay>
+		<stats>
+			<intel>50</intel>
+		</stats><skills>
+			<water>8</water>
+		</skills>
+		<self_buff>wis_water_hiddenpower</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_sacrifice</id>
+		<name><![CDATA[Жертва Воде]]></name>
+		<description><![CDATA[Маг теряет 10% жизни за 5 ходов, но цена всех заклятий снижена на 50%.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><tactics>
+			<hearts>5</hearts>
+		</tactics><skills>
+			<water>7</water>
+		</skills>
+		<self_buff>wis_water_sacrifice</self_buff>
+	</trick>
+	<trick>
+		<id>wis_water_strike</id>
+		<name><![CDATA[Острая Грань]]></name>
+		<description><![CDATA[Наносит цели колющий урон.]]></description>
+		<class>water</class>
+		<type>trick</type>
+		<level>7</level>
+		<delay></delay>
+		<stats>
+			<intel>40</intel>
+		</stats><skills>
+			<water>7</water>
+		</skills>
+		<self_buff>wis_water_strike</self_buff>
+	</trick></tricks>
