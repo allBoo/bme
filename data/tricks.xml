@@ -874,7 +874,7 @@
 		<delay></delay>
 		<tactics>
 			<hearts>3</hearts>
-			<spirit>all</spirit>
+			<spirit>100%</spirit>
 		</tactics>
 		<self_buff>hp_laststrike</self_buff>
 	</trick>

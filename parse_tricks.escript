@@ -69,6 +69,8 @@ parse_trick_attrs(Trick, [{"initial_delay",[],[Value]} | Attrs]) ->
 	parse_trick_attrs(Trick#trick{initial_delay = list_to_integer(Value)}, Attrs);
 parse_trick_attrs(Trick, [{"delay",[],[Value]} | Attrs]) ->
 	parse_trick_attrs(Trick#trick{delay = list_to_integer(Value)}, Attrs);
+parse_trick_attrs(Trick, [{"delay",[],[]} | Attrs]) ->
+	parse_trick_attrs(Trick#trick{delay = 1}, Attrs);
 parse_trick_attrs(Trick, [{"class_delay",[],[Value]} | Attrs]) when is_boolean(Value) ->
 	parse_trick_attrs(Trick#trick{class_delay = Value}, Attrs);
 parse_trick_attrs(Trick, [{"expend",[],[Value]} | Attrs]) when is_boolean(Value) ->
@@ -77,6 +79,8 @@ parse_trick_attrs(Trick, [{"require_target",[],[Value]} | Attrs]) when is_boolea
 	parse_trick_attrs(Trick#trick{require_target = Value}, Attrs);
 parse_trick_attrs(Trick, [{"target_type",[],[Value]} | Attrs]) ->
 	parse_trick_attrs(Trick#trick{target_type = list_to_atom(Value)}, Attrs);
+parse_trick_attrs(Trick, [{"uses",[],[Value]} | Attrs]) ->
+	parse_trick_attrs(Trick#trick{uses = list_to_integer(Value)}, Attrs);
 
 parse_trick_attrs(Trick, [{"tactics",[],TacticsAttr} | Attrs]) ->
 	Tactics = parse_trick_tactics(#b_tactics{}, TacticsAttr),
@@ -126,7 +130,7 @@ parse_trick_tactics(Tactics, [{"parry",[],[Value]} | Attrs]) ->
 parse_trick_tactics(Tactics, [{"hearts",[],[Value]} | Attrs]) ->
 	parse_trick_tactics(Tactics#b_tactics{hearts = list_to_integer(Value)}, Attrs);
 parse_trick_tactics(Tactics, [{"spirit",[],["100%"]} | Attrs]) ->
-	parse_trick_tactics(Tactics#b_tactics{spirit = any}, Attrs);
+	parse_trick_tactics(Tactics#b_tactics{spirit = all}, Attrs);
 parse_trick_tactics(Tactics, [{"spirit",[],["0.5"]} | Attrs]) ->
 	parse_trick_tactics(Tactics#b_tactics{spirit = 0.5}, Attrs);
 parse_trick_tactics(Tactics, [{"spirit",[],[Value]} | Attrs]) ->
@@ -238,7 +242,12 @@ predefined_action("heal/4", ActionAttrs, Trick) ->
 	Value  = decode_value(find_action_attr("value", ActionAttrs)),
 	Spirit = decode_value(find_action_attr("spirit", ActionAttrs, false)),
 
-	"trick_helper:heal(" ++ atom_to_list(Trick#trick.id) ++ ", UnitPid, " ++ Value ++ ", " ++ Spirit ++ ")".
+	"trick_helper:heal(" ++ atom_to_list(Trick#trick.id) ++ ", UnitPid, " ++ Value ++ ", " ++ Spirit ++ ")";
+
+
+predefined_action(Action, ActionAttrs, Trick) ->
+	io:format("Unknown action ~p~n", [Action]),
+	"ok".
 
 
 find_action_attr(Name, Attrs) ->
@@ -287,6 +296,7 @@ write_trick(Trick, File) ->
 		", stats = " ++ s(Trick#trick.stats) ++
 		", skills = " ++ s(Trick#trick.skills) ++
 		", initial_delay = " ++ s(Trick#trick.initial_delay) ++
+		", uses = " ++ s(Trick#trick.uses) ++
 		", delay = " ++ s(Trick#trick.delay) ++
 		", class_delay = " ++ s(Trick#trick.class_delay) ++
 		", expend = " ++ s(Trick#trick.expend) ++
