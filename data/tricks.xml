@@ -2427,10 +2427,8 @@
 		<mana>75</mana>
 		<action arity="2">
 			<predefined name="magic_hit/5">
-				<value>
-					<dvalue>187</dvalue>
-				</value>
-				<type>crash</type>
+				<value>187</value>
+				<type>crush</type>
 			</predefined>
 		</action>
 	</trick>
@@ -2452,9 +2450,7 @@
 		<mana>90</mana>
 		<action arity="2">
 			<predefined name="magic_hit/5">
-				<value>
-					<dvalue>224</dvalue>
-				</value>
+				<value>224</value>
 				<type>crash</type>
 			</predefined>
 		</action>
@@ -4390,6 +4386,12 @@
 		</stats><skills>
 			<gray>4</gray>
 		</skills>
+		<require_target>true</require_target>
+		<target_type>enemy</target_type>
+		<mana>5</mana>
+		<action arity="2">
+			<![CDATA[ ok ]]>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_gray_meditation</id>
@@ -4406,12 +4408,15 @@
 		</tactics><skills>
 			<gray>3</gray>
 		</skills>
+		<action arity="2">
+			<![CDATA[ ok ]]>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_gray_forcefield07</id>
 		<name><![CDATA[Силовое Поле [7]]]></name>
 		<description><![CDATA[Создает силовое поле вокруг мага, способное поглотить 120 ед. урона. Нанести критический удар оружием по силовому полю - невозможно]]></description>
-		<class>grey</class>
+		<class>grey_f</class>
 		<type>spell</type>
 		<level>7</level>
 		<delay></delay>
@@ -4420,13 +4425,17 @@
 		</stats><skills>
 			<gray>2</gray>
 		</skills>
-		<self_buff>wis_gray_forcefield07</self_buff>
+		<mana>150</mana>
+		<self_buff>
+			<id>wis_gray_forcefield</id>
+			<level>7</level>
+		</self_buff>
 	</trick>
 	<trick>
 		<id>wis_gray_forcefield08</id>
 		<name><![CDATA[Силовое Поле [8]]]></name>
 		<description><![CDATA[Создает силовое поле вокруг мага, способное поглотить 144 ед. урона. Нанести критический удар оружием по силовому полю - невозможно]]></description>
-		<class>grey</class>
+		<class>grey_f</class>
 		<type>spell</type>
 		<level>8</level>
 		<delay></delay>
@@ -4437,13 +4446,17 @@
 		</tactics><skills>
 			<gray>3</gray>
 		</skills>
-		<self_buff>wis_gray_forcefield08</self_buff>
+		<mana>180</mana>
+		<self_buff>
+			<id>wis_gray_forcefield</id>
+			<level>8</level>
+		</self_buff>
 	</trick>
 	<trick>
 		<id>wis_gray_forcefield09</id>
 		<name><![CDATA[Силовое Поле [9]]]></name>
 		<description><![CDATA[Создает силовое поле вокруг мага, способное поглотить 172 ед. урона. Нанести критический удар оружием по силовому полю - невозможно]]></description>
-		<class>grey</class>
+		<class>grey_f</class>
 		<type>spell</type>
 		<level>9</level>
 		<delay></delay>
@@ -4454,13 +4467,17 @@
 		</tactics><skills>
 			<gray>4</gray>
 		</skills>
-		<self_buff>wis_gray_forcefield09</self_buff>
+		<mana>216</mana>
+		<self_buff>
+			<id>wis_gray_forcefield</id>
+			<level>9</level>
+		</self_buff>
 	</trick>
 	<trick>
 		<id>wis_gray_forcefield10</id>
 		<name><![CDATA[Силовое Поле [10]]]></name>
 		<description><![CDATA[Создает силовое поле вокруг мага, способное поглотить 207 ед. урона. Нанести критический удар оружием по силовому полю - невозможно]]></description>
-		<class>grey</class>
+		<class>grey_f</class>
 		<type>spell</type>
 		<level>10</level>
 		<delay></delay>
@@ -4471,13 +4488,17 @@
 		</tactics><skills>
 			<gray>5</gray>
 		</skills>
-		<self_buff>wis_gray_forcefield10</self_buff>
+		<mana>259</mana>
+		<self_buff>
+			<id>wis_gray_forcefield</id>
+			<level>10</level>
+		</self_buff>
 	</trick>
 	<trick>
 		<id>wis_gray_forcefield11</id>
 		<name><![CDATA[Силовое Поле [11]]]></name>
 		<description><![CDATA[Создает силовое поле вокруг мага, способное поглотить 248 ед. урона. Нанести критический удар оружием по силовому полю - невозможно]]></description>
-		<class>grey</class>
+		<class>grey_f</class>
 		<type>spell</type>
 		<level>11</level>
 		<delay></delay>
@@ -4488,7 +4509,11 @@
 		</tactics><skills>
 			<gray>6</gray>
 		</skills>
-		<self_buff>wis_gray_forcefield11</self_buff>
+		<mana>311</mana>
+		<self_buff>
+			<id>wis_gray_forcefield</id>
+			<level>11</level>
+		</self_buff>
 	</trick>
 	<trick>
 		<id>wis_gray_manabarrier07</id>
@@ -4501,7 +4526,11 @@
 		<stats>
 			<intel>40</intel>
 		</stats>
-		<self_buff>wis_gray_manabarrier07</self_buff>
+		<mana>15</mana>
+		<self_buff>
+			<id>wis_gray_manabarrier</id>
+			<level>7</level>
+		</self_buff>
 	</trick>
 	<trick>
 		<id>wis_gray_manabarrier08</id>
@@ -4514,7 +4543,11 @@
 		<stats>
 			<intel>50</intel>
 		</stats>
-		<self_buff>wis_gray_manabarrier08</self_buff>
+		<mana>15</mana>
+		<self_buff>
+			<id>wis_gray_manabarrier</id>
+			<level>8</level>
+		</self_buff>
 	</trick>
 	<trick>
 		<id>wis_gray_manabarrier09</id>
@@ -4527,7 +4560,11 @@
 		<stats>
 			<intel>60</intel>
 		</stats>
-		<self_buff>wis_gray_manabarrier09</self_buff>
+		<mana>15</mana>
+		<self_buff>
+			<id>wis_gray_manabarrier</id>
+			<level>9</level>
+		</self_buff>
 	</trick>
 	<trick>
 		<id>wis_gray_manabarrier10</id>
@@ -4540,7 +4577,11 @@
 		<stats>
 			<intel>75</intel>
 		</stats>
-		<self_buff>wis_gray_manabarrier10</self_buff>
+		<mana>15</mana>
+		<self_buff>
+			<id>wis_gray_manabarrier</id>
+			<level>10</level>
+		</self_buff>
 	</trick>
 	<trick>
 		<id>wis_gray_manabarrier11</id>
@@ -4553,7 +4594,11 @@
 		<stats>
 			<intel>100</intel>
 		</stats>
-		<self_buff>wis_gray_manabarrier11</self_buff>
+		<mana>15</mana>
+		<self_buff>
+			<id>wis_gray_manabarrier</id>
+			<level>11</level>
+		</self_buff>
 	</trick>
 	<trick>
 		<id>wis_gray_mastery</id>
@@ -4570,20 +4615,8 @@
 		</tactics><skills>
 			<gray>4</gray>
 		</skills>
+		<mana>50</mana>
 		<self_buff>wis_gray_mastery</self_buff>
-	</trick>
-	<trick>
-		<id>wis_gray_manabarrier</id>
-		<name><![CDATA[Магический Барьер]]></name>
-		<description><![CDATA[Создает магический барьер вокруг мага, способный поглотить 293 ед. урона, ценой 2 ед. маны за каждую единицу урона. <br>Барьер поглощает лишь половину повреждений. Не подвержен действию шока.]]></description>
-		<class>grey</class>
-		<type>spell</type>
-		<level>4</level>
-		<delay></delay>
-		<stats>
-			<intel>30</intel>
-		</stats>
-		<self_buff>wis_gray_manabarrier</self_buff>
 	</trick>
 	<trick>
 		<id>wis_gray_beam01</id>
@@ -4596,6 +4629,12 @@
 		<stats>
 			<intel>30</intel>
 		</stats>
+		<require_target>true</require_target>
+		<target_type>enemy</target_type>
+		<mana>50</mana>
+		<action arity="2">
+			<![CDATA[ ok ]]>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_light_heal04</id>
@@ -4608,6 +4647,13 @@
 		<stats>
 			<intel>30</intel>
 		</stats>
+		<mana>125</mana>
+		<action arity="1">
+			<predefined name="magic_heal/5">
+				<value>50</value>
+				<spirit>false</spirit>
+			</predefined>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_light_cleance</id>
@@ -4622,6 +4668,10 @@
 		</stats><skills>
 			<light>5</light>
 		</skills>
+		<mana>100</mana>
+		<action arity="2">
+			<![CDATA[ ok ]]>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_light_damage07</id>
@@ -4640,7 +4690,16 @@
 		</skills>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
-		<enemy_buff>wis_light_damage07</enemy_buff>
+		<mana>58</mana>
+		<action arity="2">
+			<predefined name="magic_hit/5">
+				<value>32</value>
+			</predefined>
+		</action>
+		<enemy_buff>
+			<id>wis_light_damage</id>
+			<level>7</level>
+		</enemy_buff>
 	</trick>
 	<trick>
 		<id>wis_light_damage08</id>
@@ -4659,7 +4718,16 @@
 		</skills>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
-		<self_buff>wis_light_damage08</self_buff>
+		<mana>70</mana>
+		<action arity="2">
+			<predefined name="magic_hit/5">
+				<value>38</value>
+			</predefined>
+		</action>
+		<enemy_buff>
+			<id>wis_light_damage</id>
+			<level>8</level>
+		</enemy_buff>
 	</trick>
 	<trick>
 		<id>wis_light_damage09</id>
@@ -4678,7 +4746,16 @@
 		</skills>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
-		<self_buff>wis_light_damage09</self_buff>
+		<mana>84</mana>
+		<action arity="2">
+			<predefined name="magic_hit/5">
+				<value>46</value>
+			</predefined>
+		</action>
+		<enemy_buff>
+			<id>wis_light_damage</id>
+			<level>9</level>
+		</enemy_buff>
 	</trick>
 	<trick>
 		<id>wis_light_damage10</id>
@@ -4697,7 +4774,16 @@
 		</skills>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
-		<self_buff>wis_light_damage10</self_buff>
+		<mana>101</mana>
+		<action arity="2">
+			<predefined name="magic_hit/5">
+				<value>55</value>
+			</predefined>
+		</action>
+		<enemy_buff>
+			<id>wis_light_damage</id>
+			<level>10</level>
+		</enemy_buff>
 	</trick>
 	<trick>
 		<id>wis_light_damage11</id>
@@ -4716,7 +4802,16 @@
 		</skills>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
-		<self_buff>wis_light_damage11</self_buff>
+		<mana>121</mana>
+		<action arity="2">
+			<predefined name="magic_hit/5">
+				<value>66</value>
+			</predefined>
+		</action>
+		<enemy_buff>
+			<id>wis_light_damage</id>
+			<level>11</level>
+		</enemy_buff>
 	</trick>
 	<trick>
 		<id>wis_light_heal07</id>
@@ -4733,6 +4828,14 @@
 		</tactics><skills>
 			<light>2</light>
 		</skills>
+		<require_target>true</require_target>
+		<target_type>friendly</target_type>
+		<mana>117</mana>
+		<action arity="2">
+			<predefined name="magic_heal/5">
+				<value>138</value>
+			</predefined>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_light_heal08</id>
@@ -4749,6 +4852,14 @@
 		</tactics><skills>
 			<light>3</light>
 		</skills>
+		<require_target>true</require_target>
+		<target_type>friendly</target_type>
+		<mana>140</mana>
+		<action arity="2">
+			<predefined name="magic_heal/5">
+				<value>165</value>
+			</predefined>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_light_heal09</id>
@@ -4765,6 +4876,14 @@
 		</tactics><skills>
 			<light>4</light>
 		</skills>
+		<require_target>true</require_target>
+		<target_type>friendly</target_type>
+		<mana>168</mana>
+		<action arity="2">
+			<predefined name="magic_heal/5">
+				<value>198</value>
+			</predefined>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_light_heal10</id>
@@ -4781,6 +4900,14 @@
 		</tactics><skills>
 			<light>5</light>
 		</skills>
+		<require_target>true</require_target>
+		<target_type>friendly</target_type>
+		<mana>202</mana>
+		<action arity="2">
+			<predefined name="magic_heal/5">
+				<value>238</value>
+			</predefined>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_light_heal11</id>
@@ -4797,6 +4924,14 @@
 		</tactics><skills>
 			<light>6</light>
 		</skills>
+		<require_target>true</require_target>
+		<target_type>friendly</target_type>
+		<mana>242</mana>
+		<action arity="2">
+			<predefined name="magic_heal/5">
+				<value>286</value>
+			</predefined>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_light_insight07</id>
@@ -4813,7 +4948,11 @@
 		</tactics><skills>
 			<light>2</light>
 		</skills>
-		<self_buff>wis_light_insight07</self_buff>
+		<mana>312</mana>
+		<self_buff>
+			<id>wis_light_insight</id>
+			<level>7</level>
+		</self_buff>
 	</trick>
 	<trick>
 		<id>wis_light_insight08</id>
@@ -4830,7 +4969,11 @@
 		</tactics><skills>
 			<light>3</light>
 		</skills>
-		<self_buff>wis_light_insight08</self_buff>
+		<mana>374</mana>
+		<self_buff>
+			<id>wis_light_insight</id>
+			<level>7</level>
+		</self_buff>
 	</trick>
 	<trick>
 		<id>wis_light_insight09</id>
@@ -4847,7 +4990,11 @@
 		</tactics><skills>
 			<light>4</light>
 		</skills>
-		<self_buff>wis_light_insight09</self_buff>
+		<mana>449</mana>
+		<self_buff>
+			<id>wis_light_insight</id>
+			<level>9</level>
+		</self_buff>
 	</trick>
 	<trick>
 		<id>wis_light_insight10</id>
@@ -4864,7 +5011,11 @@
 		</tactics><skills>
 			<light>5</light>
 		</skills>
-		<self_buff>wis_light_insight10</self_buff>
+		<mana>539</mana>
+		<self_buff>
+			<id>wis_light_insight</id>
+			<level>10</level>
+		</self_buff>
 	</trick>
 	<trick>
 		<id>wis_light_insight11</id>
@@ -4881,7 +5032,11 @@
 		</tactics><skills>
 			<light>6</light>
 		</skills>
-		<self_buff>wis_light_insight11</self_buff>
+		<mana>646</mana>
+		<self_buff>
+			<id>wis_light_insight</id>
+			<level>11</level>
+		</self_buff>
 	</trick>
 	<trick>
 		<id>wis_light_shield</id>
@@ -4896,6 +5051,7 @@
 		</stats><skills>
 			<light>4</light>
 		</skills>
+		<mana>200</mana>
 		<self_buff>wis_light_shield</self_buff>
 	</trick>
 	<trick>
@@ -4913,6 +5069,7 @@
 		</skills>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
+		<mana>100</mana>
 		<enemy_buff>wis_dark_soulweak</enemy_buff>
 	</trick>
 	<trick>
@@ -4928,6 +5085,12 @@
 		</stats><skills>
 			<dark>5</dark>
 		</skills>
+		<require_target>true</require_target>
+		<target_type>enemy</target_type>
+		<mana>50</mana>
+		<action arity="2">
+			<![CDATA[ ok ]]>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_dark_damage07</id>
@@ -4942,6 +5105,12 @@
 		</stats><skills>
 			<dark>5</dark>
 		</skills>
+		<require_target>true</require_target>
+		<target_type>enemy</target_type>
+		<mana>58</mana>
+		<action arity="2">
+			<![CDATA[ ok ]]>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_dark_damage08</id>
@@ -4956,6 +5125,12 @@
 		</stats><skills>
 			<dark>6</dark>
 		</skills>
+		<require_target>true</require_target>
+		<target_type>enemy</target_type>
+		<mana>70</mana>
+		<action arity="2">
+			<![CDATA[ ok ]]>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_dark_damage09</id>
@@ -4970,6 +5145,12 @@
 		</stats><skills>
 			<dark>7</dark>
 		</skills>
+		<require_target>true</require_target>
+		<target_type>enemy</target_type>
+		<mana>84</mana>
+		<action arity="2">
+			<![CDATA[ ok ]]>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_dark_damage10</id>
@@ -4984,6 +5165,12 @@
 		</stats><skills>
 			<dark>8</dark>
 		</skills>
+		<require_target>true</require_target>
+		<target_type>enemy</target_type>
+		<mana>101</mana>
+		<action arity="2">
+			<![CDATA[ ok ]]>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_dark_damage11</id>
@@ -4998,6 +5185,12 @@
 		</stats><skills>
 			<dark>9</dark>
 		</skills>
+		<require_target>true</require_target>
+		<target_type>enemy</target_type>
+		<mana>121</mana>
+		<action arity="2">
+			<![CDATA[ ok ]]>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_dark_manadamage07</id>
@@ -5016,7 +5209,14 @@
 		</skills>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
-		<enemy_buff>wis_dark_manadamage07</enemy_buff>
+		<mana>130</mana>
+		<action arity="2">
+			<![CDATA[ ok ]]>
+		</action>
+		<enemy_buff>
+			<id>wis_dark_manadamage</id>
+			<level>7</level>
+		</enemy_buff>
 	</trick>
 	<trick>
 		<id>wis_dark_manadamage08</id>
@@ -5035,7 +5235,14 @@
 		</skills>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
-		<self_buff>wis_dark_manadamage08</self_buff>
+		<mana>156</mana>
+		<action arity="2">
+			<![CDATA[ ok ]]>
+		</action>
+		<enemy_buff>
+			<id>wis_dark_manadamage</id>
+			<level>8</level>
+		</enemy_buff>
 	</trick>
 	<trick>
 		<id>wis_dark_manadamage09</id>
@@ -5054,7 +5261,14 @@
 		</skills>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
-		<self_buff>wis_dark_manadamage09</self_buff>
+		<mana>187</mana>
+		<action arity="2">
+			<![CDATA[ ok ]]>
+		</action>
+		<enemy_buff>
+			<id>wis_dark_manadamage</id>
+			<level>9</level>
+		</enemy_buff>
 	</trick>
 	<trick>
 		<id>wis_dark_manadamage10</id>
@@ -5073,7 +5287,14 @@
 		</skills>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
-		<self_buff>wis_dark_manadamage10</self_buff>
+		<mana>224</mana>
+		<action arity="2">
+			<![CDATA[ ok ]]>
+		</action>
+		<enemy_buff>
+			<id>wis_dark_manadamage</id>
+			<level>10</level>
+		</enemy_buff>
 	</trick>
 	<trick>
 		<id>wis_dark_manadamage11</id>
@@ -5092,7 +5313,14 @@
 		</skills>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
-		<self_buff>wis_dark_manadamage11</self_buff>
+		<mana>269</mana>
+		<action arity="2">
+			<![CDATA[ ok ]]>
+		</action>
+		<enemy_buff>
+			<id>wis_dark_manadamage</id>
+			<level>11</level>
+		</enemy_buff>
 	</trick>
 	<trick>
 		<id>wis_dark_eyeforeye</id>
@@ -5107,6 +5335,7 @@
 		</stats><skills>
 			<dark>4</dark>
 		</skills>
+		<mana>200</mana>
 		<self_buff>wis_dark_eyeforeye</self_buff>
 	</trick>
 	<trick>
@@ -5126,6 +5355,7 @@
 		</skills>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
+		<mana>25</mana>
 		<enemy_buff>wis_air_charge</enemy_buff>
 	</trick>
 	<trick>
@@ -5143,6 +5373,11 @@
 		</tactics><skills>
 			<air>7</air>
 		</skills>
+		<require_target>true</require_target>
+		<target_type>enemy</target_type>
+		<action arity="2">
+			<![CDATA[ ok ]]>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_air_charge_gain</id>
@@ -5159,6 +5394,11 @@
 		</tactics><skills>
 			<air>7</air>
 		</skills>
+		<require_target>true</require_target>
+		<target_type>enemy</target_type>
+		<action arity="2">
+			<![CDATA[ ok ]]>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_air_charge_dmg</id>
@@ -5175,6 +5415,11 @@
 		</tactics><skills>
 			<air>7</air>
 		</skills>
+		<require_target>true</require_target>
+		<target_type>enemy</target_type>
+		<action arity="2">
+			<![CDATA[ ok ]]>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_air_manaheal</id>
@@ -5192,6 +5437,8 @@
 		</tactics><skills>
 			<air>11</air>
 		</skills>
+		<require_target>true</require_target>
+		<target_type>friendly</target_type>
 		<self_buff>wis_air_manaheal</self_buff>
 	</trick>
 	<trick>
@@ -5209,6 +5456,7 @@
 		</tactics><skills>
 			<air>7</air>
 		</skills>
+		<mana>10</mana>
 		<self_buff>wis_air_sacrifice</self_buff>
 	</trick>
 	<trick>
@@ -5226,6 +5474,7 @@
 		</tactics><skills>
 			<air>8</air>
 		</skills>
+		<mana>85</mana>
 		<self_buff>wis_air_speed</self_buff>
 	</trick>
 	<trick>
@@ -5241,12 +5490,18 @@
 		</stats><skills>
 			<air>8</air>
 		</skills>
+		<require_target>true</require_target>
+		<target_type>any</target_type>
+		<mana>121</mana>
+		<action arity="2">
+			<![CDATA[ ok ]]>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_air_shield</id>
 		<name><![CDATA[Воздушный Щит]]></name>
 		<description><![CDATA[Создаёт воздушный кокон вокруг мага, способный поглотить 1-? ед. урона. Этот приём не подвержен действию шока. Общая задержка с заклинанием Силовое поле.]]></description>
-		<class>air</class>
+		<class>grey_f</class>
 		<type>spell</type>
 		<level>9</level>
 		<delay></delay>
@@ -5255,6 +5510,7 @@
 		</stats><skills>
 			<air>9</air>
 		</skills>
+		<mana>172</mana>
 		<self_buff>wis_air_shield</self_buff>
 	</trick>
 	<trick>
@@ -5272,7 +5528,10 @@
 		</tactics><skills>
 			<water>8</water>
 		</skills>
-		<self_buff>wis_water_tempheal</self_buff>
+		<mana>168</mana>
+		<action arity="2">
+			<![CDATA[ ok ]]>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_water_break</id>
@@ -5287,6 +5546,12 @@
 		</stats><skills>
 			<water>7</water>
 		</skills>
+		<require_target>true</require_target>
+		<target_type>enemy</target_type>
+		<mana>200</mana>
+		<action arity="2">
+			<![CDATA[ ok ]]>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_water_crystalize</id>
@@ -5303,6 +5568,10 @@
 		</skills>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
+		<mana>200</mana>
+		<action arity="2">
+			<![CDATA[ ok ]]>
+		</action>
 		<enemy_buff>wis_water_crystalize</enemy_buff>
 	</trick>
 	<trick>
@@ -5320,6 +5589,7 @@
 		</skills>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
+		<mana>100</mana>
 		<enemy_buff>wis_water_icegrap</enemy_buff>
 	</trick>
 	<trick>
@@ -5357,6 +5627,7 @@
 		</skills>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
+		<mana>70</mana>
 		<enemy_buff>wis_water_aheal</enemy_buff>
 	</trick>
 	<trick>
@@ -5372,6 +5643,10 @@
 		</stats><skills>
 			<water>8</water>
 		</skills>
+		<mana>100</mana>
+		<action arity="1">
+			<![CDATA[ ok ]]>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_water_hiddenpower</id>
@@ -5386,6 +5661,10 @@
 		</stats><skills>
 			<water>8</water>
 		</skills>
+		<mana>200</mana>
+		<action arity="1">
+			<![CDATA[ ok ]]>
+		</action>
 	</trick>
 	<trick>
 		<id>wis_water_sacrifice</id>
@@ -5402,6 +5681,7 @@
 		</tactics><skills>
 			<water>7</water>
 		</skills>
+		<mana>5</mana>
 		<self_buff>wis_water_sacrifice</self_buff>
 	</trick>
 	<trick>
@@ -5417,5 +5697,14 @@
 		</stats><skills>
 			<water>7</water>
 		</skills>
+		<require_target>true</require_target>
+		<target_type>enemy</target_type>
+		<mana>162</mana>
+		<action arity="2">
+			<predefined name="magic_hit/5">
+				<value>50</value>
+				<type>prick</type>
+			</predefined>
+		</action>
 	</trick>
 </tricks>
