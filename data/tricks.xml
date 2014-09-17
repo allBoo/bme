@@ -924,7 +924,7 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>5</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>20</intel>
 		</stats><tactics>
@@ -932,6 +932,7 @@
 		</tactics><skills>
 			<air>5</air>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>friendly</target_type>
 		<mana>46</mana>
@@ -959,7 +960,7 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>6</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>30</intel>
 		</stats><tactics>
@@ -967,6 +968,7 @@
 		</tactics><skills>
 			<air>6</air>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>friendly</target_type>
 		<mana>69</mana>
@@ -994,7 +996,7 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><tactics>
@@ -1002,6 +1004,7 @@
 		</tactics><skills>
 			<air>7</air>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>friendly</target_type>
 		<mana>104</mana>
@@ -1029,7 +1032,7 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><tactics>
@@ -1037,6 +1040,7 @@
 		</tactics><skills>
 			<air>8</air>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>friendly</target_type>
 		<mana>108</mana>
@@ -1064,7 +1068,7 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>9</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>60</intel>
 		</stats><tactics>
@@ -1072,6 +1076,7 @@
 		</tactics><skills>
 			<air>9</air>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>friendly</target_type>
 		<mana>126</mana>
@@ -1099,7 +1104,7 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>10</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>75</intel>
 		</stats><tactics>
@@ -1107,6 +1112,7 @@
 		</tactics><skills>
 			<air>10</air>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>friendly</target_type>
 		<mana>152</mana>
@@ -1134,7 +1140,7 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>11</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>100</intel>
 		</stats><tactics>
@@ -1142,6 +1148,7 @@
 		</tactics><skills>
 			<air>11</air>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>friendly</target_type>
 		<mana>215</mana>
@@ -1169,12 +1176,13 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>6</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>30</intel>
 		</stats><skills>
 			<air>6</air>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>71</mana>
@@ -1202,12 +1210,13 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><skills>
 			<air>7</air>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>107</mana>
@@ -1235,12 +1244,13 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><skills>
 			<air>8</air>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>128</mana>
@@ -1268,12 +1278,13 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>9</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>60</intel>
 		</stats><skills>
 			<air>9</air>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>154</mana>
@@ -1301,12 +1312,13 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>10</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>75</intel>
 		</stats><skills>
 			<air>10</air>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>185</mana>
@@ -1334,12 +1346,13 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>11</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>100</intel>
 		</stats><skills>
 			<air>11</air>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>222</mana>
@@ -1373,6 +1386,7 @@
 		</stats><skills>
 			<air>4</air>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>15</mana>
@@ -1400,6 +1414,7 @@
 		</stats><skills>
 			<air>5</air>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>23</mana>
@@ -1427,6 +1442,7 @@
 		</stats><skills>
 			<air>6</air>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>34</mana>
@@ -1454,6 +1470,7 @@
 		</stats><skills>
 			<air>7</air>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>52</mana>
@@ -1481,6 +1498,7 @@
 		</stats><skills>
 			<air>8</air>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>62</mana>
@@ -1508,6 +1526,7 @@
 		</stats><skills>
 			<air>9</air>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>74</mana>
@@ -1535,6 +1554,7 @@
 		</stats><skills>
 			<air>10</air>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>89</mana>
@@ -1562,6 +1582,7 @@
 		</stats><skills>
 			<air>11</air>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>107</mana>
@@ -1583,7 +1604,7 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>16</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><skills>
@@ -1616,7 +1637,7 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>9</level>
-		<delay></delay>
+		<delay>16</delay>
 		<stats>
 			<intel>60</intel>
 		</stats><skills>
@@ -1649,7 +1670,7 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>10</level>
-		<delay></delay>
+		<delay>16</delay>
 		<stats>
 			<intel>75</intel>
 		</stats><skills>
@@ -1682,7 +1703,7 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>11</level>
-		<delay></delay>
+		<delay>16</delay>
 		<stats>
 			<intel>100</intel>
 		</stats><skills>
@@ -1753,7 +1774,7 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>6</delay>
 		<stats>
 			<intel>20</intel>
 		</stats><tactics>
@@ -1774,7 +1795,7 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>6</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><tactics>
@@ -1795,7 +1816,7 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>9</level>
-		<delay></delay>
+		<delay>6</delay>
 		<stats>
 			<intel>60</intel>
 		</stats><tactics>
@@ -1816,7 +1837,7 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>10</level>
-		<delay></delay>
+		<delay>6</delay>
 		<stats>
 			<intel>80</intel>
 		</stats><tactics>
@@ -1837,12 +1858,13 @@
 		<class>earth</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><skills>
 			<earth>7</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>65</mana>
@@ -1857,12 +1879,13 @@
 		<class>earth</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><skills>
 			<earth>8</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>78</mana>
@@ -1877,12 +1900,13 @@
 		<class>earth</class>
 		<type>spell</type>
 		<level>9</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>60</intel>
 		</stats><skills>
 			<earth>9</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>93</mana>
@@ -1897,12 +1921,13 @@
 		<class>earth</class>
 		<type>spell</type>
 		<level>10</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>75</intel>
 		</stats><skills>
 			<earth>10</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>112</mana>
@@ -1917,12 +1942,13 @@
 		<class>earth</class>
 		<type>spell</type>
 		<level>11</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>100</intel>
 		</stats><skills>
 			<earth>11</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>134</mana>
@@ -1945,6 +1971,7 @@
 		</tactics><skills>
 			<earth>5</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>friendly</target_type>
 		<mana>23</mana>
@@ -1967,6 +1994,7 @@
 		</tactics><skills>
 			<earth>6</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>friendly</target_type>
 		<mana>34</mana>
@@ -1989,6 +2017,7 @@
 		</tactics><skills>
 			<earth>7</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>friendly</target_type>
 		<mana>52</mana>
@@ -2011,6 +2040,7 @@
 		</tactics><skills>
 			<earth>8</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>friendly</target_type>
 		<mana>78</mana>
@@ -2033,6 +2063,7 @@
 		</tactics><skills>
 			<earth>9</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>friendly</target_type>
 		<mana>93</mana>
@@ -2055,6 +2086,7 @@
 		</tactics><skills>
 			<earth>10</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>friendly</target_type>
 		<mana>112</mana>
@@ -2077,6 +2109,7 @@
 		</tactics><skills>
 			<earth>11</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>friendly</target_type>
 		<mana>134</mana>
@@ -2091,12 +2124,13 @@
 		<class>earth</class>
 		<type>spell</type>
 		<level>6</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>30</intel>
 		</stats><skills>
 			<earth>6</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>17</mana>
@@ -2112,12 +2146,13 @@
 		<class>earth</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><skills>
 			<earth>7</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>26</mana>
@@ -2133,12 +2168,13 @@
 		<class>earth</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><skills>
 			<earth>8</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>31</mana>
@@ -2154,12 +2190,13 @@
 		<class>earth</class>
 		<type>spell</type>
 		<level>9</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>60</intel>
 		</stats><skills>
 			<earth>9</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>37</mana>
@@ -2175,12 +2212,13 @@
 		<class>earth</class>
 		<type>spell</type>
 		<level>10</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>75</intel>
 		</stats><skills>
 			<earth>10</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>44</mana>
@@ -2196,12 +2234,13 @@
 		<class>earth</class>
 		<type>spell</type>
 		<level>11</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>100</intel>
 		</stats><skills>
 			<earth>11</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>53</mana>
@@ -2223,6 +2262,7 @@
 		</stats><skills>
 			<earth>5</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>52</mana>
@@ -2246,6 +2286,7 @@
 		</stats><skills>
 			<earth>6</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>78</mana>
@@ -2269,6 +2310,7 @@
 		</stats><skills>
 			<earth>7</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>99</mana>
@@ -2292,6 +2334,7 @@
 		</stats><skills>
 			<earth>8</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>140</mana>
@@ -2315,6 +2358,7 @@
 		</stats><skills>
 			<earth>9</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>168</mana>
@@ -2338,6 +2382,7 @@
 		</stats><skills>
 			<earth>10</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>202</mana>
@@ -2361,6 +2406,7 @@
 		</stats><skills>
 			<earth>11</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>242</mana>
@@ -2422,6 +2468,7 @@
 		</stats><skills>
 			<earth>7</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>75</mana>
@@ -2445,6 +2492,7 @@
 		</stats><skills>
 			<earth>7</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>90</mana>
@@ -2462,7 +2510,7 @@
 		<class>earth</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><skills>
@@ -2486,6 +2534,7 @@
 		</stats><skills>
 			<earth>4</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>11</mana>
@@ -2514,6 +2563,7 @@
 		</stats><skills>
 			<earth>5</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>17</mana>
@@ -2542,6 +2592,7 @@
 		</stats><skills>
 			<earth>6</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>26</mana>
@@ -2570,6 +2621,7 @@
 		</stats><skills>
 			<earth>7</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>39</mana>
@@ -2598,6 +2650,7 @@
 		</stats><skills>
 			<earth>8</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>46</mana>
@@ -2626,6 +2679,7 @@
 		</stats><skills>
 			<earth>9</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>56</mana>
@@ -2654,6 +2708,7 @@
 		</stats><skills>
 			<earth>10</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>67</mana>
@@ -2682,6 +2737,7 @@
 		</stats><skills>
 			<earth>11</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>80</mana>
@@ -2704,7 +2760,7 @@
 		<class>earth</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><tactics>
@@ -2712,6 +2768,7 @@
 		</tactics><skills>
 			<earth>8</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>128</mana>
@@ -2726,7 +2783,7 @@
 		<class>earth</class>
 		<type>spell</type>
 		<level>9</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>60</intel>
 		</stats><tactics>
@@ -2734,6 +2791,7 @@
 		</tactics><skills>
 			<earth>9</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>154</mana>
@@ -2748,7 +2806,7 @@
 		<class>earth</class>
 		<type>spell</type>
 		<level>10</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>75</intel>
 		</stats><tactics>
@@ -2756,6 +2814,7 @@
 		</tactics><skills>
 			<earth>10</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>185</mana>
@@ -2770,7 +2829,7 @@
 		<class>earth</class>
 		<type>spell</type>
 		<level>11</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>100</intel>
 		</stats><tactics>
@@ -2778,6 +2837,7 @@
 		</tactics><skills>
 			<earth>11</earth>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>222</mana>
@@ -2846,7 +2906,7 @@
 		<class>earth</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><tactics>
@@ -2866,7 +2926,7 @@
 		<class>earth</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>7</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><skills>
@@ -2882,7 +2942,7 @@
 		<class>earth</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>8</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><skills>
@@ -2898,10 +2958,11 @@
 		<class>earth</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>20</delay>
 		<skills>
 			<earth>12</earth>
 		</skills>
+		<expend>true</expend>
 		<mana>200</mana>
 		<action arity="1">
 			<![CDATA[ ok ]]>
@@ -2914,7 +2975,7 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><skills>
@@ -2934,7 +2995,7 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>9</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>60</intel>
 		</stats><skills>
@@ -2954,7 +3015,7 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>10</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>75</intel>
 		</stats><skills>
@@ -2974,7 +3035,7 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>11</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>100</intel>
 		</stats><skills>
@@ -2994,7 +3055,7 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>5</level>
-		<delay></delay>
+		<delay>4</delay>
 		<stats>
 			<intel>20</intel>
 		</stats><tactics>
@@ -3016,7 +3077,7 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>6</level>
-		<delay></delay>
+		<delay>4</delay>
 		<stats>
 			<intel>30</intel>
 		</stats><tactics>
@@ -3038,7 +3099,7 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>4</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><tactics>
@@ -3060,7 +3121,7 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>4</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><tactics>
@@ -3082,7 +3143,7 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>9</level>
-		<delay></delay>
+		<delay>4</delay>
 		<stats>
 			<intel>60</intel>
 		</stats><tactics>
@@ -3104,7 +3165,7 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>10</level>
-		<delay></delay>
+		<delay>4</delay>
 		<stats>
 			<intel>75</intel>
 		</stats><tactics>
@@ -3126,7 +3187,7 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>11</level>
-		<delay></delay>
+		<delay>4</delay>
 		<stats>
 			<intel>100</intel>
 		</stats><tactics>
@@ -3148,12 +3209,13 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>6</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>30</intel>
 		</stats><skills>
 			<fire>6</fire>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>38</mana>
@@ -3169,12 +3231,13 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><skills>
 			<fire>7</fire>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>57</mana>
@@ -3190,12 +3253,13 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><skills>
 			<fire>8</fire>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>68</mana>
@@ -3211,12 +3275,13 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>9</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>60</intel>
 		</stats><skills>
 			<fire>9</fire>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>82</mana>
@@ -3232,12 +3297,13 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>10</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>75</intel>
 		</stats><skills>
 			<fire>10</fire>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>98</mana>
@@ -3253,12 +3319,13 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>11</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>100</intel>
 		</stats><skills>
 			<fire>11</fire>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>118</mana>
@@ -3280,6 +3347,7 @@
 		</stats><skills>
 			<fire>4</fire>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>15</mana>
@@ -3302,6 +3370,7 @@
 		</stats><skills>
 			<fire>5</fire>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>23</mana>
@@ -3324,6 +3393,7 @@
 		</stats><skills>
 			<fire>6</fire>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>34</mana>
@@ -3346,6 +3416,7 @@
 		</stats><skills>
 			<fire>7</fire>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>52</mana>
@@ -3368,6 +3439,7 @@
 		</stats><skills>
 			<fire>8</fire>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>62</mana>
@@ -3390,6 +3462,7 @@
 		</stats><skills>
 			<fire>9</fire>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>75</mana>
@@ -3412,6 +3485,7 @@
 		</stats><skills>
 			<fire>10</fire>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>89</mana>
@@ -3434,6 +3508,7 @@
 		</stats><skills>
 			<fire>11</fire>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>107</mana>
@@ -3488,7 +3563,7 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>10</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><skills>
@@ -3528,7 +3603,7 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><skills>
@@ -3548,12 +3623,13 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>25</intel>
 		</stats><skills>
 			<fire>7</fire>
 		</skills>
+		<expend>true</expend>
 		<mana>25</mana>
 		<self_buff>wis_fire_boost</self_buff>
 	</trick>
@@ -3564,10 +3640,12 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>40</intel>
-		</stats><skills>
+		</stats><tactics>
+			<hearts>5</hearts>
+		</tactics><skills>
 			<fire>7</fire>
 		</skills>
 		<mana>4</mana>
@@ -3588,6 +3666,7 @@
 		</stats><skills>
 			<fire>8</fire>
 		</skills>
+		<expend>true</expend>
 		<mana>83</mana>
 		<action arity="2">
 			<![CDATA[ ok ]]>
@@ -3600,7 +3679,7 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>8</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><skills>
@@ -3616,12 +3695,13 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><skills>
 			<fire>8</fire>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>109</mana>
@@ -3636,12 +3716,13 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>9</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>60</intel>
 		</stats><skills>
 			<fire>9</fire>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>131</mana>
@@ -3656,12 +3737,13 @@
 		<class>fire</class>
 		<type>spell</type>
 		<level>10</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>75</intel>
 		</stats><skills>
 			<fire>10</fire>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>157</mana>
@@ -3676,12 +3758,13 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>10</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><skills>
 			<water>8</water>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>157</mana>
@@ -3707,12 +3790,13 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>9</level>
-		<delay></delay>
+		<delay>10</delay>
 		<stats>
 			<intel>60</intel>
 		</stats><skills>
 			<water>9</water>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>187</mana>
@@ -3738,12 +3822,13 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>10</level>
-		<delay></delay>
+		<delay>10</delay>
 		<stats>
 			<intel>75</intel>
 		</stats><skills>
 			<water>10</water>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>224</mana>
@@ -3769,12 +3854,13 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>11</level>
-		<delay></delay>
+		<delay>10</delay>
 		<stats>
 			<intel>100</intel>
 		</stats><skills>
 			<water>11</water>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>269</mana>
@@ -3806,6 +3892,7 @@
 		</stats><skills>
 			<water>4</water>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>17</mana>
@@ -3826,6 +3913,7 @@
 		</stats><skills>
 			<water>5</water>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>26</mana>
@@ -3846,6 +3934,7 @@
 		</stats><skills>
 			<water>6</water>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>39</mana>
@@ -3866,6 +3955,7 @@
 		</stats><skills>
 			<water>7</water>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>58</mana>
@@ -3886,6 +3976,7 @@
 		</stats><skills>
 			<water>8</water>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>70</mana>
@@ -3906,6 +3997,7 @@
 		</stats><skills>
 			<water>9</water>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>84</mana>
@@ -3926,6 +4018,7 @@
 		</stats><skills>
 			<water>10</water>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>101</mana>
@@ -3946,6 +4039,7 @@
 		</stats><skills>
 			<water>11</water>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>121</mana>
@@ -3960,7 +4054,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>6</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>30</intel>
 		</stats><skills>
@@ -3981,7 +4075,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><skills>
@@ -4002,7 +4096,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><skills>
@@ -4023,7 +4117,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>9</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>60</intel>
 		</stats><skills>
@@ -4044,7 +4138,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>10</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>75</intel>
 		</stats><skills>
@@ -4065,7 +4159,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>11</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>100</intel>
 		</stats><skills>
@@ -4086,7 +4180,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>5</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>20</intel>
 		</stats><tactics>
@@ -4109,7 +4203,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>6</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>30</intel>
 		</stats><tactics>
@@ -4132,7 +4226,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><tactics>
@@ -4155,7 +4249,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><tactics>
@@ -4178,7 +4272,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>9</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>60</intel>
 		</stats><tactics>
@@ -4201,7 +4295,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>10</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>75</intel>
 		</stats><tactics>
@@ -4224,7 +4318,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>11</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>100</intel>
 		</stats><tactics>
@@ -4285,7 +4379,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>8</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><skills>
@@ -4304,7 +4398,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>8</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><skills>
@@ -4323,7 +4417,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>9</level>
-		<delay></delay>
+		<delay>8</delay>
 		<stats>
 			<intel>60</intel>
 		</stats><skills>
@@ -4342,7 +4436,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>9</level>
-		<delay></delay>
+		<delay>8</delay>
 		<stats>
 			<intel>60</intel>
 		</stats><skills>
@@ -4361,7 +4455,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>9</level>
-		<delay></delay>
+		<delay>8</delay>
 		<stats>
 			<intel>60</intel>
 		</stats><skills>
@@ -4380,12 +4474,13 @@
 		<class>grey</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>10</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><skills>
 			<gray>4</gray>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>5</mana>
@@ -4408,6 +4503,7 @@
 		</tactics><skills>
 			<gray>3</gray>
 		</skills>
+		<expend>true</expend>
 		<action arity="2">
 			<![CDATA[ ok ]]>
 		</action>
@@ -4419,7 +4515,7 @@
 		<class>grey_f</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>8</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><skills>
@@ -4438,7 +4534,7 @@
 		<class>grey_f</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>8</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><tactics>
@@ -4459,7 +4555,7 @@
 		<class>grey_f</class>
 		<type>spell</type>
 		<level>9</level>
-		<delay></delay>
+		<delay>8</delay>
 		<stats>
 			<intel>60</intel>
 		</stats><tactics>
@@ -4480,7 +4576,7 @@
 		<class>grey_f</class>
 		<type>spell</type>
 		<level>10</level>
-		<delay></delay>
+		<delay>8</delay>
 		<stats>
 			<intel>75</intel>
 		</stats><tactics>
@@ -4501,7 +4597,7 @@
 		<class>grey_f</class>
 		<type>spell</type>
 		<level>11</level>
-		<delay></delay>
+		<delay>8</delay>
 		<stats>
 			<intel>100</intel>
 		</stats><tactics>
@@ -4607,7 +4703,7 @@
 		<class>grey</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><tactics>
@@ -4625,10 +4721,11 @@
 		<class>grey</class>
 		<type>spell</type>
 		<level>4</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>30</intel>
 		</stats>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>50</mana>
@@ -4643,7 +4740,7 @@
 		<class>grey</class>
 		<type>spell</type>
 		<level>4</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>30</intel>
 		</stats>
@@ -4662,7 +4759,7 @@
 		<class>light</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><skills>
@@ -4688,6 +4785,7 @@
 		</tactics><skills>
 			<light>2</light>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>58</mana>
@@ -4716,6 +4814,7 @@
 		</tactics><skills>
 			<light>3</light>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>70</mana>
@@ -4744,6 +4843,7 @@
 		</tactics><skills>
 			<light>4</light>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>84</mana>
@@ -4772,6 +4872,7 @@
 		</tactics><skills>
 			<light>5</light>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>101</mana>
@@ -4800,6 +4901,7 @@
 		</tactics><skills>
 			<light>6</light>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>121</mana>
@@ -4828,6 +4930,7 @@
 		</tactics><skills>
 			<light>2</light>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>friendly</target_type>
 		<mana>117</mana>
@@ -4852,6 +4955,7 @@
 		</tactics><skills>
 			<light>3</light>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>friendly</target_type>
 		<mana>140</mana>
@@ -4876,6 +4980,7 @@
 		</tactics><skills>
 			<light>4</light>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>friendly</target_type>
 		<mana>168</mana>
@@ -4900,6 +5005,7 @@
 		</tactics><skills>
 			<light>5</light>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>friendly</target_type>
 		<mana>202</mana>
@@ -4924,6 +5030,7 @@
 		</tactics><skills>
 			<light>6</light>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>friendly</target_type>
 		<mana>242</mana>
@@ -4940,7 +5047,7 @@
 		<class>light</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>20</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><tactics>
@@ -4948,6 +5055,7 @@
 		</tactics><skills>
 			<light>2</light>
 		</skills>
+		<expend>true</expend>
 		<mana>312</mana>
 		<self_buff>
 			<id>wis_light_insight</id>
@@ -4961,7 +5069,7 @@
 		<class>light</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>20</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><tactics>
@@ -4969,6 +5077,7 @@
 		</tactics><skills>
 			<light>3</light>
 		</skills>
+		<expend>true</expend>
 		<mana>374</mana>
 		<self_buff>
 			<id>wis_light_insight</id>
@@ -4982,7 +5091,7 @@
 		<class>light</class>
 		<type>spell</type>
 		<level>9</level>
-		<delay></delay>
+		<delay>20</delay>
 		<stats>
 			<intel>60</intel>
 		</stats><tactics>
@@ -4990,6 +5099,7 @@
 		</tactics><skills>
 			<light>4</light>
 		</skills>
+		<expend>true</expend>
 		<mana>449</mana>
 		<self_buff>
 			<id>wis_light_insight</id>
@@ -5003,7 +5113,7 @@
 		<class>light</class>
 		<type>spell</type>
 		<level>10</level>
-		<delay></delay>
+		<delay>20</delay>
 		<stats>
 			<intel>75</intel>
 		</stats><tactics>
@@ -5011,6 +5121,7 @@
 		</tactics><skills>
 			<light>5</light>
 		</skills>
+		<expend>true</expend>
 		<mana>539</mana>
 		<self_buff>
 			<id>wis_light_insight</id>
@@ -5024,7 +5135,7 @@
 		<class>light</class>
 		<type>spell</type>
 		<level>11</level>
-		<delay></delay>
+		<delay>20</delay>
 		<stats>
 			<intel>100</intel>
 		</stats><tactics>
@@ -5032,6 +5143,7 @@
 		</tactics><skills>
 			<light>6</light>
 		</skills>
+		<expend>true</expend>
 		<mana>646</mana>
 		<self_buff>
 			<id>wis_light_insight</id>
@@ -5045,7 +5157,7 @@
 		<class>light</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>10</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><skills>
@@ -5061,7 +5173,7 @@
 		<class>dark</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><skills>
@@ -5079,7 +5191,7 @@
 		<class>dark</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><skills>
@@ -5105,6 +5217,7 @@
 		</stats><skills>
 			<dark>5</dark>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>58</mana>
@@ -5125,6 +5238,7 @@
 		</stats><skills>
 			<dark>6</dark>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>70</mana>
@@ -5145,6 +5259,7 @@
 		</stats><skills>
 			<dark>7</dark>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>84</mana>
@@ -5165,6 +5280,7 @@
 		</stats><skills>
 			<dark>8</dark>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>101</mana>
@@ -5185,6 +5301,7 @@
 		</stats><skills>
 			<dark>9</dark>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>121</mana>
@@ -5199,7 +5316,7 @@
 		<class>dark</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><tactics>
@@ -5207,6 +5324,7 @@
 		</tactics><skills>
 			<dark>5</dark>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>130</mana>
@@ -5225,7 +5343,7 @@
 		<class>dark</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><tactics>
@@ -5233,6 +5351,7 @@
 		</tactics><skills>
 			<dark>6</dark>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>156</mana>
@@ -5251,7 +5370,7 @@
 		<class>dark</class>
 		<type>spell</type>
 		<level>9</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>60</intel>
 		</stats><tactics>
@@ -5259,6 +5378,7 @@
 		</tactics><skills>
 			<dark>7</dark>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>187</mana>
@@ -5277,7 +5397,7 @@
 		<class>dark</class>
 		<type>spell</type>
 		<level>10</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>75</intel>
 		</stats><tactics>
@@ -5285,6 +5405,7 @@
 		</tactics><skills>
 			<dark>8</dark>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>224</mana>
@@ -5303,7 +5424,7 @@
 		<class>dark</class>
 		<type>spell</type>
 		<level>11</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>100</intel>
 		</stats><tactics>
@@ -5311,6 +5432,7 @@
 		</tactics><skills>
 			<dark>9</dark>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>269</mana>
@@ -5329,7 +5451,7 @@
 		<class>dark</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>10</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><skills>
@@ -5345,7 +5467,7 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><tactics>
@@ -5365,7 +5487,7 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><tactics>
@@ -5386,7 +5508,7 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><tactics>
@@ -5407,7 +5529,7 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><tactics>
@@ -5428,7 +5550,7 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>10</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><tactics>
@@ -5437,6 +5559,7 @@
 		</tactics><skills>
 			<air>11</air>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>friendly</target_type>
 		<self_buff>wis_air_manaheal</self_buff>
@@ -5448,7 +5571,7 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>10</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><tactics>
@@ -5466,7 +5589,8 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>10</delay>
+		<initial_delay>5</initial_delay>
 		<stats>
 			<intel>50</intel>
 		</stats><tactics>
@@ -5484,7 +5608,7 @@
 		<class>air</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>10</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><skills>
@@ -5504,12 +5628,13 @@
 		<class>grey_f</class>
 		<type>spell</type>
 		<level>9</level>
-		<delay></delay>
+		<delay>10</delay>
 		<stats>
 			<intel>60</intel>
 		</stats><skills>
 			<air>9</air>
 		</skills>
+		<expend>true</expend>
 		<mana>172</mana>
 		<self_buff>wis_air_shield</self_buff>
 	</trick>
@@ -5520,7 +5645,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><tactics>
@@ -5540,12 +5665,13 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><skills>
 			<water>7</water>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>200</mana>
@@ -5560,7 +5686,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><skills>
@@ -5581,7 +5707,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>10</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><skills>
@@ -5599,7 +5725,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>10</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><tactics>
@@ -5637,7 +5763,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>5</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><skills>
@@ -5655,12 +5781,13 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>8</level>
-		<delay></delay>
+		<delay>10</delay>
 		<stats>
 			<intel>50</intel>
 		</stats><skills>
 			<water>8</water>
 		</skills>
+		<expend>true</expend>
 		<mana>200</mana>
 		<action arity="1">
 			<![CDATA[ ok ]]>
@@ -5673,7 +5800,7 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>10</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><tactics>
@@ -5691,12 +5818,13 @@
 		<class>water</class>
 		<type>spell</type>
 		<level>7</level>
-		<delay></delay>
+		<delay>3</delay>
 		<stats>
 			<intel>40</intel>
 		</stats><skills>
 			<water>7</water>
 		</skills>
+		<expend>true</expend>
 		<require_target>true</require_target>
 		<target_type>enemy</target_type>
 		<mana>162</mana>
